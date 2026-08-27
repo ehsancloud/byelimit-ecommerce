@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+@theme {
+  --font-farsi: var(--font-farsi), sans-serif;
+}
+

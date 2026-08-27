@@ -1,0 +1,22 @@
+[Unit]
+Description=ByeLimit Backend (Node.js)
+After=network.target
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+WorkingDirectory=/var/www/byelimit/Backend
+# Env file on server (create /etc/byelimit/.env with production variables)
+EnvironmentFile=/etc/byelimit/.env
+ExecStart=/usr/bin/node src/server.js
+# Restart and resource limits
+Restart=on-failure
+RestartSec=5s
+LimitNOFILE=65536
+# Log to journal
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

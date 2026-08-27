@@ -1,0 +1,851 @@
+[
+  {
+    "slug": "chatgpt",
+    "sku": "CHATGPT-01",
+    "category": "text",
+    "title": "ChatGPT",
+    "sourcingRegion": "فیلیپین",
+    "variants": [
+      {
+        "id": "go",
+        "name": "Go",
+        "costUsd": 8.0,
+        "isPopular": false
+      },
+      {
+        "id": "plus",
+        "name": "Plus",
+        "costUsd": 20.0,
+        "isPopular": true
+      },
+      {
+        "id": "pro-5x",
+        "name": "Pro 5x",
+        "costUsd": 100.0,
+        "isPopular": false
+      },
+      {
+        "id": "pro-20x",
+        "name": "Pro 20x",
+        "costUsd": 200.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "gemini",
+    "sku": "GEMINI-01",
+    "category": "text",
+    "title": "Gemini",
+    "sourcingRegion": "هند",
+    "variants": [
+      {
+        "id": "google-ai-plus",
+        "name": "Google AI plus",
+        "costUsd": 5.0,
+        "isPopular": false
+      },
+      {
+        "id": "google-ai-pro",
+        "name": "Google AI pro",
+        "costUsd": 20.0,
+        "isPopular": true
+      },
+      {
+        "id": "google-ai-ultra",
+        "name": "Google AI ultra",
+        "costUsd": 100.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "grok",
+    "sku": "GROK-01",
+    "category": "text",
+    "title": "Grok",
+    "sourcingRegion": "_",
+    "variants": [
+      {
+        "id": "supergrok-lite",
+        "name": "Supergrok lite",
+        "costUsd": 10.0,
+        "isPopular": false
+      },
+      {
+        "id": "supergrok",
+        "name": "Supergrok",
+        "costUsd": 30.0,
+        "isPopular": true
+      },
+      {
+        "id": "supergrok-heavy",
+        "name": "Supergrok heavy",
+        "costUsd": 300.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "claude",
+    "sku": "CLAUDE-01",
+    "category": "code",
+    "title": "Claude",
+    "sourcingRegion": "_",
+    "variants": [
+      {
+        "id": "pro",
+        "name": "pro",
+        "costUsd": 20.0,
+        "isPopular": false
+      },
+      {
+        "id": "max-5x",
+        "name": "max 5x",
+        "costUsd": 100.0,
+        "isPopular": true
+      },
+      {
+        "id": "max-20x",
+        "name": "max 20x",
+        "costUsd": 200.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "copilot",
+    "sku": "COPILOT-01",
+    "category": "code",
+    "title": "GitHub Copilot",
+    "sourcingRegion": "جهانی",
+    "variants": [
+      {
+        "id": "pro",
+        "name": "pro",
+        "costUsd": 10.0,
+        "isPopular": false
+      },
+      {
+        "id": "pro",
+        "name": "pro+",
+        "costUsd": 40.0,
+        "isPopular": true
+      },
+      {
+        "id": "max",
+        "name": "max",
+        "costUsd": 100.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "cursor",
+    "sku": "CURSOR-01",
+    "category": "code",
+    "title": "Cursor",
+    "sourcingRegion": "هند",
+    "variants": [
+      {
+        "id": "pro",
+        "name": "pro",
+        "costUsd": 20.0,
+        "isPopular": false
+      },
+      {
+        "id": "pro",
+        "name": "pro+",
+        "costUsd": 60.0,
+        "isPopular": true
+      },
+      {
+        "id": "ultra",
+        "name": "ultra",
+        "costUsd": 200.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "replit",
+    "sku": "REPLIT-01",
+    "category": "code",
+    "title": "Replit",
+    "sourcingRegion": "جهانی",
+    "variants": [
+      {
+        "id": "core",
+        "name": "core",
+        "costUsd": 20.0,
+        "isPopular": false
+      },
+      {
+        "id": "pro",
+        "name": "pro",
+        "costUsd": 100.0,
+        "isPopular": true
+      }
+    ]
+  },
+  {
+    "slug": "windsurf",
+    "sku": "WINDSURF-01",
+    "category": "code",
+    "title": "Windsurf (Devin)",
+    "sourcingRegion": "جهانی",
+    "variants": [
+      {
+        "id": "pro",
+        "name": "pro",
+        "costUsd": 20.0,
+        "isPopular": false
+      },
+      {
+        "id": "team",
+        "name": "team",
+        "costUsd": 80.0,
+        "isPopular": true
+      },
+      {
+        "id": "max",
+        "name": "max",
+        "costUsd": 200.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "leonardo-ai",
+    "sku": "LEONARDO-AI-01",
+    "category": "image",
+    "title": "Leonardo AI",
+    "sourcingRegion": "نیجریه (تایید نشده)",
+    "variants": [
+      {
+        "id": "essential",
+        "name": "essential",
+        "costUsd": 12.0,
+        "isPopular": false
+      },
+      {
+        "id": "permium",
+        "name": "permium",
+        "costUsd": 30.0,
+        "isPopular": true
+      },
+      {
+        "id": "ultimate",
+        "name": "ultimate",
+        "costUsd": 60.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "canva",
+    "sku": "CANVA-01",
+    "category": "image",
+    "title": "Canva",
+    "sourcingRegion": "نیجریه و پاکستان(تایید نشده)",
+    "variants": [
+      {
+        "id": "pro",
+        "name": "pro",
+        "costUsd": 18.0,
+        "isPopular": false
+      },
+      {
+        "id": "business",
+        "name": "business",
+        "costUsd": 25.0,
+        "isPopular": true
+      }
+    ]
+  },
+  {
+    "slug": "midjourney",
+    "sku": "MIDJOURNEY-01",
+    "category": "image",
+    "title": "Midjourney",
+    "sourcingRegion": "جهانی",
+    "variants": [
+      {
+        "id": "basic",
+        "name": "basic",
+        "costUsd": 10.0,
+        "isPopular": false
+      },
+      {
+        "id": "standard",
+        "name": "standard",
+        "costUsd": 30.0,
+        "isPopular": true
+      },
+      {
+        "id": "pro",
+        "name": "pro",
+        "costUsd": 60.0,
+        "isPopular": false
+      },
+      {
+        "id": "mega",
+        "name": "mega",
+        "costUsd": 120.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "capcut",
+    "sku": "CAPCUT-01",
+    "category": "video",
+    "title": "CapCut",
+    "sourcingRegion": "ترکیه (تایید نشده)",
+    "variants": [
+      {
+        "id": "pro",
+        "name": "pro",
+        "costUsd": 20.0,
+        "isPopular": false
+      },
+      {
+        "id": "ultra",
+        "name": "ultra",
+        "costUsd": 70.0,
+        "isPopular": true
+      }
+    ]
+  },
+  {
+    "slug": "kling",
+    "sku": "KLING-01",
+    "category": "video",
+    "title": "Kling AI",
+    "sourcingRegion": null,
+    "variants": [
+      {
+        "id": "standard",
+        "name": "standard",
+        "costUsd": 10.0,
+        "isPopular": false
+      },
+      {
+        "id": "pro",
+        "name": "pro",
+        "costUsd": 40.0,
+        "isPopular": true
+      },
+      {
+        "id": "premier",
+        "name": "premier",
+        "costUsd": 100.0,
+        "isPopular": false
+      },
+      {
+        "id": "ultra",
+        "name": "ultra",
+        "costUsd": 180.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "suno",
+    "sku": "SUNO-01",
+    "category": "audio",
+    "title": "Suno AI",
+    "sourcingRegion": "جهانی",
+    "variants": [
+      {
+        "id": "pro",
+        "name": "pro",
+        "costUsd": 10.0,
+        "isPopular": false
+      },
+      {
+        "id": "premier",
+        "name": "premier",
+        "costUsd": 30.0,
+        "isPopular": true
+      }
+    ]
+  },
+  {
+    "slug": "elevenlabs",
+    "sku": "ELEVENLABS-01",
+    "category": "audio",
+    "title": "ElevenLabs",
+    "sourcingRegion": "جهانی",
+    "variants": [
+      {
+        "id": "starter",
+        "name": "Starter",
+        "costUsd": 10.0,
+        "isPopular": false
+      },
+      {
+        "id": "creator",
+        "name": "creator",
+        "costUsd": 25.0,
+        "isPopular": true
+      },
+      {
+        "id": "pro",
+        "name": "pro",
+        "costUsd": 100.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "manus",
+    "sku": "MANUS-01",
+    "category": "research",
+    "title": "Manus",
+    "sourcingRegion": "جهانی",
+    "variants": [
+      {
+        "id": "standard",
+        "name": "standard",
+        "costUsd": 20.0,
+        "isPopular": false
+      },
+      {
+        "id": "customizable",
+        "name": "customizable",
+        "costUsd": 40.0,
+        "isPopular": true
+      },
+      {
+        "id": "extended",
+        "name": "extended",
+        "costUsd": 200.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "quillbot",
+    "sku": "QUILLBOT-01",
+    "category": "research",
+    "title": "QuillBot",
+    "sourcingRegion": "جهانی (خرید بسته های بلند مدت تر صرفه بسیار بالاتری دارند",
+    "variants": [
+      {
+        "id": "premium",
+        "name": "premium",
+        "costUsd": 20.0,
+        "isPopular": true
+      }
+    ]
+  },
+  {
+    "slug": "spotify",
+    "sku": "SPOTIFY-01",
+    "category": "film-music",
+    "title": "Spotify",
+    "sourcingRegion": "نیجریه",
+    "variants": [
+      {
+        "id": "individual",
+        "name": "individual",
+        "costUsd": 13.0,
+        "isPopular": false
+      },
+      {
+        "id": "duo",
+        "name": "duo",
+        "costUsd": 19.0,
+        "isPopular": true
+      },
+      {
+        "id": "family",
+        "name": "family",
+        "costUsd": 22.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "youtube-premium",
+    "sku": "YOUTUBE-PREMIUM-01",
+    "category": "film-music",
+    "title": "YouTube Premium",
+    "sourcingRegion": "هند- ترکیه – مصر",
+    "variants": [
+      {
+        "id": "lite-music-not-included",
+        "name": "lite (music not included)",
+        "costUsd": 9.0,
+        "isPopular": false
+      },
+      {
+        "id": "individual",
+        "name": "individual",
+        "costUsd": 16.0,
+        "isPopular": true
+      },
+      {
+        "id": "family",
+        "name": "family",
+        "costUsd": 27.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "apple-music",
+    "sku": "APPLE-MUSIC-01",
+    "category": "film-music",
+    "title": "Apple Music",
+    "sourcingRegion": "مصر – نیجریه – ترکیه",
+    "variants": [
+      {
+        "id": "individual",
+        "name": "individual",
+        "costUsd": 12.0,
+        "isPopular": false
+      },
+      {
+        "id": "family",
+        "name": "family",
+        "costUsd": 20.0,
+        "isPopular": true
+      }
+    ]
+  },
+  {
+    "slug": "netflix",
+    "sku": "NETFLIX-01",
+    "category": "film-music",
+    "title": "Netflix",
+    "sourcingRegion": "پاکستان (تایید نشده)",
+    "variants": [
+      {
+        "id": "standard-with-ad",
+        "name": "standard with ad",
+        "costUsd": 9.0,
+        "isPopular": false
+      },
+      {
+        "id": "standard",
+        "name": "standard",
+        "costUsd": 20.0,
+        "isPopular": true
+      },
+      {
+        "id": "premium",
+        "name": "premium",
+        "costUsd": 27.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "apple-tv",
+    "sku": "APPLE-TV-01",
+    "category": "film-music",
+    "title": "Apple TV+",
+    "sourcingRegion": null,
+    "variants": [
+      {
+        "id": "individual",
+        "name": "individual",
+        "costUsd": 13.0,
+        "isPopular": true
+      }
+    ]
+  },
+  {
+    "slug": "playstation-plus",
+    "sku": "PLAYSTATION-PLUS-01",
+    "category": "gaming",
+    "title": "PlayStation Plus",
+    "sourcingRegion": "ترکیه (تایید نشده)",
+    "variants": [
+      {
+        "id": "essential",
+        "name": "essential",
+        "costUsd": 11.0,
+        "isPopular": false
+      },
+      {
+        "id": "extra",
+        "name": "extra",
+        "costUsd": 17.0,
+        "isPopular": true
+      },
+      {
+        "id": "premium",
+        "name": "premium",
+        "costUsd": 20.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "xbox-game-pass",
+    "sku": "XBOX-GAME-PASS-01",
+    "category": "gaming",
+    "title": "Xbox Game Pass",
+    "sourcingRegion": "هند (تایید نشده)",
+    "variants": [
+      {
+        "id": "essential",
+        "name": "essential",
+        "costUsd": 10.0,
+        "isPopular": false
+      },
+      {
+        "id": "premium",
+        "name": "premium",
+        "costUsd": 15.0,
+        "isPopular": true
+      },
+      {
+        "id": "ultimate",
+        "name": "ultimate",
+        "costUsd": 23.0,
+        "isPopular": false
+      },
+      {
+        "id": "pc-only",
+        "name": "pc only",
+        "costUsd": 14.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "discord-nitro",
+    "sku": "DISCORD-NITRO-01",
+    "category": "gaming",
+    "title": "Discord Nitro",
+    "sourcingRegion": "ترکیه (تایید نشده)",
+    "variants": [
+      {
+        "id": "nitro-basic",
+        "name": "nitro basic",
+        "costUsd": 3.0,
+        "isPopular": false
+      },
+      {
+        "id": "nitro",
+        "name": "nitro",
+        "costUsd": 10.0,
+        "isPopular": true
+      }
+    ]
+  },
+  {
+    "slug": "figma",
+    "sku": "FIGMA-01",
+    "category": "design-graphics",
+    "title": "Figma",
+    "sourcingRegion": "جهانی",
+    "variants": [
+      {
+        "id": "collab-seat",
+        "name": "collab seat",
+        "costUsd": 5.0,
+        "isPopular": false
+      },
+      {
+        "id": "dev-seat",
+        "name": "dev seat",
+        "costUsd": 15.0,
+        "isPopular": true
+      },
+      {
+        "id": "full-seat",
+        "name": "full seat",
+        "costUsd": 20.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "semrush",
+    "sku": "SEMRUSH-01",
+    "category": "seo-marketing",
+    "title": "Semrush",
+    "sourcingRegion": "جهانی",
+    "variants": [
+      {
+        "id": "seo",
+        "name": "seo",
+        "costUsd": 140.0,
+        "isPopular": false
+      },
+      {
+        "id": "starter",
+        "name": "starter",
+        "costUsd": 200.0,
+        "isPopular": true
+      },
+      {
+        "id": "pro",
+        "name": "pro+",
+        "costUsd": 300.0,
+        "isPopular": false
+      },
+      {
+        "id": "advance",
+        "name": "advance",
+        "costUsd": 550.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "ahrefs",
+    "sku": "AHREFS-01",
+    "category": "seo-marketing",
+    "title": "Ahrefs",
+    "sourcingRegion": "جهانی",
+    "variants": [
+      {
+        "id": "lite",
+        "name": "lite",
+        "costUsd": 130.0,
+        "isPopular": false
+      },
+      {
+        "id": "standard",
+        "name": "standard",
+        "costUsd": 250.0,
+        "isPopular": true
+      },
+      {
+        "id": "advanced",
+        "name": "advanced",
+        "costUsd": 450.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "linkedin-premium",
+    "sku": "LINKEDIN-PREMIUM-01",
+    "category": "seo-marketing",
+    "title": "LinkedIn Premium",
+    "sourcingRegion": "جهانی",
+    "variants": [
+      {
+        "id": "career",
+        "name": "career",
+        "costUsd": 40.0,
+        "isPopular": false
+      },
+      {
+        "id": "business",
+        "name": "business",
+        "costUsd": 60.0,
+        "isPopular": true
+      },
+      {
+        "id": "sales-navigator-core",
+        "name": "sales navigator Core",
+        "costUsd": 100.0,
+        "isPopular": false
+      },
+      {
+        "id": "sales-navigator-advanced",
+        "name": "Sales Navigator Advanced",
+        "costUsd": 150.0,
+        "isPopular": false
+      },
+      {
+        "id": "recruiter-lite",
+        "name": "recruiter lite",
+        "costUsd": 170.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "duolingo",
+    "sku": "DUOLINGO-01",
+    "category": "education-utility",
+    "title": "Duolingo",
+    "sourcingRegion": "ترکیه (تایید نشده)",
+    "variants": [
+      {
+        "id": "super",
+        "name": "Super",
+        "costUsd": 14.0,
+        "isPopular": false
+      },
+      {
+        "id": "super-family-1-year-only",
+        "name": "Super Family (1 year only)",
+        "costUsd": 120.0,
+        "isPopular": true
+      },
+      {
+        "id": "english-test",
+        "name": "english test",
+        "costUsd": 70.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "coursera",
+    "sku": "COURSERA-01",
+    "category": "education-utility",
+    "title": "Coursera",
+    "sourcingRegion": "ترکیه – هند (تایید نشده)",
+    "variants": [
+      {
+        "id": "plus",
+        "name": "plus",
+        "costUsd": 60.0,
+        "isPopular": true
+      }
+    ]
+  },
+  {
+    "slug": "telegram-premium",
+    "sku": "TELEGRAM-PREMIUM-01",
+    "category": "telegram",
+    "title": "Telegram Premium",
+    "sourcingRegion": "جهانی",
+    "variants": [
+      {
+        "id": "3-month",
+        "name": "3 month",
+        "costUsd": 14.0,
+        "isPopular": false
+      },
+      {
+        "id": "6-month",
+        "name": "6 month",
+        "costUsd": 18.0,
+        "isPopular": true
+      },
+      {
+        "id": "1-year",
+        "name": "1 year",
+        "costUsd": 30.0,
+        "isPopular": false
+      }
+    ]
+  },
+  {
+    "slug": "telegram-stars",
+    "sku": "TELEGRAM-STARS-01",
+    "category": "telegram",
+    "title": "Telegram Stars",
+    "sourcingRegion": "جهانی",
+    "variants": [
+      {
+        "id": "per-50",
+        "name": "Per 50",
+        "costUsd": 0.75,
+        "isPopular": true
+      }
+    ]
+  }
+]
