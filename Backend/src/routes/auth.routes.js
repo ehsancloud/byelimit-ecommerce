@@ -1,81 +1,70 @@
-// src/routes/auth.routes.js
 const express = require("express");
-const { z } = require("zod");
+const jwt = require("jsonwebtoken");
 const prisma = require("../lib/prisma");
-const otpService = require("../services/otp.service");
-const { issueAuthCookie } = require("../middleware/auth");
-const { otpRateLimiter } = require("../middleware/rateLimit");
+const { sendOtp, verifyOtp } = require("../services/otp.service");
+const authMiddleware = require("../middlewares/auth.middleware");
 
 const router = express.Router();
+const THIRTY_THREE_DAYS_MS = 33 * 24 * 60 * 60 * 1000;
 
-const mobileSchema = z.string().regex(/^09\d{9}$/, "شماره موبایل معتبر نیست.");
-
-router.post("/send-otp", otpRateLimiter, async (req, res) => {
-  const parsed = mobileSchema.safeParse(req.body?.mobile);
-  if (!parsed.success) {
-    return res.status(400).json({ error: "شماره موبایل معتبر نیست." });
-  }
-  const mobile = parsed.data;
-
+router.post("/send-otp", async (req, res, next) => {
   try {
-    const result = await otpService.sendOtp(mobile, "LOGIN", req.ip);
-    return res.json({ ok: true, devMode: result.devMode || false });
+    const { mobile } = req.body;
+    if (!mobile) return res.status(400).json({ error: "شماره موبایل الزامی است." });
+    
+    await sendOtp(mobile, "LOGIN", req.ip);
+    res.json({ success: true, message: "کد تایید ارسال شد." });
   } catch (err) {
-    const status = err.code === "OTP_RATE_LIMITED" ? 429 : 500;
-    return res.status(status).json({ error: err.message, code: err.code });
+    next(err);
   }
 });
 
-router.post("/verify-otp", otpRateLimiter, async (req, res) => {
-  const schema = z.object({
-    mobile: mobileSchema,
-    code: z.string().length(4),
-  });
-  const parsed = schema.safeParse(req.body);
-  if (!parsed.success) {
-    return res.status(400).json({ error: "اطلاعات ارسالی نامعتبر است." });
-  }
-  const { mobile, code } = parsed.data;
-
+router.post("/verify-otp", async (req, res, next) => {
   try {
-    await otpService.verifyOtp(mobile, code, "LOGIN");
+    const { mobile, code } = req.body;
+    if (!mobile || !code) return res.status(400).json({ error: "موبایل و کد الزامی هستند." });
 
-    const user = await prisma.user.upsert({
-      where: { mobile },
-      update: { lastLoginAt: new Date() },
-      create: { mobile, lastLoginAt: new Date() },
+    await verifyOtp(mobile, code, "LOGIN");
+
+    let user = await prisma.user.findUnique({ where: { mobile } });
+    if (!user) {
+      user = await prisma.user.create({
+        data: { mobile, role: "USER" },
+      });
+    }
+
+    const token = jwt.sign(
+      { userId: user.id, mobile: user.mobile, role: user.role },
+      process.env.JWT_SECRET || "dev-secret-change-me",
+      { expiresIn: "33d" }
+    );
+
+    res.cookie("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: THIRTY_THREE_DAYS_MS,
+      path: "/",
     });
 
-    issueAuthCookie(res, user);
-
-    return res.json({
-      ok: true,
-      user: { id: user.id, mobile: user.mobile, fullName: user.fullName },
+    res.json({
+      success: true,
+      user: { id: user.id, mobile: user.mobile, role: user.role },
+      token,
     });
   } catch (err) {
-    const statusMap = {
-      OTP_NOT_FOUND: 400,
-      OTP_EXPIRED: 400,
-      OTP_MAX_ATTEMPTS: 429,
-      OTP_INVALID: 400,
-    };
-    return res.status(statusMap[err.code] || 500).json({ error: err.message, code: err.code });
+    next(err);
   }
+});
+
+router.get("/me", authMiddleware, async (req, res) => {
+  res.json({ user: req.user });
 });
 
 router.post("/logout", (req, res) => {
-  res.clearCookie("auth_token", { domain: process.env.COOKIE_DOMAIN });
-  res.json({ ok: true });
-});
-
-// کوکی auth_token عمداً httpOnly است (محافظت در برابر XSS) - یعنی جاوااسکریپت
-// فرانت‌اند نمی‌تواند مستقیم document.cookie آن را بخواند. به همین دلیل فرانت‌اند
-// برای فهمیدن وضعیت لاگین باید این endpoint را صدا بزند (با credentials: 'include').
-const { requireAuth } = require("../middleware/auth");
-router.get("/me", requireAuth, async (req, res) => {
-  const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
-  if (!user) return res.status(401).json({ error: "کاربر یافت نشد." });
-  res.json({ id: user.id, mobile: user.mobile, fullName: user.fullName });
+  res.clearCookie("auth_token", { path: "/" });
+  res.clearCookie("token", { path: "/" });
+  res.json({ success: true, message: "خروج موفق" });
 });
 
 module.exports = router;

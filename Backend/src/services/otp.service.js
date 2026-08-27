@@ -1,17 +1,26 @@
-// Backend/src/services/otp.service.js
 const crypto = require("crypto");
 const prisma = require("../lib/prisma");
 
 const OTP_LENGTH = 4;
 const OTP_TTL_MINUTES = 2;
-const MAX_ATTEMPTS = 5;
 const MIN_RESEND_INTERVAL_SECONDS = 60;
 
-const melipayamakUsername = process.env.MELIPAYAMAK_USERNAME?.trim();
-const melipayamakPassword = process.env.MELIPAYAMAK_PASSWORD?.trim();
-const melipayamakFrom = process.env.MELIPAYAMAK_FROM?.trim() || "5000";
+const melipayamakUsername = process.env.MELIPAYAMAK_USERNAME?.trim() || "19910115126";
+const melipayamakPassword = process.env.MELIPAYAMAK_PASSWORD?.trim() || "4039884c-cf92-47fc-9d6a-ffb5acfb651a";
+const melipayamakFrom = process.env.MELIPAYAMAK_FROM?.trim() || "50002710011512";
 
 const isSmsConfigured = Boolean(melipayamakUsername && melipayamakPassword);
+
+function normalizeMobile(mobile) {
+  if (!mobile) return "";
+  let clean = String(mobile).trim();
+  clean = clean.replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+  clean = clean.replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+  clean = clean.replace(/\D/g, "");
+  if (clean.startsWith("98")) clean = "0" + clean.slice(2);
+  if (clean.length === 10 && clean.startsWith("9")) clean = "0" + clean;
+  return clean;
+}
 
 function generateOtp() {
   return crypto.randomInt(0, 10 ** OTP_LENGTH).toString().padStart(OTP_LENGTH, "0");
@@ -24,10 +33,9 @@ function hashOtp(mobile, code) {
     .digest("hex");
 }
 
-/**
- * ارسال کد تایید یکبار مصرف (OTP)
- */
-async function sendOtp(mobile, purpose = "LOGIN", ipAddress = null) {
+async function sendOtp(rawMobile, purpose = "LOGIN", ipAddress = null) {
+  const mobile = normalizeMobile(rawMobile);
+
   const recentOtp = await prisma.otpCode.findFirst({
     where: { mobile, purpose, consumedAt: null },
     orderBy: { createdAt: "desc" },
@@ -51,14 +59,13 @@ async function sendOtp(mobile, purpose = "LOGIN", ipAddress = null) {
     data: { mobile, purpose, codeHash, expiresAt, ipAddress },
   });
 
-  // حالت تست و توسعه: نمایش کد در لاگ سرور
   if (!isSmsConfigured) {
     console.warn(`[OTP DEV MODE] کد ${mobile}: ${code}`);
     return { sent: true, devMode: true };
   }
 
-  const purposeText = purpose === "CHECKOUT_VERIFY" ? "تایید سفارش" : "ورود";
-  const text = `کد تایید ${code} برای ${purposeText} در byelimit است. این کد فقط 2 دقیقه معتبر است.`;
+  // متن دقیق درخواستی بدون موارد اضافی
+  const text = `کد ورود به بای لیمیت: ${code}`;
 
   try {
     const res = await fetch("https://rest.payamak-panel.com/api/SendSMS/SendSMS", {
@@ -74,8 +81,9 @@ async function sendOtp(mobile, purpose = "LOGIN", ipAddress = null) {
       }),
     });
     const data = await res.json();
-    if (data.RetStatus !== 1) {
-      console.error("[Melipayamak Response]", data);
+    if (data.RetStatus !== 1 && (!data.Value || data.Value.length < 5)) {
+      console.error("[Melipayamak Error Response]", data);
+      throw new Error(data.StrRetStatus || "خطا در ارسال پیامک");
     }
     return { sent: true, devMode: false };
   } catch (err) {
@@ -87,10 +95,9 @@ async function sendOtp(mobile, purpose = "LOGIN", ipAddress = null) {
   }
 }
 
-/**
- * اعتبارسنجی کد واردشده توسط کاربر
- */
-async function verifyOtp(mobile, code, purpose = "LOGIN") {
+async function verifyOtp(rawMobile, code, purpose = "LOGIN") {
+  const mobile = normalizeMobile(rawMobile);
+
   const otpRecord = await prisma.otpCode.findFirst({
     where: { mobile, purpose, consumedAt: null },
     orderBy: { createdAt: "desc" },

@@ -3,21 +3,25 @@ export const API_URL =
     ? (process.env.BACKEND_URL || "http://127.0.0.1:4000")
     : (process.env.NEXT_PUBLIC_API_URL || "");
 
-/**
- * @param {string} path مثلاً "/api/products"
- * @param {RequestInit & { silent404?: boolean }} options
- */
 export async function apiFetch(path, options = {}) {
   const { silent404, ...fetchOptions } = options;
   const url = path.startsWith("http") ? path : `${API_URL}${path}`;
-
   const isServer = typeof window === "undefined";
+
+  const clientHeaders = {};
+  if (!isServer) {
+    const token = localStorage.getItem("byelimit_token");
+    if (token) {
+      clientHeaders["Authorization"] = `Bearer ${token}`;
+    }
+  }
 
   try {
     const res = await fetch(url, {
       ...fetchOptions,
       headers: {
         "Content-Type": "application/json",
+        ...clientHeaders,
         ...(fetchOptions.headers || {}),
       },
       ...(isServer ? {} : { credentials: "include" }),
