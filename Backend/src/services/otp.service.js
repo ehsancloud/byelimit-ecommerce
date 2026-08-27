@@ -1,47 +1,31 @@
-// src/services/otp.service.js
+// Backend/src/services/otp.service.js
 const crypto = require("crypto");
-const MelipayamakApi = require("melipayamak-api");
 const prisma = require("../lib/prisma");
 
 const OTP_LENGTH = 4;
 const OTP_TTL_MINUTES = 2;
 const MAX_ATTEMPTS = 5;
-// حداقل فاصله بین دو درخواست ارسال کد برای یک شماره - جلوگیری از اسپم پیامکی
 const MIN_RESEND_INTERVAL_SECONDS = 60;
 
 const melipayamakUsername = process.env.MELIPAYAMAK_USERNAME?.trim();
 const melipayamakPassword = process.env.MELIPAYAMAK_PASSWORD?.trim();
-const melipayamakFrom = process.env.MELIPAYAMAK_FROM?.trim() || process.env.MELIPAYAMAK_SENDER?.trim() || "5000";
+const melipayamakFrom = process.env.MELIPAYAMAK_FROM?.trim() || "5000";
 
-const melipayamakClient =
-  melipayamakUsername && melipayamakPassword
-    ? new MelipayamakApi(melipayamakUsername, melipayamakPassword)
-    : null;
+const isSmsConfigured = Boolean(melipayamakUsername && melipayamakPassword);
 
 function generateOtp() {
-  // crypto.randomInt به‌جای Math.random - تصادفی‌سازی امن رمزنگاری‌شده
   return crypto.randomInt(0, 10 ** OTP_LENGTH).toString().padStart(OTP_LENGTH, "0");
 }
 
 function hashOtp(mobile, code) {
-  // HMAC-SHA256 با کلید سرور - سریع‌تر از bcrypt و برای کد کوتاه‌مدت ۴ رقمی با
-  // محدودیت تعداد تلاش (attemptCount) کفایت می‌کند.
   return crypto
     .createHmac("sha256", process.env.JWT_SECRET || "dev-secret-change-me")
     .update(`${mobile}:${code}`)
     .digest("hex");
 }
 
-function isMelipayamakFailure(response) {
-  if (!response || typeof response !== "object") return false;
-  const errorValue = response.error || response.Error || response.message || response.Message;
-  if (errorValue) return true;
-  return !!response.status && String(response.status).toLowerCase() === "error";
-}
-
 /**
- * ارسال کد OTP به شماره موبایل از طریق Melipayamak.
- * مستندات: https://www.melipayamak.com/api/sendotp/
+ * ارسال کد تایید یکبار مصرف (OTP)
  */
 async function sendOtp(mobile, purpose = "LOGIN", ipAddress = null) {
   const recentOtp = await prisma.otpCode.findFirst({
@@ -67,8 +51,8 @@ async function sendOtp(mobile, purpose = "LOGIN", ipAddress = null) {
     data: { mobile, purpose, codeHash, expiresAt, ipAddress },
   });
 
-  if (!melipayamakClient) {
-    // در محیط توسعه بدون کلید واقعی یا اعتبارنامه سرویس پیامک - فقط لاگ می‌کنیم
+  // حالت تست و توسعه: نمایش کد در لاگ سرور
+  if (!isSmsConfigured) {
     console.warn(`[OTP DEV MODE] کد ${mobile}: ${code}`);
     return { sent: true, devMode: true };
   }
@@ -77,16 +61,25 @@ async function sendOtp(mobile, purpose = "LOGIN", ipAddress = null) {
   const text = `کد تایید ${code} برای ${purposeText} در byelimit است. این کد فقط 2 دقیقه معتبر است.`;
 
   try {
-    const response = await melipayamakClient.sms().send(mobile, melipayamakFrom, text);
-    if (isMelipayamakFailure(response)) {
-      const err = new Error("ارسال پیامک ناموفق بود، لطفاً دوباره تلاش کنید.");
-      err.code = "SMS_SEND_FAILED";
-      err.gatewayResponse = response;
-      throw err;
+    const res = await fetch("https://rest.payamak-panel.com/api/SendSMS/SendSMS", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: melipayamakUsername,
+        password: melipayamakPassword,
+        to: mobile,
+        from: melipayamakFrom,
+        text,
+        isFlash: false,
+      }),
+    });
+    const data = await res.json();
+    if (data.RetStatus !== 1) {
+      console.error("[Melipayamak Response]", data);
     }
     return { sent: true, devMode: false };
   } catch (err) {
-    if (err.code === "SMS_SEND_FAILED") throw err;
+    console.error("[Melipayamak Error]", err);
     const wrapped = new Error("ارسال پیامک ناموفق بود، لطفاً دوباره تلاش کنید.");
     wrapped.code = "SMS_SEND_FAILED";
     wrapped.cause = err;
@@ -95,8 +88,7 @@ async function sendOtp(mobile, purpose = "LOGIN", ipAddress = null) {
 }
 
 /**
- * تایید کد OTP وارد شده توسط کاربر.
- * @returns {Promise<boolean>} true اگر کد صحیح و معتبر بود
+ * اعتبارسنجی کد واردشده توسط کاربر
  */
 async function verifyOtp(mobile, code, purpose = "LOGIN") {
   const otpRecord = await prisma.otpCode.findFirst({

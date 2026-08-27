@@ -1,16 +1,9 @@
-// src/app/products/category/[category]/page.js
 import { notFound } from "next/navigation";
 import categoriesData from "../../../../data/categoriesData.json";
 import CategoryClientView from "../../../../components/products/CategoryClientView";
 import { getProductsByCategory, toProductCardProps } from "../../../../data/products";
 
-export const revalidate = 60;
-
-export async function generateStaticParams() {
-  return Object.keys(categoriesData).map((slug) => ({
-    category: slug,
-  }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
@@ -35,7 +28,6 @@ export default async function CategoryProductsPage({ params }) {
     notFound();
   }
 
-  // انتخاب محصولات مرتبط با دسته‌بندی از بک‌اند واقعی
   const products = await getProductsByCategory(categoryInfo.catId);
   const categoryProducts = products.map(toProductCardProps);
 
