@@ -23,7 +23,7 @@ const fontFarsi = localFont({
 
 export const metadata = {
   metadataBase: new URL("https://byelimit.ir"),
-  title: "بای لیمیت | فروشگاه اکانت‌های هوش مصنوعی",
+  title: "8640838",
   description:
     "خرید اکانت‌های اختصاصی و قانونی هوش مصنوعی (ChatGPT، Claude، Midjourney و...) با تحویل سریع و ضمانت ۱۰۰٪.",
 };

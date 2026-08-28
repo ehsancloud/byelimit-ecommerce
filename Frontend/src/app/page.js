@@ -11,7 +11,7 @@ import LatestArticles from "../components/home/LatestArticles";
 import HomeFaq from "../components/home/HomeFaq";
 
 export const metadata = {
-  title: " 8640838 ",
+  title: "8640838",
   description:
     "خرید اکانت اختصاصی و قانونی ChatGPT Plus، Midjourney، Claude Pro و سرور مجازی. تحویل سریع با ضمانت ۱۰۰٪ و پشتیبانی هرروز ۱۰ تا ۲۲.",
   alternates: {
