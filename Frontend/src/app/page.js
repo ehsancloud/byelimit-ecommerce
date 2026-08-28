@@ -11,7 +11,7 @@ import LatestArticles from "../components/home/LatestArticles";
 import HomeFaq from "../components/home/HomeFaq";
 
 export const metadata = {
-  title: "بای لیمیت! | بزرگترین فروشگاه اکانت‌ های هوش مصنوعی",
+  title: "بای لیمیت! | فروشگاه اکانت‌ های هوش مصنوعی",
   description:
     "خرید اکانت اختصاصی و قانونی ChatGPT Plus، Midjourney، Claude Pro و سرور مجازی. تحویل سریع با ضمانت ۱۰۰٪ و پشتیبانی هرروز ۱۰ تا ۲۲.",
   alternates: {

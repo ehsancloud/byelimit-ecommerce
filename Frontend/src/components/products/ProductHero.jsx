@@ -46,25 +46,6 @@ export default function ProductHero({
       ? product.monthlySalesCount
       : product.totalSalesCount;
 
-  const handleApplyDiscount = (e) => {
-    e.preventDefault();
-    setDiscountError("");
-    const result = validateDiscountCode(discountCode, selectedVariant.price);
-    if (!result.valid) {
-      setDiscountError(result.message);
-      return;
-    }
-    onApplyDiscount({
-      code: discountCode.trim().toUpperCase(),
-      amount: result.discountAmount,
-    });
-  };
-
-  const handleRemoveDiscount = () => {
-    onRemoveDiscount();
-    setDiscountCode("");
-    setDiscountError("");
-  };
 
   return (
     <div className="bg-white border-[3.5px] border-black rounded-2xl p-4 md:p-8 shadow-[-8px_8px_0_0_rgba(0,0,0,1)] mb-10">

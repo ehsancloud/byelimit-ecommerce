@@ -29,7 +29,6 @@ export default function ProductPageClient({ product }) {
   // انتخاب پلن جدید یعنی کد تخفیف قبلی (که روی پلن قبلی محاسبه شده بود) دیگر معتبر نیست
   const handleSelectVariant = (variant) => {
     setSelectedVariant(variant);
-    setAppliedDiscount(null);
   };
 
   const handleAddToCart = async () => {
@@ -54,9 +53,6 @@ export default function ProductPageClient({ product }) {
           product={product}
           selectedVariant={selectedVariant}
           onSelectVariant={handleSelectVariant}
-          appliedDiscount={appliedDiscount}
-          onApplyDiscount={setAppliedDiscount}
-          onRemoveDiscount={() => setAppliedDiscount(null)}
           finalUnitPrice={finalUnitPrice}
           onAddToCart={handleAddToCart}
           isAddingToCart={isAddingToCart}
@@ -178,7 +174,6 @@ export default function ProductPageClient({ product }) {
 
       <StickyMobileBar
         selectedVariant={selectedVariant}
-        appliedDiscount={appliedDiscount}
         finalUnitPrice={finalUnitPrice}
         onAddToCart={handleAddToCart}
         isAddingToCart={isAddingToCart}
