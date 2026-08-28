@@ -15,6 +15,13 @@ router.post("/send-otp", async (req, res, next) => {
     await sendOtp(mobile, "LOGIN", req.ip);
     res.json({ success: true, message: "کد تایید ارسال شد." });
   } catch (err) {
+    // Rate-limiting or SMS send failures should return a helpful message
+    if (err && err.code === "OTP_RATE_LIMITED") {
+      return res.status(429).json({ error: err.message, code: err.code });
+    }
+    if (err && err.code === "SMS_SEND_FAILED") {
+      return res.status(502).json({ error: err.message, code: err.code });
+    }
     next(err);
   }
 });
@@ -53,6 +60,11 @@ router.post("/verify-otp", async (req, res, next) => {
       token,
     });
   } catch (err) {
+    // For OTP-specific errors show a clear message to the client (bad code, expired, rate limited)
+    if (err && err.code && err.code.startsWith("OTP_")) {
+      const status = err.code === "OTP_RATE_LIMITED" ? 429 : 400;
+      return res.status(status).json({ error: err.message, code: err.code });
+    }
     next(err);
   }
 });
