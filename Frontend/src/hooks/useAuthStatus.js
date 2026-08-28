@@ -15,10 +15,16 @@ export function useAuthStatus() {
 
   const refresh = useCallback(async () => {
     try {
-      const user = await apiFetch("/api/auth/me");
-      setIsLoggedIn(true);
-      setUserName(user.fullName || "کاربر بای لیمیت");
-    } catch {
+      const data = await apiFetch("/api/auth/me", { silent404: true });
+      const user = data?.user || data || null;
+      if (user) {
+        setIsLoggedIn(true);
+        setUserName(user.fullName || user.mobile || "کاربر بای لیمیت");
+      } else {
+        setIsLoggedIn(false);
+        setUserName("");
+      }
+    } catch (err) {
       setIsLoggedIn(false);
       setUserName("");
     } finally {

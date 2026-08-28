@@ -22,7 +22,7 @@ const ITEMS_PER_PAGE = 10;
 export default function CategoryClientView({ categoryInfo, products }) {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("popular");
-  const [priceRange, setPriceRange] = useState(3000000);
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 3000000 });
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
@@ -39,7 +39,9 @@ export default function CategoryClientView({ categoryInfo, products }) {
         const matchCat =
           selectedCategory === "all" || prod.category === selectedCategory;
         // محصولات بدون قیمت نهایی (به‌زودی) همیشه نمایش داده می‌شوند، مستقل از اسلایدر قیمت
-        const matchPrice = prod.priceTBD || prod.priceNum <= priceRange;
+        const min = priceRange?.min ?? 0;
+        const max = priceRange?.max ?? Infinity;
+        const matchPrice = prod.priceTBD || (prod.priceNum >= min && prod.priceNum <= max);
         return matchCat && matchPrice;
       })
       .sort((a, b) => {
@@ -74,7 +76,7 @@ export default function CategoryClientView({ categoryInfo, products }) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto p-6 sm:p-8">
       {/* هدر دسته‌بندی */}
       <header className="mb-8 border-b-[3.5px] border-black pb-4 text-center md:text-right">
         <h1 className="text-3xl md:text-4xl font-black mb-2">
@@ -94,7 +96,7 @@ export default function CategoryClientView({ categoryInfo, products }) {
 
         <div className="col-span-1 md:col-span-3">
           {paginatedProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {paginatedProducts.map((product) => (
                 <ProductCard key={product.id} {...product} />
               ))}

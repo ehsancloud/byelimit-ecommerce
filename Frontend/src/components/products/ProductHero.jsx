@@ -1,7 +1,6 @@
 // src/components/products/ProductHero.jsx
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import {
   ShieldCheck,
@@ -17,22 +16,18 @@ import {
   Clock,
   X,
 } from "lucide-react";
-import { validateDiscountCode } from "../../lib/discounts";
 
 export default function ProductHero({
   product,
   selectedVariant,
   onSelectVariant,
-  appliedDiscount,
-  onApplyDiscount,
-  onRemoveDiscount,
   finalUnitPrice,
   onAddToCart,
   isAddingToCart,
   addToCartError,
 }) {
-  const [discountCode, setDiscountCode] = useState("");
-  const [discountError, setDiscountError] = useState("");
+  // Discount codes are intentionally not supported at the product page level.
+
 
   const isPriceTBD = Boolean(selectedVariant.priceTBD) || selectedVariant.price == null;
 
@@ -202,62 +197,6 @@ export default function ProductHero({
             </div>
           )}
 
-          {/* کد تخفیف در همین صفحه محصول - فقط برای محصولات با قیمت نهایی‌شده */}
-          {!isPriceTBD && (
-            <div className="bg-gray-50 border-[2px] border-black p-3.5 rounded-xl flex flex-col gap-2">
-              {appliedDiscount ? (
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 text-xs font-black text-emerald-700">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>
-                      کد «{appliedDiscount.code}» اعمال شد (
-                      {appliedDiscount.amount.toLocaleString("fa-IR")} تومان تخفیف)
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleRemoveDiscount}
-                    className="p-1.5 bg-white border-[1.5px] border-black rounded-lg hover:bg-gray-100 cursor-pointer shrink-0"
-                    aria-label="حذف کد تخفیف"
-                  >
-                    <X className="w-3.5 h-3.5 stroke-[3]" />
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={handleApplyDiscount} className="flex flex-col gap-2">
-                  <label className="text-xs font-black text-black flex items-center gap-1.5">
-                    <Tag className="w-4 h-4 text-purple-600 stroke-[2.5]" />
-                    <span>کد تخفیف دارید؟ (اختیاری)</span>
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      dir="ltr"
-                      placeholder="مثال: SAVE50"
-                      value={discountCode}
-                      onChange={(e) => setDiscountCode(e.target.value)}
-                      className="flex-1 bg-white border-[2px] border-black rounded-xl p-2.5 text-xs font-black outline-none uppercase"
-                    />
-                    <button
-                      type="submit"
-                      className="bg-[#12e2a3] border-[2px] border-black px-4 py-2.5 rounded-xl font-black text-xs shadow-[-2px_2px_0_0_rgba(0,0,0,1)] active:translate-x-[-1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
-                    >
-                      اعمال
-                    </button>
-                  </div>
-                  {discountError && (
-                    <p className="text-[11px] font-bold text-rose-600 flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      {discountError}
-                    </p>
-                  )}
-                  <p className="text-[10px] font-bold text-gray-500">
-                    توجه: در صورت اعمال کد تخفیف در همین مرحله، امکان استفاده از کد دیگر در مرحله پیش‌فاکتور وجود نخواهد داشت.
-                  </p>
-                </form>
-              )}
-            </div>
-          )}
 
           {/* قیمت و دکمه ثبت سفارش */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-2 border-t-[2px] border-black">
@@ -274,8 +213,7 @@ export default function ProductHero({
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  {(selectedVariant.originalPrice > selectedVariant.price ||
-                    appliedDiscount) && (
+                  {selectedVariant.originalPrice > selectedVariant.price && (
                     <span className="line-through text-xs text-gray-400 font-bold">
                       {Math.max(
                         selectedVariant.originalPrice,

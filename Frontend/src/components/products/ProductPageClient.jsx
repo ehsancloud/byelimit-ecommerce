@@ -18,16 +18,13 @@ export default function ProductPageClient({ product }) {
   const [selectedVariant, setSelectedVariant] = useState(
     product.variants.find((v) => v.isPopular) || product.variants[0],
   );
-  const [appliedDiscount, setAppliedDiscount] = useState(null); // { code, amount }
   const [activeTab, setActiveTab] = useState("description");
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [addToCartError, setAddToCartError] = useState("");
 
-  const finalUnitPrice = useMemo(() => {
-    if (!appliedDiscount) return selectedVariant.price;
-    return Math.max(selectedVariant.price - appliedDiscount.amount, 0);
-  }, [selectedVariant, appliedDiscount]);
+  // Pricing is based on variant price. Discounts are applied at order (checkout) level only.
+  const finalUnitPrice = useMemo(() => selectedVariant.price, [selectedVariant]);
 
   // انتخاب پلن جدید یعنی کد تخفیف قبلی (که روی پلن قبلی محاسبه شده بود) دیگر معتبر نیست
   const handleSelectVariant = (variant) => {
@@ -39,9 +36,7 @@ export default function ProductPageClient({ product }) {
     setIsAddingToCart(true);
     setAddToCartError("");
     try {
-      await addItem(product, selectedVariant, {
-        discountCode: appliedDiscount?.code || null,
-      });
+      await addItem(product, selectedVariant);
       setIsCartModalOpen(true);
     } catch (err) {
       setAddToCartError(err.message || "افزودن به سبد خرید ناموفق بود. دوباره تلاش کنید.");

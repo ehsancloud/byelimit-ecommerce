@@ -16,7 +16,6 @@ function mapServerCart(serverCart) {
     variantId: it.variantId,
     variantName: it.variantName,
     unitPrice: Math.round(Number(it.unitPriceRial) / 10),
-    discountCode: it.discountCode,
   }));
 }
 
@@ -39,23 +38,18 @@ export function CartProvider({ children }) {
   }, [refetchCart]);
 
   const addItem = useCallback(async (product, variant, options = {}) => {
-    const { discountCode = null } = options;
-
     const updatedCart = await apiFetch("/api/cart/items", {
       method: "POST",
       body: JSON.stringify({
         productId: product.id,
         variantId: variant.id,
-        discountCode,
       }),
     });
 
     const mapped = mapServerCart(updatedCart);
     setItems(mapped);
 
-    const added =
-      mapped.find((it) => it.variantId === variant.id && it.discountCode === discountCode) ||
-      mapped[mapped.length - 1];
+    const added = mapped.find((it) => it.variantId === variant.id) || mapped[mapped.length - 1];
     setLastAddedItem(added);
     return added;
   }, []);

@@ -52,7 +52,6 @@ function serializeCart(cart) {
       variantName: it.variant.name,
       unitPriceRial: it.unitPriceRial.toString(),
       quantity: 1, // همیشه 1
-      discountCode: it.discountCode,
     })),
   };
 }
@@ -69,7 +68,6 @@ router.get("/", optionalAuth, async (req, res) => {
 const addItemSchema = z.object({
   productId: z.string().uuid(),
   variantId: z.string().uuid(),
-  discountCode: z.string().optional().nullable(),
 });
 
 router.post("/items", optionalAuth, async (req, res) => {
@@ -77,7 +75,7 @@ router.post("/items", optionalAuth, async (req, res) => {
   if (!parsed.success) {
     return res.status(400).json({ error: "اطلاعات آیتم سبد خرید نامعتبر است." });
   }
-  const { productId, variantId, discountCode } = parsed.data;
+  const { productId, variantId } = parsed.data;
 
   const variant = await prisma.productVariant.findUnique({ where: { id: variantId } });
   if (!variant || variant.productId !== productId || !variant.isActive) {
@@ -105,7 +103,6 @@ router.post("/items", optionalAuth, async (req, res) => {
       variantId,
       quantity: 1,
       unitPriceRial: variant.priceRial,
-      discountCode: discountCode || null,
     },
   });
 

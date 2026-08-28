@@ -1,5 +1,13 @@
 // components/products/Filters.jsx
-import { SlidersHorizontal, RotateCcw } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { SlidersHorizontal, RotateCcw, ChevronDown } from "lucide-react";
+
+const SORT_OPTIONS = [
+  { value: "popular", label: "محبوب‌ترین‌ها" },
+  { value: "newest", label: "جدیدترین‌ها" },
+  { value: "price-asc", label: "ارزان‌ترین" },
+  { value: "price-desc", label: "گران‌ترین" },
+];
 
 export default function Filters({
   categories,
@@ -11,6 +19,29 @@ export default function Filters({
   setPriceRange,
   onReset,
 }) {
+  const [sortOpen, setSortOpen] = useState(false);
+  const sortRef = useRef(null);
+
+  useEffect(() => {
+    function onDocClick(e) {
+      if (sortRef.current && !sortRef.current.contains(e.target)) setSortOpen(false);
+    }
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, []);
+
+  const MIN = 0;
+  const MAX = 50000000; // 50 million تومان
+  const STEP = 10000;
+
+  const handleRangeChange = (which, value) => {
+    // expects value as number
+    let newRange = { ...(priceRange || { min: MIN, max: MAX }) };
+    if (which === "min") newRange.min = Math.min(Math.max(value, MIN), newRange.max);
+    if (which === "max") newRange.max = Math.max(Math.min(value, MAX), newRange.min);
+    setPriceRange(newRange);
+  };
+
   return (
     // تغییر sticky top-6 به sticky top-24 جهت نرفتن زیر هدر چسبان
     <aside className="w-full bg-white border-[3px] border-black rounded-[16px] p-5 shadow-[-6px_6px_0_0_rgba(0,0,0,1)] dir-rtl flex flex-col gap-6 sticky top-20 z-10 transition-all duration-300">
@@ -28,21 +59,34 @@ export default function Filters({
         </button>
       </div>
 
-      {/* چینش بر اساس */}
+      {/* چینش بر اساس - custom neobrutal dropdown */}
       <div>
-        <label className="block font-black text-sm mb-2">
-          مرتب‌سازی بر اساس:
-        </label>
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className="w-full bg-[#f2f4f8] border-[2.5px] border-black rounded-lg p-2.5 font-bold text-sm outline-none cursor-pointer focus:bg-white"
-        >
-          <option value="popular">محبوب‌ترین‌ها</option>
-          <option value="newest">جدیدترین‌ها</option>
-          <option value="price-asc">ارزان‌ترین</option>
-          <option value="price-desc">گران‌ترین</option>
-        </select>
+        <label className="block font-black text-sm mb-2">مرتب‌سازی بر اساس:</label>
+
+        <div ref={sortRef} className="relative">
+          <button
+            onClick={() => setSortOpen((s) => !s)}
+            className="w-full bg-[#f3f3f3] border-[3px] border-black rounded-xl p-2.5 font-black text-sm flex items-center justify-between cursor-pointer shadow-[-4px_4px_0_0_rgba(0,0,0,1)]"
+            aria-expanded={sortOpen}
+          >
+            <span>{SORT_OPTIONS.find((o) => o.value === sortBy)?.label || "مرتب سازی"}</span>
+            <ChevronDown className={`w-4 h-4 stroke-[3] transition-transform ${sortOpen ? "rotate-180" : ""}`} />
+          </button>
+
+          {sortOpen && (
+            <div className="absolute left-0 right-0 mt-2 bg-white border-[3px] border-black rounded-xl shadow-[-6px_6px_0_0_rgba(0,0,0,1)] z-30 overflow-hidden">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => { setSortBy(opt.value); setSortOpen(false); }}
+                  className="w-full text-right px-4 py-2 font-black text-sm hover:bg-gray-100"
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* فیلتر کاربرد / دسته‌بندی */}
@@ -70,24 +114,65 @@ export default function Filters({
       {/* فیلتر محدوده قیمت */}
       <div>
         <div className="flex justify-between items-center mb-2">
-          <label className="font-black text-sm">حداکثر قیمت:</label>
+          <label className="font-black text-sm">بازه قیمت:</label>
           <span className="font-extrabold text-xs bg-[#ccff00] border border-black px-2 py-0.5 rounded">
-            {Number(priceRange).toLocaleString("fa-IR")} تومان
+            {Number(priceRange?.min || 0).toLocaleString("fa-IR")} — {Number(priceRange?.max || MAX).toLocaleString("fa-IR")} تومان
           </span>
         </div>
-        <input
-          type="range"
-          min="200000"
-          max="3000000"
-          step="100000"
-          value={priceRange}
-          onChange={(e) => setPriceRange(Number(e.target.value))}
-          className="w-full accent-[#12e2a3] cursor-pointer"
-        />
-        <div className="flex justify-between text-[11px] font-bold text-gray-500 mt-1">
-          <span>۲۰۰ هزار</span>
-          <span>۳ میلیون</span>
+
+        {/* double range sliders (two handles) */}
+        <div className="relative">
+          <input
+            type="range"
+            min={MIN}
+            max={MAX}
+            step={STEP}
+            value={priceRange?.min ?? MIN}
+            onChange={(e) => handleRangeChange("min", Number(e.target.value))}
+            className="w-full appearance-none h-2 bg-transparent absolute top-1/2 transform -translate-y-1/2"
+          />
+          <input
+            type="range"
+            min={MIN}
+            max={MAX}
+            step={STEP}
+            value={priceRange?.max ?? MAX}
+            onChange={(e) => handleRangeChange("max", Number(e.target.value))}
+            className="w-full appearance-none h-2 bg-transparent absolute top-1/2 transform -translate-y-1/2"
+          />
+
+          {/* visual track */}
+          <div className="h-2 bg-[#e6e6e6] rounded-full mt-2"></div>
         </div>
+
+        {/* Manual inputs */}
+        <div className="flex items-center gap-2 mt-3">
+          <div className="flex-1">
+            <label className="text-[11px] font-bold mb-1 block">حداقل (تومان)</label>
+            <input
+              type="number"
+              min={MIN}
+              max={priceRange?.max ?? MAX}
+              step={STEP}
+              value={priceRange?.min ?? MIN}
+              onChange={(e) => handleRangeChange("min", Number(e.target.value || 0))}
+              className="w-full bg-[#f8f9fa] border-[2.5px] border-black rounded-lg p-2 font-bold text-sm outline-none"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="text-[11px] font-bold mb-1 block">حداکثر (تومان)</label>
+            <input
+              type="number"
+              min={priceRange?.min ?? MIN}
+              max={MAX}
+              step={STEP}
+              value={priceRange?.max ?? MAX}
+              onChange={(e) => handleRangeChange("max", Number(e.target.value || 0))}
+              className="w-full bg-[#f8f9fa] border-[2.5px] border-black rounded-lg p-2 font-bold text-sm outline-none"
+            />
+          </div>
+        </div>
+
       </div>
     </aside>
   );

@@ -82,11 +82,6 @@ export default function CartPage() {
                     <p className="text-[11px] font-bold text-gray-600 mt-0.5">
                       {it.variantName}
                     </p>
-                    {it.discountCode && (
-                      <span className="inline-block mt-1 bg-[#ccff00] border border-black text-[10px] font-black px-1.5 py-0.5 rounded">
-                        کد تخفیف {it.discountCode} اعمال شد
-                      </span>
-                    )}
 
                     <div className="mt-3">
                       <span className="font-black text-sm">

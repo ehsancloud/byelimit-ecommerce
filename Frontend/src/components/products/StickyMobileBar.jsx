@@ -5,7 +5,6 @@ import { ShoppingBag, Tag, Clock } from "lucide-react";
 
 export default function StickyMobileBar({
   selectedVariant,
-  appliedDiscount,
   finalUnitPrice,
   onAddToCart,
   isAddingToCart,
@@ -30,12 +29,6 @@ export default function StickyMobileBar({
               {finalUnitPrice.toLocaleString("fa-IR")}{" "}
               <span className="text-[10px]">تومان</span>
             </span>
-            {appliedDiscount && (
-              <span className="flex items-center gap-0.5 bg-[#ccff00] border border-black text-[9px] font-black px-1.5 py-0.5 rounded">
-                <Tag className="w-2.5 h-2.5" />
-                {appliedDiscount.code}
-              </span>
-            )}
           </div>
         )}
       </div>

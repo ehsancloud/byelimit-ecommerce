@@ -181,16 +181,19 @@ model CartItem {
 // ===================== کدهای تخفیف =====================
 
 model DiscountCode {
-  id         String    @id @default(uuid())
-  code       String    @unique
-  type       DiscountType
-  amountRial BigInt?   // برای نوع FIXED
-  percent    Int?      // برای نوع PERCENT
-  maxUses    Int?
-  usedCount  Int       @default(0)
-  expiresAt  DateTime?
-  isActive   Boolean   @default(true)
-  createdAt  DateTime  @default(now())
+  id                  String    @id @default(uuid())
+  code                String    @unique
+  type                DiscountType
+  amountRial          BigInt?   // برای نوع FIXED
+  percent             Int?      // برای نوع PERCENT
+  maxUses             Int?
+  usedCount           Int       @default(0)
+  expiresAt           DateTime?
+  isActive            Boolean   @default(true)
+  minCartAmountRial   BigInt?   // حداقل مبلغ سبد برای فعال‌شدن کد
+  maxDiscountRial     BigInt?   // سقف مبلغ تخفیف (برای درصدی‌ها)
+  metadata            Json?
+  createdAt           DateTime  @default(now())
 
   orders Order[]
 

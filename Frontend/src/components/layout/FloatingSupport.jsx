@@ -28,7 +28,7 @@ export default function FloatingSupport() {
   return (
     <div
       ref={containerRef}
-      className="fixed bottom-6 left-6 z-50 font-[family-name:var(--font-farsi)] dir-rtl"
+      className="fixed bottom-6 right-6 z-50 font-[family-name:var(--font-farsi)] dir-rtl"
     >
       <AnimatePresence>
         {isOpen && (

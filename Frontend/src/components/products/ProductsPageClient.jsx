@@ -19,7 +19,7 @@ export default function ProductsPageClient({ initialSearch = "" }) {
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("popular");
-  const [priceRange, setPriceRange] = useState(3000000);
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 3000000 });
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
@@ -76,8 +76,11 @@ export default function ProductsPageClient({ initialSearch = "" }) {
         const cheapestPrice = pricedVariants.length
           ? Math.min(...pricedVariants.map((v) => v.price))
           : null;
-        // محصولات بدون قیمت نهایی (به‌زودی) همیشه نمایش داده می‌شوند، مستقل از اسلایدر قیمت
-        return cheapestPrice === null || cheapestPrice <= priceRange;
+        // محصولات بدون قیمت نهایی (به‌زودی) همیشه نمایش داده می‌شوند
+        if (cheapestPrice === null) return true;
+        const min = priceRange?.min ?? 0;
+        const max = priceRange?.max ?? Infinity;
+        return cheapestPrice >= min && cheapestPrice <= max;
       })
       .map(toProductCardProps)
       .sort((a, b) => {
@@ -106,7 +109,7 @@ export default function ProductsPageClient({ initialSearch = "" }) {
   };
 
   return (
-    <main className="min-h-screen bg-[#f3f3f3] p-4 sm:p-6 md:p-10 font-[family-name:var(--font-farsi)] dir-rtl text-black">
+    <main className="min-h-screen bg-[#f3f3f3] p-6 sm:p-8 md:p-10 font-[family-name:var(--font-farsi)] dir-rtl text-black">
       <div className="max-w-7xl mx-auto">
 
         {/* عنوان صفحه */}
@@ -152,7 +155,7 @@ export default function ProductsPageClient({ initialSearch = "" }) {
                 {loadError}
               </div>
             ) : paginatedProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {paginatedProducts.map((product) => (
                   <ProductCard key={product.id} {...product} />
                 ))}

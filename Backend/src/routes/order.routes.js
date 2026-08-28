@@ -35,16 +35,9 @@ router.post("/", optionalAuth, async (req, res) => {
   }
 
   try {
-    const hasItemLevelDiscount = cart.items.some((it) => it.discountCode);
-    
-    // ارسال مستقیم کد تخفیف سفارش به متد محاسبه قیمت
-    const itemsForPricing = cart.items.map((it) => ({
-      variantId: it.variantId,
-      discountCode: it.discountCode,
-    }));
-
-    const orderLevelCode = !hasItemLevelDiscount ? orderLevelDiscountCode : null;
-    const totals = await calculateOrderTotals(itemsForPricing, orderLevelCode);
+    // Prepare items for pricing - item-level discounts are ignored; only order-level code will be applied
+    const itemsForPricing = cart.items.map((it) => ({ variantId: it.variantId }));
+    const totals = await calculateOrderTotals(itemsForPricing, orderLevelDiscountCode);
 
     const user = await prisma.user.upsert({
       where: { mobile },

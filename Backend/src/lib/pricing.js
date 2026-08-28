@@ -40,13 +40,7 @@ async function calculateOrderTotals(items, orderLevelDiscountCode = null) {
     const lineTotal = variant.priceRial; // تعداد همیشه 1 است
     subtotalRial += lineTotal;
 
-    let lineDiscount = 0n;
-    if (item.discountCode) {
-      const discount = await resolveDiscountCode(item.discountCode, lineTotal);
-      lineDiscount = discount.amountRial;
-    }
-    itemDiscountRial += lineDiscount;
-
+    // Item-level discounts are no longer supported. Only order-level discounts are applied.
     resolvedItems.push({
       productId: variant.productId,
       variantId: variant.id,
@@ -102,12 +96,27 @@ async function resolveDiscountCode(code, baseAmountRial) {
     throw err;
   }
 
-  const amountRial =
+  // Minimum cart amount requirement
+  if (discount.minCartAmountRial && baseAmountRial < discount.minCartAmountRial) {
+    const err = new Error("مبلغ سبد خرید برای اعمال این کد کافی نیست.");
+    err.code = "DISCOUNT_MIN_CART";
+    throw err;
+  }
+
+  let amountRial =
     discount.type === "FIXED"
-      ? discount.amountRial
+      ? discount.amountRial || 0n
       : (baseAmountRial * BigInt(discount.percent || 0)) / 100n;
 
-  return { discount, amountRial: amountRial > baseAmountRial ? baseAmountRial : amountRial };
+  // cap by maxDiscountRial if provided
+  if (discount.maxDiscountRial && amountRial > discount.maxDiscountRial) {
+    amountRial = discount.maxDiscountRial;
+  }
+
+  // never exceed base amount
+  if (amountRial > baseAmountRial) amountRial = baseAmountRial;
+
+  return { discount, amountRial };
 }
 
 module.exports = { calculateOrderTotals, resolveDiscountCode, rialToToman };
