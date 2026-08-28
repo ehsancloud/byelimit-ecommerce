@@ -27,12 +27,12 @@ import {
 // دسته‌بندی‌های زیرمجموعه هر تب مگامنو - ترتیب دقیقاً مطابق خواسته:
 // ۱. ابزارهای هوش مصنوعی  ۲. اشتراک‌ها و اکانت‌های پرمیوم  ۳. سرور مجازی
 const AI_TOOLS_ITEMS = [
-  { href: "/products/category/content-creation", icon: FileText, color: "bg-purple-200", title: "تولید محتوا و متن", desc: "نگارش مقاله، چت‌بات، بازنویسی متون و خلاصه‌نویسی" },
-  { href: "/products/category/coding-development", icon: Code2, color: "bg-emerald-200", title: "برنامه نویسی و توسعه نرم افزار", desc: "کدنویسی هوشمند، رفع باگ و بازسازی کد" },
-  { href: "/products/category/image-editing", icon: ImageIcon, color: "bg-amber-200", title: "ساخت و ادیت عکس", desc: "تولید تصویر، طراحی گرافیکی، ویرایش تصویر و پوستر" },
-  { href: "/products/category/video-editing", icon: Video, color: "bg-rose-200", title: "ساخت و ادیت ویدیو", desc: "تولید فیلم، تدوین هوشمند ویدیو و انیمیشن" },
-  { href: "/products/category/audio-music", icon: Music, color: "bg-cyan-200", title: "ساخت صدا و موسیقی", desc: "صداگذاری، تولید موزیک، گویندگی و پادکست" },
-  { href: "/products/category/research-education", icon: GraduationCap, color: "bg-indigo-200", title: "تحقیق و آموزش", desc: "جستجوی علمی، مقاله نویسی و تحلیل داده" },
+  { href: "/products/category/text", icon: FileText, color: "bg-purple-200", title: "تولید محتوا و متن", desc: "نگارش مقاله، چت‌بات، بازنویسی متون و خلاصه‌نویسی" },
+  { href: "/products/category/code", icon: Code2, color: "bg-emerald-200", title: "برنامه نویسی و توسعه نرم افزار", desc: "کدنویسی هوشمند، رفع باگ و بازسازی کد" },
+  { href: "/products/category/image", icon: ImageIcon, color: "bg-amber-200", title: "ساخت و ادیت عکس", desc: "تولید تصویر، طراحی گرافیکی، ویرایش تصویر و پوستر" },
+  { href: "/products/category/video", icon: Video, color: "bg-rose-200", title: "ساخت و ادیت ویدیو", desc: "تولید فیلم، تدوین هوشمند ویدیو و انیمیشن" },
+  { href: "/products/category/audio", icon: Music, color: "bg-cyan-200", title: "ساخت صدا و موسیقی", desc: "صداگذاری، تولید موزیک، گویندگی و پادکست" },
+  { href: "/products/category/research", icon: GraduationCap, color: "bg-indigo-200", title: "تحقیق و آموزش", desc: "جستجوی علمی، مقاله نویسی و تحلیل داده" },
 ];
 
 const PREMIUM_ITEMS = [

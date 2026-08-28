@@ -11,6 +11,7 @@ import {
   User,
   ChevronDown,
   Sparkles,
+  Crown,
   Server,
   Zap,
   Headphones,
@@ -201,7 +202,7 @@ export default function Header() {
 
                 {/* سرچ بار زنده بین محصولات در منوی موبایل */}
                 <div className="w-full">
-                  <SearchBar isScrolled={false} />
+                  <SearchBar isScrolled={false} onNavigate={closeMobileMenu} />
                 </div>
 
                 {/* لیست آکاردئونی مگامنو موبایل */}
@@ -236,7 +237,7 @@ export default function Header() {
                           className="p-2 bg-white flex flex-col gap-1 border-t-[2px] border-black overflow-hidden"
                         >
                           <Link
-                            href="/products/category/content-creation"
+                            href="/products/category/text"
                             onClick={closeMobileMenu}
                             className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
                           >
@@ -245,7 +246,7 @@ export default function Header() {
                           </Link>
 
                           <Link
-                            href="/products/category/coding-development"
+                            href="/products/category/code"
                             onClick={closeMobileMenu}
                             className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
                           >
@@ -254,7 +255,7 @@ export default function Header() {
                           </Link>
 
                           <Link
-                            href="/products/category/image-editing"
+                            href="/products/category/image"
                             onClick={closeMobileMenu}
                             className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
                           >
@@ -263,7 +264,7 @@ export default function Header() {
                           </Link>
 
                           <Link
-                            href="/products/category/video-editing"
+                            href="/products/category/video"
                             onClick={closeMobileMenu}
                             className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
                           >
@@ -272,7 +273,7 @@ export default function Header() {
                           </Link>
 
                           <Link
-                            href="/products/category/audio-music"
+                            href="/products/category/audio"
                             onClick={closeMobileMenu}
                             className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
                           >
@@ -281,13 +282,36 @@ export default function Header() {
                           </Link>
 
                           <Link
-                            href="/products/category/research-education"
+                            href="/products/category/research"
                             onClick={closeMobileMenu}
                             className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
                           >
                             <GraduationCap className="w-4 h-4 text-indigo-600" />
                             <span>تحقیق و آموزش</span>
                           </Link>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* اشتراک‌ها و اکانت‌های پرمیوم - هم‌ساختار با مگامنوی دسکتاپ */}
+                  <div className="bg-white border-[2.5px] border-black rounded-xl overflow-hidden shadow-[-3px_3px_0_0_rgba(0,0,0,1)]">
+                    <button
+                      onClick={() => setMobileAccordion(mobileAccordion === "premium" ? null : "premium")}
+                      className="w-full p-3 font-black text-sm flex items-center justify-between bg-[#ffd166] cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2"><Crown className="w-4 h-4" /><span>اشتراک‌ها و اکانت‌های پرمیوم</span></div>
+                      <ChevronDown className={`w-4 h-4 stroke-[3] transition-transform ${mobileAccordion === "premium" ? "rotate-180" : ""}`} />
+                    </button>
+                    <AnimatePresence>
+                      {mobileAccordion === "premium" && (
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="p-2 grid grid-cols-2 gap-1 bg-white border-t-[2px] border-black overflow-hidden">
+                          {[
+                            ["film-music", "فیلم و موسیقی"], ["gaming", "گیمینگ و بازی"], ["design-graphics", "طراحی و گرافیک"],
+                            ["seo-marketing", "سئو و مارکتینگ"], ["education-utility", "آموزش و کاربردی"], ["telegram", "تلگرام"],
+                          ].map(([category, label]) => (
+                            <Link key={category} href={`/products/category/${category}`} onClick={closeMobileMenu} className="p-2 text-xs font-black rounded-lg hover:bg-gray-100">{label}</Link>
+                          ))}
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -323,18 +347,21 @@ export default function Header() {
                           className="p-2 bg-white flex flex-col gap-1 border-t-[2px] border-black overflow-hidden"
                         >
                           <Link
-                            href="/products?vps=germany"
+                            href="/products/vps-germany"
                             onClick={closeMobileMenu}
                             className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
                           >
                             <span>🇩🇪 سرور مجازی آلمان</span>
                           </Link>
                           <Link
-                            href="/products?vps=usa"
+                            href="/products/vps-usa"
                             onClick={closeMobileMenu}
                             className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
                           >
                             <span>🇺🇸 سرور مجازی آمریکا</span>
+                          </Link>
+                          <Link href="/products/vps-finland" onClick={closeMobileMenu} className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2">
+                            <span>🇫🇮 سرور مجازی فنلاند</span>
                           </Link>
                         </motion.div>
                       )}

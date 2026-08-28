@@ -20,7 +20,6 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { useCart } from "../../context/CartContext";
-import { validateDiscountCode } from "../../lib/discounts";
 import { apiFetch } from "../../lib/apiClient";
 
 const STEPS = [
@@ -63,8 +62,6 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, totalPrice: cartTotalPrice, isHydrated } = useCart();
 
-  const hasItemLevelDiscount = items.some((it) => it.discountCode);
-
   const [formData, setFormData] = useState({
     fullName: "",
     mobile: "",
@@ -92,20 +89,22 @@ export default function CheckoutPage() {
     }
   }, [isHydrated, items.length, router]);
 
-  const handleApplyDiscount = (e) => {
+  const handleApplyDiscount = async (e) => {
     e.preventDefault();
     setDiscountError("");
     setDiscountSuccess("");
 
-    if (hasItemLevelDiscount) return;
-
-    const result = validateDiscountCode(discountCode, cartTotalPrice);
-    if (!result.valid) {
-      setDiscountError(result.message);
-      return;
+    try {
+      const quote = await apiFetch("/api/orders/quote", {
+        method: "POST",
+        body: JSON.stringify({ orderLevelDiscountCode: discountCode }),
+      });
+      setDiscountCode(quote.appliedCode || discountCode.trim().toUpperCase());
+      setAppliedOrderDiscount(quote.discountToman);
+      setDiscountSuccess("کد تخفیف با موفقیت روی کل سبد اعمال شد.");
+    } catch (err) {
+      setDiscountError(err.message || "کد تخفیف معتبر نیست.");
     }
-    setAppliedOrderDiscount(result.discountAmount);
-    setDiscountSuccess(result.message);
   };
 
   const handleContinueToInvoice = (e) => {
@@ -131,8 +130,7 @@ export default function CheckoutPage() {
           mobile: formData.mobile,
           telegramId: formData.telegramId || null,
           fullName: formData.fullName || null,
-          orderLevelDiscountCode:
-            !hasItemLevelDiscount && appliedOrderDiscount > 0 ? discountCode : null,
+          orderLevelDiscountCode: appliedOrderDiscount > 0 ? discountCode : null,
         }),
       });
 
@@ -287,15 +285,7 @@ export default function CheckoutPage() {
                   )}
                 </div>
 
-                {hasItemLevelDiscount ? (
-                  <div className="bg-[#fff9c4] border-[2px] border-black p-3 rounded-xl text-[11px] font-bold flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-purple-600 shrink-0" />
-                    <span>
-                      کد تخفیف این سفارش در صفحه محصول اعمال شده است؛ امکان اعمال کد دیگری وجود ندارد.
-                    </span>
-                  </div>
-                ) : (
-                  <form onSubmit={handleApplyDiscount} className="flex flex-col gap-2">
+                <form onSubmit={handleApplyDiscount} className="flex flex-col gap-2">
                     <label className="text-xs font-black text-black flex items-center gap-1.5">
                       <Tag className="w-4 h-4 text-purple-600 stroke-[2.5]" />
                       <span>کد تخفیف دارید؟</span>
@@ -330,8 +320,7 @@ export default function CheckoutPage() {
                         {discountSuccess}
                       </p>
                     )}
-                  </form>
-                )}
+                </form>
 
                 <button
                   type="button"

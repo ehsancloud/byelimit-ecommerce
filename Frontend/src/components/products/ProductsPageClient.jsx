@@ -19,7 +19,7 @@ export default function ProductsPageClient({ initialSearch = "" }) {
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("popular");
-  const [priceRange, setPriceRange] = useState({ min: 0, max: 3000000 });
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 50000000 });
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
@@ -57,7 +57,7 @@ export default function ProductsPageClient({ initialSearch = "" }) {
   const handleResetFilters = () => {
     setSelectedCategory("all");
     setSortBy("popular");
-    setPriceRange(3000000);
+    setPriceRange({ min: 0, max: 50000000 });
     setCurrentPage(1);
   };
 
@@ -109,7 +109,7 @@ export default function ProductsPageClient({ initialSearch = "" }) {
   };
 
   return (
-    <main className="min-h-screen bg-[#f3f3f3] p-6 sm:p-8 md:p-10 font-[family-name:var(--font-farsi)] dir-rtl text-black">
+    <main className="min-h-screen bg-[#f3f3f3] p-5 sm:p-8 md:p-12 font-[family-name:var(--font-farsi)] dir-rtl text-black">
       <div className="max-w-7xl mx-auto">
 
         {/* عنوان صفحه */}
@@ -136,7 +136,7 @@ export default function ProductsPageClient({ initialSearch = "" }) {
         </header>
 
         {/* بخش اصلی: فیلترها + شبکه محصولات */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 items-start">
 
           {/* فیلترهای دسکتاپ */}
           <div className="hidden md:block md:col-span-1 sticky top-20">

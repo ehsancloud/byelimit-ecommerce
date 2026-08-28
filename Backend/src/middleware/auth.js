@@ -10,7 +10,7 @@ function requireAuth(req, res, next) {
     return res.status(401).json({ error: "لطفاً ابتدا وارد حساب کاربری خود شوید." });
   }
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const payload = jwt.verify(token, process.env.JWT_SECRET || "dev-secret-change-me");
     req.user = payload; // { userId, mobile }
     next();
   } catch {
@@ -26,7 +26,7 @@ function optionalAuth(req, res, next) {
   const token = req.cookies?.auth_token;
   if (!token) return next();
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = jwt.verify(token, process.env.JWT_SECRET || "dev-secret-change-me");
   } catch {
     // توکن نامعتبر/منقضی - کاربر را به‌عنوان مهمان در نظر بگیر، خطا نده
   }
@@ -36,7 +36,7 @@ function optionalAuth(req, res, next) {
 function issueAuthCookie(res, user) {
   const token = jwt.sign(
     { userId: user.id, mobile: user.mobile },
-    process.env.JWT_SECRET,
+    process.env.JWT_SECRET || "dev-secret-change-me",
     { expiresIn: process.env.JWT_EXPIRES_IN || "33d" },
   );
   res.cookie("auth_token", token, {

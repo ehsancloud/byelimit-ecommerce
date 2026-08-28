@@ -141,4 +141,4 @@ async function verifyOtp(rawMobile, code, purpose = "LOGIN") {
   return true;
 }
 
-module.exports = { sendOtp, verifyOtp };
+module.exports = { sendOtp, verifyOtp, normalizeMobile };

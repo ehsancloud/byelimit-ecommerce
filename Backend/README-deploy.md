@@ -63,12 +63,16 @@ npm run build
 # روی سرور به عنوان root یا sudo:
 sudo mkdir -p /etc/byelimit
 sudo chown deploy:deploy /etc/byelimit
-# حالا یک فایل متنی بسازید با نام /etc/byelimit/.env و مقادیر production را قرار دهید
+# حالا یک فایل متنی بسازید با نام /etc/byelimit/.env و مقادیر production را قرار دهید.
+# deploy.sh در صورت نبود Backend/.env، این فایل را به‌صورت symlink متصل می‌کند.
 # مثال تولید secret ها:
 # sudo -u deploy bash -c "openssl rand -base64 48 > /tmp/jwt_secret && cat /tmp/jwt_secret"
 # برای AES key: openssl rand -hex 32
 # بعد از ساخت فایل:
 sudo chmod 600 /etc/byelimit/.env
+
+# در اولین deploy، deploy.sh خودش این symlink را می‌سازد. در صورت نیاز دستی:
+# sudo -u deploy ln -s /etc/byelimit/.env /var/www/byelimit/Backend/.env
 
 نمونه محتوا (از Backend/.env.production استفاده کنید)
 
@@ -78,6 +82,9 @@ npx prisma generate
 npx prisma migrate deploy
 # در صورت نیاز seed:
 # node prisma/seed.js
+
+# deployهای بعدی:
+# cd /var/www/byelimit && bash deploy.sh
 
 9) systemd
 # فایل‌های نمونه در Backend/*.service.template هستند

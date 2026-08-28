@@ -38,7 +38,7 @@ const SAMPLE_PRODUCTS = [
   },
 ];
 
-export default function SearchBar() {
+export default function SearchBar({ onNavigate }) {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
@@ -104,7 +104,7 @@ export default function SearchBar() {
                 <Link
                   key={item.id}
                   href={`/products/${item.id}`}
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => { setIsOpen(false); onNavigate?.(); }}
                   className="flex items-center justify-between p-2 rounded-lg border-[2px] border-transparent hover:border-black hover:bg-[#ccff00]/20 transition-all group"
                 >
                   <div className="flex items-center gap-2.5">
@@ -134,7 +134,7 @@ export default function SearchBar() {
               {/* گزینه نمایش همه نتایج */}
               <Link
                 href={`/products?search=${encodeURIComponent(query)}`}
-                onClick={() => setIsOpen(false)}
+                onClick={() => { setIsOpen(false); onNavigate?.(); }}
                 className="mt-2 flex items-center justify-between bg-black text-white p-2.5 rounded-lg text-xs font-black hover:bg-gray-800 transition-colors"
               >
                 <span>مشاهده همه نتایج</span>

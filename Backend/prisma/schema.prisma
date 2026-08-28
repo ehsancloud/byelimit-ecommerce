@@ -88,6 +88,8 @@ model ProductVariant {
   productId          String
   product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   name               String // مثلاً "Plus"، "Pro 5x"، "۱ گیگ رم / ۱ ماهه"
+  // عنوان محصول کنار پلن در Prisma Studio؛ برای قیمت‌گذاری سریع‌تر است.
+  productTitle       String?
   type               String? // shared | exclusive
   durationDays       Int?
   priceRial          BigInt? // null = هنوز قیمت‌گذاری نشده (TBD) - هرگز به فرانت عدد ۰ داده نمی‌شود
@@ -171,7 +173,6 @@ model CartItem {
   variant        ProductVariant @relation(fields: [variantId], references: [id])
   quantity       Int      @default(1)
   unitPriceRial  BigInt // اسنپ‌شات قیمت لحظه افزودن (مرجع نهایی محاسبه در سرور است، نه این عدد به‌تنهایی)
-  discountCode   String? // کد تخفیفی که همان لحظه در صفحه محصول اعمال شده (قفل به همین آیتم)
   createdAt      DateTime @default(now())
 
   @@index([cartId])

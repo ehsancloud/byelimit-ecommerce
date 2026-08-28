@@ -1,24 +1,51 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+# Deploy ByeLimit on an Ubuntu VPS. Run as the deploy user, not root.
+set -Eeuo pipefail
 
-echo "🚀 [1/5] دریافت آخرین تغییرات از مخزن..."
-cd /var/www/byelimit
-git pull origin main
+PROJECT_DIR="${PROJECT_DIR:-/var/www/byelimit}"
+BACKEND_DIR="$PROJECT_DIR/Backend"
+FRONTEND_DIR="$PROJECT_DIR/Frontend"
+SYSTEM_ENV_FILE="${SYSTEM_ENV_FILE:-/etc/byelimit/.env}"
 
-echo "📦 [2/5] همگام‌سازی دیتابیس و وابستگی‌های بک‌اند..."
-cd /var/www/byelimit/Backend
-npm install --prefer-offline --no-audit
+trap 'echo "❌ دیپلوی در خط $LINENO متوقف شد." >&2' ERR
+
+if [[ ! -d "$PROJECT_DIR/.git" ]]; then
+  echo "❌ پروژه در $PROJECT_DIR پیدا نشد یا Git repository نیست." >&2
+  exit 1
+fi
+
+# dotenv در بک‌اند، .env داخل Backend را می‌خواند. رازها بیرون از Git نگه داشته
+# می‌شوند و فقط برای اجرای برنامه به صورت symlink در دسترس قرار می‌گیرند.
+if [[ ! -f "$BACKEND_DIR/.env" ]]; then
+  if [[ -f "$SYSTEM_ENV_FILE" ]]; then
+    ln -s "$SYSTEM_ENV_FILE" "$BACKEND_DIR/.env"
+  else
+    echo "❌ فایل محیطی یافت نشد: $BACKEND_DIR/.env یا $SYSTEM_ENV_FILE" >&2
+    echo "ابتدا Backend/.env.example را با مقادیر production تکمیل کنید." >&2
+    exit 1
+  fi
+fi
+
+echo "🚀 [1/5] دریافت آخرین تغییرات از گیت‌هاب..."
+cd "$PROJECT_DIR"
+git pull --ff-only origin main
+
+echo "📦 [2/5] نصب وابستگی‌های بک‌اند و اجرای migration دیتابیس..."
+cd "$BACKEND_DIR"
+npm ci
 npx prisma generate
+# در production از migrationهای versioned استفاده می‌شود، نه db push.
 npx prisma migrate deploy
 
-echo "⚡ [3/5] کامپایل فرانت‌اند Next.js..."
-cd /var/www/byelimit/Frontend
-npm install --prefer-offline --no-audit
-npm run build
+echo "⚛️ [3/5] نصب وابستگی‌ها و build فرانت‌اند..."
+cd "$FRONTEND_DIR"
+npm ci
+npm run build -- --webpack
 
-echo "🔄 [4/5] ری‌استارت پروسه‌ها..."
-cd /var/www/byelimit
+echo "🔄 [4/5] ری‌لود امن پروسه‌های PM2..."
+cd "$PROJECT_DIR"
 pm2 startOrReload ecosystem.config.js --update-env
 pm2 save
 
-echo "🎉 [5/5] استقرار با موفقیت به پایان رسید!"
+echo "✅ [5/5] دیپلوی با موفقیت انجام شد!"
+echo "Health check: curl -fsS http://127.0.0.1:4000/health"

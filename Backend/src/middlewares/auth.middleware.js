@@ -15,14 +15,14 @@ module.exports = async function authMiddleware(req, res, next) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "dev-secret-change-me");
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, mobile: true, role: true, name: true },
+      select: { id: true, mobile: true, fullName: true },
     });
 
     if (!user) {
       return res.status(401).json({ error: "کاربر یافت نشد." });
     }
 
-    req.user = user;
+    req.user = { ...user, userId: user.id };
     next();
   } catch (err) {
     return res.status(401).json({ error: "نشست شما منقضی شده است." });

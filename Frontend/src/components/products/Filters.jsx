@@ -18,6 +18,7 @@ export default function Filters({
   priceRange,
   setPriceRange,
   onReset,
+  mobile = false,
 }) {
   const [sortOpen, setSortOpen] = useState(false);
   const sortRef = useRef(null);
@@ -44,7 +45,7 @@ export default function Filters({
 
   return (
     // تغییر sticky top-6 به sticky top-24 جهت نرفتن زیر هدر چسبان
-    <aside className="w-full bg-white border-[3px] border-black rounded-[16px] p-5 shadow-[-6px_6px_0_0_rgba(0,0,0,1)] dir-rtl flex flex-col gap-6 sticky top-20 z-10 transition-all duration-300">
+    <aside className={`w-full bg-white border-[3px] border-black rounded-[16px] ${mobile ? "p-3 gap-3" : "p-5 gap-6 sticky top-20"} shadow-[-6px_6px_0_0_rgba(0,0,0,1)] dir-rtl flex flex-col z-10 transition-all duration-300`}>
       <div className="flex items-center justify-between border-b-[3px] border-black pb-3">
         <div className="flex items-center gap-2 font-black text-xl">
           <SlidersHorizontal className="w-5 h-5 stroke-[2.5]" />
@@ -92,11 +93,11 @@ export default function Filters({
       {/* فیلتر کاربرد / دسته‌بندی */}
       <div>
         <label className="block font-black text-sm mb-2">کاربرد و حوزه:</label>
-        <div className="flex flex-col gap-2">
+        <div className={`gap-2 ${mobile ? "grid grid-cols-2" : "flex flex-col"}`}>
           {categories.map((cat) => (
             <label
               key={cat.id}
-              className="flex items-center gap-2 font-bold text-sm cursor-pointer select-none"
+              className="flex items-center gap-1.5 font-bold text-xs sm:text-sm cursor-pointer select-none"
             >
               <input
                 type="radio"

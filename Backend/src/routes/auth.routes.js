@@ -1,7 +1,7 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const prisma = require("../lib/prisma");
-const { sendOtp, verifyOtp } = require("../services/otp.service");
+const { sendOtp, verifyOtp, normalizeMobile } = require("../services/otp.service");
 const authMiddleware = require("../middlewares/auth.middleware");
 
 const router = express.Router();
@@ -9,7 +9,7 @@ const THIRTY_THREE_DAYS_MS = 33 * 24 * 60 * 60 * 1000;
 
 router.post("/send-otp", async (req, res, next) => {
   try {
-    const { mobile } = req.body;
+    const mobile = normalizeMobile(req.body.mobile);
     if (!mobile) return res.status(400).json({ error: "شماره موبایل الزامی است." });
     
     await sendOtp(mobile, "LOGIN", req.ip);
@@ -28,20 +28,21 @@ router.post("/send-otp", async (req, res, next) => {
 
 router.post("/verify-otp", async (req, res, next) => {
   try {
-    const { mobile, code } = req.body;
+    const mobile = normalizeMobile(req.body.mobile);
+    const { code } = req.body;
     if (!mobile || !code) return res.status(400).json({ error: "موبایل و کد الزامی هستند." });
 
-    await verifyOtp(mobile, code, "LOGIN");
+    await verifyOtp(mobile, String(code).trim(), "LOGIN");
 
     let user = await prisma.user.findUnique({ where: { mobile } });
     if (!user) {
       user = await prisma.user.create({
-        data: { mobile, role: "USER" },
+        data: { mobile },
       });
     }
 
     const token = jwt.sign(
-      { userId: user.id, mobile: user.mobile, role: user.role },
+      { userId: user.id, mobile: user.mobile },
       process.env.JWT_SECRET || "dev-secret-change-me",
       { expiresIn: "33d" }
     );
@@ -56,7 +57,7 @@ router.post("/verify-otp", async (req, res, next) => {
 
     res.json({
       success: true,
-      user: { id: user.id, mobile: user.mobile, role: user.role },
+      user: { id: user.id, mobile: user.mobile, fullName: user.fullName },
       token,
     });
   } catch (err) {

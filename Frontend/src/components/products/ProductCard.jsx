@@ -15,7 +15,7 @@ export default function ProductCard({
   href = "#",
 }) {
   return (
-    <div className="w-full bg-[#12e2a3] border-[3px] border-black rounded-[14px] p-4 shadow-[-8px_8px_0px_0px_rgba(0,0,0,1)] font-[family-name:var(--font-farsi)] text-black select-none dir-rtl flex flex-col justify-between">
+    <div className="w-full bg-[#12e2a3] border-[3px] border-black rounded-[14px] p-3 sm:p-4 shadow-[-6px_6px_0px_0px_rgba(0,0,0,1)] font-[family-name:var(--font-farsi)] text-black select-none dir-rtl flex flex-col justify-between">
       <div>
         {/* بالای کارت: ضمانت و امتیاز */}
         <div className="flex justify-between items-center mb-3">
@@ -40,16 +40,16 @@ export default function ProductCard({
         </div>
 
         {/* کاور محصول */}
-        <div className="relative bg-[#f2f4f8] border-[3px] border-black rounded-[10px] h-[180px] w-full overflow-hidden">
+        <div className="relative bg-[#f2f4f8] border-[3px] border-black rounded-[10px] aspect-square sm:h-[180px] sm:aspect-auto w-full overflow-hidden">
           <Image src={imageSrc} alt={titleEn} fill className="object-cover" />
         </div>
 
         {/* عناوین و توضیحات */}
         <div className="text-center mt-4">
-          <h2 className="text-[20px] font-black leading-tight">
+          <h2 className="text-sm sm:text-[20px] font-black leading-tight line-clamp-2">
             {titleFa}
             <br />
-            <span className="text-[24px] font-black tracking-normal">
+            <span className="text-base sm:text-[24px] font-black tracking-normal">
               {titleEn}
             </span>
           </h2>
@@ -71,7 +71,7 @@ export default function ProductCard({
                   </span>
                 )}
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-[30px] font-black tracking-tight leading-none">
+                  <span className="text-lg sm:text-[30px] font-black tracking-tight leading-none">
                     {price}
                   </span>
                   <span className="text-sm font-extrabold">تومان</span>

@@ -15,6 +15,24 @@ const createOrderSchema = z.object({
   orderLevelDiscountCode: z.string().optional().nullable(),
 });
 
+router.post("/quote", optionalAuth, async (req, res) => {
+  const code = typeof req.body?.orderLevelDiscountCode === "string"
+    ? req.body.orderLevelDiscountCode.trim().toUpperCase()
+    : null;
+  const cart = await prisma.cart.findFirst({
+    where: req.user
+      ? { userId: req.user.userId, status: "ACTIVE" }
+      : { guestToken: req.cookies?.cart_token, status: "ACTIVE" },
+    include: { items: true },
+  });
+  try {
+    const totals = await calculateOrderTotals(cart?.items || [], code || null);
+    return res.json({ subtotalToman: Number(totals.subtotalRial / 10n), discountToman: Number(totals.discountRial / 10n), totalToman: Number(totals.totalRial / 10n), appliedCode: code });
+  } catch (err) {
+    return res.status(400).json({ error: err.message, code: err.code || "QUOTE_FAILED" });
+  }
+});
+
 router.post("/", optionalAuth, async (req, res) => {
   const parsed = createOrderSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -37,7 +55,7 @@ router.post("/", optionalAuth, async (req, res) => {
   try {
     // Prepare items for pricing - item-level discounts are ignored; only order-level code will be applied
     const itemsForPricing = cart.items.map((it) => ({ variantId: it.variantId }));
-    const totals = await calculateOrderTotals(itemsForPricing, orderLevelDiscountCode);
+    const totals = await calculateOrderTotals(itemsForPricing, orderLevelDiscountCode?.trim().toUpperCase() || null);
 
     const user = await prisma.user.upsert({
       where: { mobile },
@@ -103,6 +121,7 @@ router.post("/", optionalAuth, async (req, res) => {
       "DISCOUNT_INVALID",
       "DISCOUNT_EXPIRED",
       "DISCOUNT_EXHAUSTED",
+      "DISCOUNT_MIN_CART",
       "EMPTY_CART",
     ];
     if (knownErrors.includes(err.code)) {
