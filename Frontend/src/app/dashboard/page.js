@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ShoppingBag, Wallet, Clock, ArrowLeft, Sparkles, Zap, Loader2, Copy, Check } from "lucide-react";
-import { apiFetch } from "../../../lib/apiClient";
+import { apiFetch } from "../../lib/apiClient";
 
 const STATUS_COLOR = {
   PAID:            "bg-[#12e2a3] border-black text-black",
