@@ -1,18 +1,4 @@
 // src/services/zarinpal.service.js
-//
-// پیاده‌سازی کامل درگاه زرین‌پال طبق مستندات رسمی:
-// https://www.zarinpal.com/docs/paymentGateway/connectToGateway.html
-// https://www.zarinpal.com/docs/paymentGateway/sandBox.html
-// https://www.zarinpal.com/docs/paymentGateway/errorList.html
-// https://www.zarinpal.com/docs/paymentGateway/moreFeatures/session-validation.html
-// https://www.zarinpal.com/docs/paymentGateway/moreFeatures/currency.html
-// https://www.zarinpal.com/docs/paymentGateway/moreFeatures/card-pan.html
-// https://www.zarinpal.com/docs/paymentGateway/moreFeatures/reverse.html
-// https://www.zarinpal.com/docs/paymentGateway/moreFeatures/setshare.html
-// https://www.zarinpal.com/docs/paymentGateway/otherMethods/unVerified.html
-// https://www.zarinpal.com/docs/paymentGateway/otherMethods/Inquiry.html
-// https://www.zarinpal.com/docs/paymentGateway/otherMethods/feeCalculation.html
-
 const IS_SANDBOX = process.env.ZARINPAL_SANDBOX === "true";
 
 const BASE_URL = IS_SANDBOX
@@ -25,10 +11,6 @@ const STARTPAY_URL = IS_SANDBOX
 
 const MERCHANT_ID = process.env.ZARINPAL_MERCHANT_ID;
 
-// ---------------------------------------------------------------------------
-// نگاشت کدهای خطای زرین‌پال به پیام قابل‌فهم فارسی برای کاربر
-// (بخش «مدیریت خطاهای درگاه» از چک‌لیست شما)
-// ---------------------------------------------------------------------------
 const ZARINPAL_ERROR_MESSAGES = {
   "-9": "خطای اعتبارسنجی؛ مقادیر ورودی صحیح نیست.",
   "-10": "آی‌پی یا مرچنت کد پذیرنده صحیح نیست.",
@@ -72,23 +54,26 @@ async function callZarinpal(endpoint, body) {
  * مرحله ۱: درخواست ساخت تراکنش و دریافت Authority
  *
  * @param {Object} params
- * @param {number} params.amountToman - مبلغ به تومان (ورودی BigInt ریال باید قبلاً به تومان تبدیل شده باشد)
+ * @param {number} params.amountToman
  * @param {string} params.description
- * @param {string} params.orderId - شناسه سفارش داخلی ما (برای metadata، نه Authority)
+ * @param {string} params.orderId
  * @param {string} [params.mobile]
- * @param {string[]} [params.cardPan] - طبق ویژگی card_pan: محدودسازی پرداخت فقط به همین کارت
+ * @param {string[]} [params.cardPan]
+ * @param {string} [params.callbackUrl] - URL کامل Callback شامل orderId؛ اگر نداده شود
+ *   از ZARINPAL_CALLBACK_URL محیطی استفاده می‌شود (بدون orderId).
+ *   باگ قبلی: route از callbackUrl استفاده می‌کرد اما این پارامتر به تابع داده نمی‌شد.
  */
-async function requestPayment({ amountToman, description, orderId, mobile, cardPan }) {
+async function requestPayment({ amountToman, description, orderId, mobile, cardPan, callbackUrl }) {
   const payload = {
     merchant_id: MERCHANT_ID,
     amount: amountToman,
-    currency: "IRT", // تعیین دقیق واحد پولی طبق چک‌لیست - تومان (IRT). برای ریال از "IRR" استفاده کنید.
+    currency: "IRT",
     description,
-    callback_url: process.env.ZARINPAL_CALLBACK_URL,
+    // ✅ FIX: از callbackUrl پویا که orderId دارد استفاده کن؛ fallback به متغیر محیطی
+    callback_url: callbackUrl || process.env.ZARINPAL_CALLBACK_URL,
     metadata: { order_id: orderId, mobile },
   };
 
-  // محدودسازی شماره کارت (Card PAN) - اگر کاربر شماره کارت خود را پیش از خرید داده باشد
   if (cardPan && cardPan.length > 0) {
     payload.card_pan = cardPan;
   }
@@ -114,12 +99,6 @@ async function requestPayment({ amountToman, description, orderId, mobile, cardP
   };
 }
 
-/**
- * مرحله ۲: وریفای پرداخت پس از بازگشت کاربر از درگاه.
- * توجه: این تابع فقط با زرین‌پال صحبت می‌کند - تصمیم‌گیری درباره تغییر وضعیت
- * سفارش در دیتابیس (تراکنش اتمیک، قفل‌گذاری موجودی) باید در لایه‌ی بالاتر
- * (payment.routes.js) انجام شود، نه اینجا.
- */
 async function verifyPayment({ amountToman, authority }) {
   const json = await callZarinpal("verify", {
     merchant_id: MERCHANT_ID,
@@ -133,10 +112,10 @@ async function verifyPayment({ amountToman, authority }) {
       success: true,
       alreadyVerified: json.data.code === 101,
       refId: json.data.ref_id,
-      cardPan: json.data.card_pan, // شماره کارت پرداخت‌کننده (masked)
+      cardPan: json.data.card_pan,
       cardHash: json.data.card_hash,
       feeType: json.data.fee_type,
-      fee: json.data.fee, // کارمزد کسرشده - باید در Payment.feeRial لاگ شود
+      fee: json.data.fee,
     };
   }
 
@@ -149,9 +128,6 @@ async function verifyPayment({ amountToman, authority }) {
   };
 }
 
-/**
- * استعلام وضعیت یک تراکنش مشکوک، پیش از هرگونه تغییر وضعیت در دیتابیس.
- */
 async function inquiryPayment({ authority }) {
   const json = await callZarinpal("inquiry", {
     merchant_id: MERCHANT_ID,
@@ -165,10 +141,6 @@ async function inquiryPayment({ authority }) {
   return { success: false, errorCode, message: getErrorMessage(errorCode) };
 }
 
-/**
- * لیست تراکنش‌های Verify‌نشده (کاربر پول داده اما کال‌بک به سرور نرسیده).
- * توسط کران‌جاب دوره‌ای فراخوانی می‌شود - src/jobs/unverified-cron.js
- */
 async function listUnverifiedTransactions() {
   const json = await callZarinpal("unVerified", { merchant_id: MERCHANT_ID });
   if (json.data && json.data.authorities) {
@@ -177,11 +149,6 @@ async function listUnverifiedTransactions() {
   return { success: false, authorities: [] };
 }
 
-/**
- * بازگشت وجه خودکار (Reverse) - وقتی پول کسر و وریفای شده اما تحویل ناموفق بوده
- * (مثلاً موجودی اکانت در دیتابیس تمام شده). طبق مستندات زرین‌پال، Reverse فقط
- * تا مدت محدودی پس از verify قابل فراخوانی است.
- */
 async function reversePayment({ authority }) {
   const json = await callZarinpal("reverse", {
     merchant_id: MERCHANT_ID,
@@ -195,14 +162,7 @@ async function reversePayment({ authority }) {
   return { success: false, errorCode, message: getErrorMessage(errorCode) };
 }
 
-/**
- * تسهیم پرداخت (SetShare) - برای آینده، اگر سیستم افیلیت/چندفروشندگی اضافه شود.
- * فعلاً فقط اسکلت آماده؛ در صورت نیاز به فیلد `shares` در payload اضافه شود.
- * https://www.zarinpal.com/docs/paymentGateway/moreFeatures/setshare.html
- */
 function buildShares(shares) {
-  // shares: [{ iban, amount, description }]
-  // TODO: وقتی سیستم افیلیت/چندفروشندگی پیاده شد، این را به payload درخواست اضافه کنید.
   return shares || [];
 }
 

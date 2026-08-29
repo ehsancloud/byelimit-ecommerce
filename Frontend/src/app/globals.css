@@ -4,3 +4,23 @@
   --font-farsi: var(--font-farsi), sans-serif;
 }
 
+/*
+ * ✅ FIX: جلوگیری از زوم خودکار iOS روی هر نوع input
+ * iOS وقتی فونت input کمتر از 16px باشد زوم می‌کند.
+ * این قانون را برای همه input ها در سراسر سایت اعمال می‌کند.
+ */
+input,
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+input[type="number"],
+input[type="password"],
+input[type="search"],
+input[type="url"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+  font-size: max(16px, 1em) !important;
+  touch-action: manipulation;
+}

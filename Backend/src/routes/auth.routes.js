@@ -1,3 +1,4 @@
+// src/routes/auth.routes.js
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const prisma = require("../lib/prisma");
@@ -11,11 +12,10 @@ router.post("/send-otp", async (req, res, next) => {
   try {
     const mobile = normalizeMobile(req.body.mobile);
     if (!mobile) return res.status(400).json({ error: "شماره موبایل الزامی است." });
-    
+
     await sendOtp(mobile, "LOGIN", req.ip);
     res.json({ success: true, message: "کد تایید ارسال شد." });
   } catch (err) {
-    // Rate-limiting or SMS send failures should return a helpful message
     if (err && err.code === "OTP_RATE_LIMITED") {
       return res.status(429).json({ error: err.message, code: err.code });
     }
@@ -61,7 +61,6 @@ router.post("/verify-otp", async (req, res, next) => {
       token,
     });
   } catch (err) {
-    // For OTP-specific errors show a clear message to the client (bad code, expired, rate limited)
     if (err && err.code && err.code.startsWith("OTP_")) {
       const status = err.code === "OTP_RATE_LIMITED" ? 429 : 400;
       return res.status(status).json({ error: err.message, code: err.code });
@@ -70,8 +69,45 @@ router.post("/verify-otp", async (req, res, next) => {
   }
 });
 
+// ✅ FIX: اطلاعات کامل کاربر (شامل fullName و telegramId) از دیتابیس برگشت داده می‌شود
 router.get("/me", authMiddleware, async (req, res) => {
-  res.json({ user: req.user });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId || req.user.id },
+      select: {
+        id: true,
+        mobile: true,
+        fullName: true,
+        telegramId: true,
+        createdAt: true,
+      },
+    });
+    if (!user) return res.status(401).json({ error: "کاربر یافت نشد." });
+    res.json({ user: { ...user, userId: user.id } });
+  } catch (err) {
+    res.status(500).json({ error: "خطا در دریافت اطلاعات کاربر." });
+  }
+});
+
+// ✅ NEW: بروزرسانی پروفایل کاربر از پنل کاربری
+router.patch("/profile", authMiddleware, async (req, res) => {
+  try {
+    const { fullName, telegramId } = req.body || {};
+    const userId = req.user.userId || req.user.id;
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        fullName: fullName !== undefined ? (fullName || null) : undefined,
+        telegramId: telegramId !== undefined ? (telegramId || null) : undefined,
+      },
+      select: { id: true, mobile: true, fullName: true, telegramId: true },
+    });
+
+    res.json({ success: true, user: { ...user, userId: user.id } });
+  } catch (err) {
+    res.status(500).json({ error: "خطا در بروزرسانی پروفایل." });
+  }
 });
 
 router.post("/logout", (req, res) => {

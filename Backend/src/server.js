@@ -1,9 +1,6 @@
 // src/server.js
 require("dotenv").config();
 
-// Prisma برای مبالغ مالی از BigInt استفاده می‌کند (طبق درخواست، نه Float) اما
-// JSON.stringify بومی جاوااسکریپت از BigInt پشتیبانی نمی‌کند - این پچ سراسری
-// همه‌ی res.json() ها را ایمن می‌کند.
 BigInt.prototype.toJSON = function () {
   return this.toString();
 };
@@ -20,6 +17,7 @@ const orderRoutes = require("./routes/order.routes");
 const paymentRoutes = require("./routes/payment.routes");
 const productRoutes = require("./routes/product.routes");
 const telegramRoutes = require("./routes/telegram.routes");
+const flashDealRoutes = require("./routes/flashdeal.routes"); // ✅ NEW
 
 const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
 const { generalApiRateLimiter } = require("./middleware/rateLimit");
@@ -35,19 +33,18 @@ const allowedFrontendOrigins = [
   "http://127.0.0.1:3001",
 ].map((origin) => origin.trim()).filter(Boolean);
 
-app.set("trust proxy", 1); // پشت nginx/کلودفلر - برای req.ip درست و rate-limit صحیح
+app.set("trust proxy", 1);
 
 app.use(helmet());
 app.use(
   cors({
     origin: (origin, callback) => {
-      // در توسعه محلی و در پروداکشن، فقط دامنه‌های مجاز اجازه دسترسی دارند.
       if (!origin || allowedFrontendOrigins.includes(origin)) {
         return callback(null, true);
       }
       return callback(null, false);
     },
-    credentials: true, // برای ارسال کوکی httpOnly لازم است
+    credentials: true,
   }),
 );
 app.use(express.json({ limit: "1mb" }));
@@ -62,6 +59,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/flash-deals", flashDealRoutes); // ✅ NEW
 app.use("/internal/telegram", telegramRoutes);
 
 app.use(notFoundHandler);

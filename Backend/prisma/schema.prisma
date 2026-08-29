@@ -14,7 +14,7 @@ datasource db {
 
 model User {
   id           String   @id @default(uuid())
-  mobile       String   @unique // شماره موبایل، شناسه اصلی کاربر (کلید ارتباطی حتی برای مهمان‌ها)
+  mobile       String   @unique
   fullName     String?
   telegramId   String?
   createdAt    DateTime @default(now())
@@ -26,8 +26,6 @@ model User {
   @@map("users")
 }
 
-// کدهای OTP هرگز به‌صورت متن ساده ذخیره نمی‌شوند - فقط هش آن‌ها.
-// TTL کوتاه (مثلاً ۲ دقیقه) و attemptCount برای جلوگیری از Brute-force حیاتی است.
 model OtpCode {
   id           String    @id @default(uuid())
   mobile       String
@@ -55,7 +53,7 @@ model Product {
   id              String   @id @default(uuid())
   slug            String   @unique
   sku             String   @unique
-  category        String // text | code | image | video | audio | research | film-music | ... | vps
+  category        String
   title           String
   subtitle        String?
   metaTitle       String
@@ -68,34 +66,31 @@ model Product {
   ratingCount     Int      @default(0)
   monthlySalesCount Int    @default(0)
   totalSalesCount   Int    @default(0)
-  isActive        Boolean  @default(true) // false = مخفی از فروشگاه بدون حذف تاریخچه سفارشات
+  isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   variants   ProductVariant[]
   cartItems  CartItem[]
   orderItems OrderItem[]
+  flashDeals FlashDeal[]  // ✅ NEW relation
 
   @@index([category])
   @@map("products")
 }
 
-// *** محل نهایی و دقیق قیمت‌گذاری ***
-// طبق درخواست: تمام مبالغ به ریال و به‌صورت BigInt ذخیره می‌شوند (هرگز Float/Decimal).
-// نمایش تومانی در فرانت‌اند = priceRial / 10
 model ProductVariant {
   id                 String   @id @default(uuid())
   productId          String
   product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  name               String // مثلاً "Plus"، "Pro 5x"، "۱ گیگ رم / ۱ ماهه"
-  // عنوان محصول کنار پلن در Prisma Studio؛ برای قیمت‌گذاری سریع‌تر است.
+  name               String
   productTitle       String?
-  type               String? // shared | exclusive
+  type               String?
   durationDays       Int?
-  priceRial          BigInt? // null = هنوز قیمت‌گذاری نشده (TBD) - هرگز به فرانت عدد ۰ داده نمی‌شود
+  priceRial          BigInt?
   originalPriceRial  BigInt?
-  costUsd            Decimal? @db.Decimal(10, 2) // یادداشت داخلی هزینه تهیه - هرگز به مشتری نمایش داده نمی‌شود
-  sourcingRegion     String? // یادداشت داخلی تیم خرید
+  costUsd            Decimal? @db.Decimal(10, 2)
+  sourcingRegion     String?
   deliveryTimeMinutes Int     @default(0)
   isPopular          Boolean @default(false)
   isActive           Boolean @default(true)
@@ -111,13 +106,11 @@ model ProductVariant {
   @@map("product_variants")
 }
 
-// موجودی اکانت‌های واقعی هر پلن - برای جلوگیری از فروش هم‌زمان یک اکانت به دو نفر
-// باید همیشه با SELECT ... FOR UPDATE (Pessimistic Locking) تخصیص داده شود.
 model AccountInventory {
   id                    String   @id @default(uuid())
   variantId             String
   variant               ProductVariant @relation(fields: [variantId], references: [id])
-  credentialsEncrypted  String // رمزنگاری‌شده - هرگز متن ساده
+  credentialsEncrypted  String
   status                AccountStatus @default(AVAILABLE)
   reservedForOrderId    String?
   reservedAt            DateTime?
@@ -134,13 +127,11 @@ enum AccountStatus {
   AVAILABLE
   RESERVED
   SOLD
-  REVOKED // بازگردانده‌شده به‌دلیل Reverse/بازگشت وجه
+  REVOKED
 }
 
-// ===================== سبد خرید (ثبت فوری در دیتابیس) =====================
+// ===================== سبد خرید =====================
 
-// طبق درخواست: به محض افزوده‌شدن آیتم به سبد، همان لحظه در دیتابیس ثبت می‌شود -
-// چه کاربر لاگین باشد (userId) چه مهمان (guestToken در کوکی).
 model Cart {
   id          String     @id @default(uuid())
   userId      String?
@@ -159,8 +150,8 @@ model Cart {
 
 enum CartStatus {
   ACTIVE
-  CONVERTED // به سفارش تبدیل شد
-  ABANDONED // برای پیامک/پیام یادآوری استفاده می‌شود
+  CONVERTED
+  ABANDONED
 }
 
 model CartItem {
@@ -172,7 +163,7 @@ model CartItem {
   variantId      String
   variant        ProductVariant @relation(fields: [variantId], references: [id])
   quantity       Int      @default(1)
-  unitPriceRial  BigInt // اسنپ‌شات قیمت لحظه افزودن (مرجع نهایی محاسبه در سرور است، نه این عدد به‌تنهایی)
+  unitPriceRial  BigInt
   createdAt      DateTime @default(now())
 
   @@index([cartId])
@@ -185,14 +176,14 @@ model DiscountCode {
   id                  String    @id @default(uuid())
   code                String    @unique
   type                DiscountType
-  amountRial          BigInt?   // برای نوع FIXED
-  percent             Int?      // برای نوع PERCENT
+  amountRial          BigInt?
+  percent             Int?
   maxUses             Int?
   usedCount           Int       @default(0)
   expiresAt           DateTime?
   isActive            Boolean   @default(true)
-  minCartAmountRial   BigInt?   // حداقل مبلغ سبد برای فعال‌شدن کد
-  maxDiscountRial     BigInt?   // سقف مبلغ تخفیف (برای درصدی‌ها)
+  minCartAmountRial   BigInt?
+  maxDiscountRial     BigInt?
   metadata            Json?
   createdAt           DateTime  @default(now())
 
@@ -210,8 +201,6 @@ enum DiscountType {
 
 model Order {
   id             String       @id @default(uuid())
-  // UUIDv4 عمداً به‌عنوان شماره سفارش عمومی استفاده می‌شود (نه شماره ترتیبی) -
-  // تا رقبا نتوانند با حدس زدن شماره سفارش‌های متوالی حجم فروش را تخمین بزنند.
   orderNumber    String       @unique @default(uuid())
   cartId         String?      @unique
   cart           Cart?        @relation(fields: [cartId], references: [id])
@@ -236,6 +225,7 @@ model Order {
 
   @@index([mobile])
   @@index([status])
+  @@index([userId])
   @@map("orders")
 }
 
@@ -256,7 +246,7 @@ model OrderItem {
   product                Product  @relation(fields: [productId], references: [id])
   variantId              String
   variant                ProductVariant @relation(fields: [variantId], references: [id])
-  productTitleSnapshot   String // اسنپ‌شات عنوان در لحظه خرید (اگر بعداً عنوان محصول تغییر کرد، فاکتور تاریخی درست بماند)
+  productTitleSnapshot   String
   variantNameSnapshot    String
   unitPriceRial          BigInt
   quantity               Int      @default(1)
@@ -274,76 +264,80 @@ model Payment {
   id                    String        @id @default(uuid())
   orderId               String
   order                 Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  authority              String        @unique // Authority زرین‌پال - Unique برای جلوگیری از پردازش دوباره (Idempotency)
-  refId                  String? // شماره پیگیری پس از وریفای موفق
+  authority              String        @unique
+  refId                  String?
   amountRial             BigInt
-  feeRial                BigInt? // کارمزد کسرشده توسط زرین‌پال - برای محاسبه سود خالص
-  cardPanMasked          String? // شماره کارت محدودشده (masked) طبق ویژگی card_pan زرین‌پال
+  feeRial                BigInt?
   status                 PaymentStatus @default(PENDING)
-  gatewayErrorCode       String?
-  // اسنپ‌شات session/context لحظه ارسال به درگاه، برای Session Validation در بازگشت از درگاه
-  sessionSnapshot        Json?
   isSandbox              Boolean       @default(false)
+  gatewayErrorCode       String?
+  cardPanMasked          String?
+  sessionSnapshot        Json?
+  verifiedAt             DateTime?
   createdAt              DateTime      @default(now())
-  verifiedAt              DateTime?
+  updatedAt              DateTime      @updatedAt
 
   @@index([orderId])
-  @@index([status])
   @@map("payments")
 }
 
 enum PaymentStatus {
-  PENDING            // Authority گرفته شده، منتظر بازگشت کاربر از درگاه
-  VERIFIED           // پرداخت با موفقیت وریفای شد
-  FAILED             // کاربر لغو کرد یا پرداخت ناموفق بود
-  UNVERIFIED_PENDING // کاربر پول داده اما کال‌بک به سرور نرسیده - منتظر کران‌جاب unVerified
-  REVERSED           // پول کسر شده بود ولی به‌دلیل نبود موجودی/خطای تحویل، برگشت داده شد
+  PENDING
+  VERIFIED
+  FAILED
+  REVERSED
 }
 
-// ===================== لاگ حسابرسی (Append-only) =====================
+// ===================== ثبت تاریخچه (Audit Log) =====================
 
 model AuditLog {
   id             String   @id @default(uuid())
   orderId        String?
   order          Order?   @relation(fields: [orderId], references: [id])
-  entityType     String // "order" | "payment" | "account_inventory" | ...
+  entityType     String
   entityId       String
-  action         String // "status_changed" | "payment_verified" | "account_assigned" | ...
+  action         String
   previousStatus String?
   newStatus      String?
-  actorType      String // "USER" | "SYSTEM" | "ADMIN"
-  actorId        String?
+  actorType      String
   ipAddress      String?
-  userAgent      String?
   metadata       Json?
   createdAt      DateTime @default(now())
 
   @@index([orderId])
-  @@index([entityType, entityId])
   @@map("audit_logs")
 }
 
-// ===================== صف اعلان به ربات تلگرام پشتیبانی =====================
+// ===================== اعلانات تلگرام =====================
 
-// الگوی Outbox: به‌محض تایید پرداخت یک رکورد PENDING اینجا ثبت می‌شود.
-// ربات تلگرامی که بعداً می‌سازید، یا این جدول را Poll می‌کند یا از طریق
-// یک Webhook داخلی (POST /internal/telegram/pending) این رکوردها را دریافت می‌کند.
 model TelegramNotification {
   id        String   @id @default(uuid())
   orderId   String
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  payload   Json // { orderNumber, mobile, telegramId, items: [...], totalRial }
-  status    TelegramNotifyStatus @default(PENDING)
-  attempts  Int      @default(0)
-  createdAt DateTime @default(now())
+  payload   Json
   sentAt    DateTime?
+  createdAt DateTime @default(now())
 
-  @@index([status])
+  @@index([orderId])
   @@map("telegram_notifications")
 }
 
-enum TelegramNotifyStatus {
-  PENDING
-  SENT
-  FAILED
+// ===================== پیشنهادات ویژه (قابل تنظیم از Prisma Studio) =====================
+
+/// پیشنهادات ویژه / Flash Deals - از Prisma Studio قابل مدیریت است.
+/// برای افزودن پیشنهاد جدید: productId را انتخاب کنید، isActive = true، endsAt = زمان پایان (اختیاری).
+/// واریانتی که originalPriceRial > priceRial باشد به‌طور خودکار برای نمایش تخفیف انتخاب می‌شود.
+model FlashDeal {
+  id        String    @id @default(uuid())
+  productId String
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /// زمان پایان تخفیف - null یعنی بدون تایمر (تخفیف دائمی)
+  endsAt    DateTime?
+  /// ترتیب نمایش در کروسل (کوچکتر = اول)
+  sortOrder Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("flash_deals")
 }

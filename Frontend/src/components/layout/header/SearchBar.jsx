@@ -1,49 +1,20 @@
-// src/components/layout/header/SearchBar.jsx
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, X, ArrowLeft, Sparkles } from "lucide-react";
-
-// دیتای موقت محصولات برای جستجوی زنده
-const SAMPLE_PRODUCTS = [
-  {
-    id: "chatgpt",
-    titleFa: "اکانت اختصاصی ChatGPT Plus",
-    category: "متن و چت‌بات",
-    price: "۹۸۰,۰۰۰ تومان",
-    image: "/images/gpt2.jpeg",
-  },
-  {
-    id: "gemini",
-    titleFa: "اکانت اختصاصی Gemini Advanced",
-    category: "متن و چت‌بات",
-    price: "۸۵۰,۰۰۰ تومان",
-    image: "/images/gemini-color.png",
-  },
-  {
-    id: "claude",
-    titleFa: "اشتراک حرفه‌ای Claude Pro",
-    category: "برنامه‌نویسی و متن",
-    price: "۱,۱۰,۰۰۰ تومان",
-    image: "/images/claude.png",
-  },
-  {
-    id: "midjourney",
-    titleFa: "اکانت اختصاصی Midjourney",
-    category: "تصویر و هنر",
-    price: "۱,۴۵۰,۰۰۰ تومان",
-    image: "/images/midjourney.png",
-  },
-];
+import { Search, X, ArrowLeft, Loader2 } from "lucide-react";
+import { apiFetch } from "../../../lib/apiClient";
 
 export default function SearchBar({ onNavigate }) {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [results, setResults] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const containerRef = useRef(null);
+  const debounceRef = useRef(null);
 
-  // بستن دراپ‌داون با کلیک خارج از کامپوننت
+  // بستن دراپ‌داون با کلیک خارج
   useEffect(() => {
     function handleClickOutside(e) {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -54,13 +25,53 @@ export default function SearchBar({ onNavigate }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const results = query.trim()
-    ? SAMPLE_PRODUCTS.filter(
-        (p) =>
-          p.titleFa.toLowerCase().includes(query.toLowerCase()) ||
-          p.category.toLowerCase().includes(query.toLowerCase()),
-      )
-    : [];
+  // ✅ FIX: جستجوی واقعی از بک‌اند با debounce 300ms
+  // قبلاً از SAMPLE_PRODUCTS هاردکد استفاده می‌شد
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (!trimmed) {
+      setResults([]);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+
+    // پاک کردن تایمر قبلی (debounce)
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const data = await apiFetch(
+          `/api/products?search=${encodeURIComponent(trimmed)}`
+        );
+        setResults(Array.isArray(data) ? data.slice(0, 4) : []);
+      } catch {
+        setResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query]);
+
+  const handleClear = () => {
+    setQuery("");
+    setResults([]);
+    setIsOpen(false);
+  };
+
+  // تبدیل قیمت ریال به تومان قابل نمایش
+  const formatPrice = (product) => {
+    const cheapest = product.variants
+      ?.filter((v) => v.price != null && !v.priceTBD)
+      .sort((a, b) => a.price - b.price)[0];
+    if (!cheapest) return "به‌زودی";
+    return `${Number(cheapest.price).toLocaleString("fa-IR")} تومان`;
+  };
 
   return (
     <div ref={containerRef} className="relative flex-1 max-w-md mx-4">
@@ -77,13 +88,14 @@ export default function SearchBar({ onNavigate }) {
           placeholder="جستجوی ابزارها (ChatGPT, Gemini...)"
           className="w-full bg-[#f8f9fa] border-[2.5px] border-black rounded-xl py-2 pr-10 pl-10 text-sm font-bold text-black placeholder-gray-500 outline-none focus:bg-white focus:shadow-[-3px_3px_0_0_rgba(0,0,0,1)] transition-all"
         />
-        <Search className="w-5 h-5 absolute right-3 stroke-[2.5] text-gray-700 pointer-events-none" />
+        {isLoading ? (
+          <Loader2 className="w-5 h-5 absolute right-3 stroke-[2.5] text-gray-500 animate-spin pointer-events-none" />
+        ) : (
+          <Search className="w-5 h-5 absolute right-3 stroke-[2.5] text-gray-700 pointer-events-none" />
+        )}
         {query && (
           <button
-            onClick={() => {
-              setQuery("");
-              setIsOpen(false);
-            }}
+            onClick={handleClear}
             className="absolute left-3 text-gray-500 hover:text-black"
           >
             <X className="w-4 h-4 stroke-[3]" />
@@ -98,35 +110,40 @@ export default function SearchBar({ onNavigate }) {
             نتایج مرتبط با «{query}»
           </div>
 
-          {results.length > 0 ? (
+          {isLoading ? (
+            <div className="p-4 text-center text-xs font-bold text-gray-500 flex items-center justify-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>در حال جستجو...</span>
+            </div>
+          ) : results.length > 0 ? (
             <div className="flex flex-col gap-2">
-              {results.slice(0, 3).map((item) => (
+              {results.map((item) => (
                 <Link
                   key={item.id}
-                  href={`/products/${item.id}`}
+                  href={`/products/${item.slug}`}
                   onClick={() => { setIsOpen(false); onNavigate?.(); }}
                   className="flex items-center justify-between p-2 rounded-lg border-[2px] border-transparent hover:border-black hover:bg-[#ccff00]/20 transition-all group"
                 >
                   <div className="flex items-center gap-2.5">
                     <div className="w-9 h-9 relative border-[1.5px] border-black rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
                       <Image
-                        src={item.image}
-                        alt={item.titleFa}
+                        src={item.mainImage || "/images/logo.png"}
+                        alt={item.title}
                         fill
                         className="object-cover"
                       />
                     </div>
                     <div>
-                      <div className="text-xs font-black group-hover:underline">
-                        {item.titleFa}
+                      <div className="text-xs font-black group-hover:underline line-clamp-1">
+                        {item.title}
                       </div>
                       <div className="text-[10px] font-bold text-gray-500">
                         {item.category}
                       </div>
                     </div>
                   </div>
-                  <span className="text-xs font-black bg-[#12e2a3] border border-black px-2 py-0.5 rounded">
-                    {item.price}
+                  <span className="text-xs font-black bg-[#12e2a3] border border-black px-2 py-0.5 rounded shrink-0 mr-1">
+                    {formatPrice(item)}
                   </span>
                 </Link>
               ))}

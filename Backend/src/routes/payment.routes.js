@@ -25,9 +25,10 @@ router.post("/request", paymentRateLimiter, async (req, res) => {
 
   const amountToman = rialToToman(order.totalRial);
 
-  // Session Validation: orderId را در خودِ callback_url جاسازی می‌کنیم تا در
-  // زمان بازگشت از درگاه، Authority دریافتی حتماً متعلق به همین سفارش باشد
-  // (نه یک Authority معتبر ولی مربوط به سفارش/کاربر دیگر).
+  // ✅ FIX: این URL را می‌سازیم و به requestPayment می‌دهیم تا ZarinPal بتواند
+  // orderId را در بازگشت به ما برگرداند. باگ قبلی: این URL محاسبه می‌شد اما
+  // به تابع requestPayment داده نمی‌شد - پس orderId هیچ‌وقت به کال‌بک نمی‌رسید
+  // و همه پرداخت‌ها ناموفق می‌شدند.
   const callbackUrl = `${process.env.ZARINPAL_CALLBACK_URL}?orderId=${order.id}`;
 
   const result = await zarinpal.requestPayment({
@@ -36,6 +37,7 @@ router.post("/request", paymentRateLimiter, async (req, res) => {
     orderId: order.id,
     mobile: order.mobile,
     cardPan: cardPan ? [cardPan] : undefined,
+    callbackUrl, // ✅ پاس دادن URL کامل با orderId
   });
 
   if (!result.success) {
@@ -67,18 +69,11 @@ router.post("/request", paymentRateLimiter, async (req, res) => {
     },
   });
 
-  // callback_url واقعی که به زرین‌پال دادیم شامل orderId بود؛ برای وضوح جدا ست می‌کنیم
-  await prisma.payment.updateMany({
-    where: { authority: result.authority },
-    data: {},
-  });
-
   return res.json({ startPayUrl: result.startPayUrl });
 });
 
 /**
- * مرحله ۲: بازگشت کاربر از درگاه (Callback). این مسیر توسط مرورگر کاربر،
- * نه سرور زرین‌پال، فراخوانی می‌شود (استاندارد Redirect-based گیت‌وی‌های ایرانی).
+ * مرحله ۲: بازگشت کاربر از درگاه (Callback).
  */
 router.get("/callback", async (req, res) => {
   const { Authority, Status, orderId } = req.query;
@@ -89,12 +84,9 @@ router.get("/callback", async (req, res) => {
 
   const payment = await prisma.payment.findUnique({ where: { authority: Authority } });
   if (!payment) {
-    // Authority ناشناخته - یا جعلی است یا مربوط به این سیستم نیست
     return res.redirect(`${FRONTEND_URL}/checkout/failed`);
   }
 
-  // *** Session Validation ***
-  // orderId داخل query باید دقیقاً با orderId ذخیره‌شده در سشن این Authority یکی باشد.
   const snapshot = payment.sessionSnapshot || {};
   if (snapshot.orderId !== orderId || payment.orderId !== orderId) {
     await writeAuditLog({
@@ -114,7 +106,6 @@ router.get("/callback", async (req, res) => {
     include: { items: true },
   });
 
-  // پردازش تکراری Callback (کاربر دکمه Back زده یا صفحه را رفرش کرده) - idempotent
   if (payment.status === "VERIFIED" && order.status === "PAID") {
     return res.redirect(`${FRONTEND_URL}/checkout/success?orderId=${order.orderNumber}&mobile=${encodeURIComponent(order.mobile)}`);
   }
@@ -156,11 +147,9 @@ router.get("/callback", async (req, res) => {
     return res.redirect(`${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}`);
   }
 
-  // ---- پرداخت با موفقیت وریفای شد - حالا تخصیص اتمیک موجودی اکانت‌ها ----
   const fulfillmentResult = await fulfillOrder({ order, payment, verifyResult, req });
 
   if (!fulfillmentResult.success) {
-    // موجودی کافی نبود -> Reverse خودکار
     const reverseResult = await zarinpal.reversePayment({ authority: Authority });
     await prisma.$transaction([
       prisma.payment.update({
@@ -181,23 +170,16 @@ router.get("/callback", async (req, res) => {
       actorType: "SYSTEM",
       metadata: { reverseResult },
     });
-    // TODO: اینجا باید هشدار فوری (پیامک/تلگرام) به ادمین ارسال شود که موجودی یک محصول تمام شده.
     return res.redirect(`${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}&reason=out_of_stock`);
   }
 
   return res.redirect(`${FRONTEND_URL}/checkout/success?orderId=${order.orderNumber}&mobile=${encodeURIComponent(order.mobile)}`);
 });
 
-/**
- * تخصیص اتمیک اکانت به هر آیتم سفارش با قفل‌گذاری ردیف (Pessimistic Locking).
- * اگر برای هر آیتم موجودی AVAILABLE پیدا نشود، کل تراکنش Rollback می‌شود.
- */
 async function fulfillOrder({ order, payment, verifyResult, req }) {
   try {
     await prisma.$transaction(async (tx) => {
       for (const item of order.items) {
-        // SELECT ... FOR UPDATE : قفل ردیف تا پایان تراکنش - از فروش هم‌زمان یک
-        // اکانت به دو سفارش مختلف جلوگیری می‌کند (Race Condition).
         const rows = await tx.$queryRaw`
           SELECT id FROM account_inventory
           WHERE variant_id = ${item.variantId}::uuid AND status = 'AVAILABLE'

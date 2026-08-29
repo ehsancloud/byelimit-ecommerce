@@ -1,167 +1,190 @@
-// src/app/dashboard/orders/page.js
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import {
-  Copy,
-  Check,
-  Sparkles,
-  Send,
-  ExternalLink,
-  Clock,
-  ShieldCheck,
-  RefreshCw,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { Copy, Check, Sparkles, ShoppingBag, Loader2, AlertCircle, ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { apiFetch } from "../../../lib/apiClient";
 
-// دیتای موقت خریدهای وابسته به شماره موبایل کاربر
-const USER_ORDERS = [
-  {
-    id: "BL-98421",
-    deliveryCode: "DLV-883921",
-    productTitle: "اکانت اختصاصی ChatGPT Plus",
-    variantName: "پلن اختصاصی ۱۰۰٪ شخصی (۱ ماهه)",
-    image: "/images/gpt2.jpeg",
-    price: "۱,۲۵۰,۰۰۰ تومان",
-    date: "۲۳ مرداد ۱۴۰۵",
-    status: "ACTIVE", // ACTIVE | EXPIRED
-    accountDetails: "Email: byelimit_user98421@gmail.com\nPass: ByeLimitPass2026!",
-  },
-  {
-    id: "BL-77102",
-    deliveryCode: "DLV-442109",
-    productTitle: "اکانت Midjourney Standard",
-    variantName: "پلن استاندارد (۱ ماهه)",
-    image: "/images/midjourney.png",
-    price: "۱,۴۵۰,۰۰۰ تومان",
-    date: "۱۰ تیر ۱۴۰۵",
-    status: "EXPIRED",
-    accountDetails: "Email: mid_user77@gmail.com\nPass: ExpiredPass2026",
-  },
-];
+const STATUS_COLOR = {
+  PAID:            "bg-[#12e2a3] border-black",
+  PENDING_PAYMENT: "bg-yellow-200 border-black",
+  FAILED:          "bg-rose-200 border-black",
+  REFUNDED:        "bg-gray-200 border-black",
+  CANCELLED:       "bg-gray-200 border-black",
+  DELIVERED:       "bg-blue-200 border-black",
+};
+
+const STATUS_LABEL = {
+  PAID:            "✅ پرداخت‌شده",
+  PENDING_PAYMENT: "⏳ در انتظار پرداخت",
+  FAILED:          "❌ ناموفق",
+  REFUNDED:        "↩️ مسترد شده",
+  CANCELLED:       "🚫 لغوشده",
+  DELIVERED:       "📦 تحویل‌شده",
+};
 
 export default function DashboardOrdersPage() {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [copiedId, setCopiedId] = useState(null);
 
+  useEffect(() => {
+    apiFetch("/api/orders/mine")
+      .then((data) => setOrders(Array.isArray(data) ? data : []))
+      .catch((err) => setError(err.message || "خطا در دریافت سفارشات."))
+      .finally(() => setLoading(false));
+  }, []);
+
   const handleCopy = (text, id) => {
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(text).catch(() => {});
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-rose-50 border-[3px] border-black rounded-[24px] p-8 shadow-[-6px_6px_0_0_rgba(0,0,0,1)] flex items-center gap-3">
+        <AlertCircle className="w-6 h-6 text-rose-600 shrink-0" />
+        <p className="font-black text-sm text-rose-700">{error}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
+      {/* هدر */}
       <div className="bg-white border-[3.5px] border-black rounded-[24px] p-6 shadow-[-8px_8px_0_0_rgba(0,0,0,1)] flex items-center justify-between">
         <div>
           <h1 className="text-xl md:text-2xl font-black">سفارش‌ها و کدهای تحویل من</h1>
           <p className="text-xs font-bold text-gray-600 mt-1">
-            مشاهده اطلاعات تحویل آنی، کدهای اختصاصی و تمدید اشتراک‌ها.
+            مشاهده اطلاعات تحویل آنی و کدهای اختصاصی.
           </p>
         </div>
         <span className="bg-[#ccff00] border-[2px] border-black px-3 py-1 rounded-xl font-black text-xs shadow-[-2px_2px_0_0_rgba(0,0,0,1)]">
-          {USER_ORDERS.length} سفارش ثبت‌شده
+          {orders.length.toLocaleString("fa-IR")} سفارش
         </span>
       </div>
 
-      {/* لیست کارت‌های سفارشات */}
-      <div className="flex flex-col gap-6">
-        {USER_ORDERS.map((order) => (
-          <div
-            key={order.id}
-            className="bg-white border-[3.5px] border-black rounded-[24px] p-6 shadow-[-8px_8px_0_0_rgba(0,0,0,1)] flex flex-col gap-5"
+      {orders.length === 0 ? (
+        <div className="bg-white border-[3px] border-black rounded-[24px] p-12 text-center shadow-[-6px_6px_0_0_rgba(0,0,0,1)]">
+          <ShoppingBag className="w-12 h-12 mx-auto mb-4 opacity-20" />
+          <p className="font-black text-base">هنوز سفارشی ثبت نشده است.</p>
+          <Link href="/products"
+            className="mt-4 inline-block bg-[#ccff00] border-[2.5px] border-black px-6 py-2.5 rounded-xl font-black text-sm shadow-[-3px_3px_0_0_rgba(0,0,0,1)] text-black no-underline"
           >
-            {/* هدر کارت سفارش */}
-            <div className="flex flex-wrap items-center justify-between border-b-[2.5px] border-black pb-3 gap-2">
-              <div className="flex items-center gap-2">
-                <span className="font-black text-sm dir-ltr">{order.id}</span>
-                <span className="text-gray-400">•</span>
-                <span className="text-xs font-bold text-gray-600">{order.date}</span>
+            رفتن به فروشگاه
+          </Link>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-6">
+          {orders.map((order) => (
+            <div
+              key={order.id}
+              className="bg-white border-[3.5px] border-black rounded-[24px] p-6 shadow-[-8px_8px_0_0_rgba(0,0,0,1)] flex flex-col gap-5"
+            >
+              {/* هدر کارت سفارش */}
+              <div className="flex flex-wrap items-center justify-between border-b-[2.5px] border-black pb-3 gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-black text-sm dir-ltr">
+                    {order.orderNumber.slice(0, 8).toUpperCase()}
+                  </span>
+                  <span className="text-gray-400">•</span>
+                  <span className="text-xs font-bold text-gray-600">
+                    {new Date(order.createdAt).toLocaleDateString("fa-IR")}
+                  </span>
+                  <span className="text-gray-400">•</span>
+                  <span className="text-xs font-bold text-gray-600">
+                    {Number(order.totalToman).toLocaleString("fa-IR")} تومان
+                  </span>
+                </div>
+                <span className={`text-[10px] font-black px-3 py-1 border-[2px] rounded-lg ${STATUS_COLOR[order.status] || "bg-gray-100 border-black"}`}>
+                  {STATUS_LABEL[order.status] || order.status}
+                </span>
               </div>
 
-              {order.status === "ACTIVE" ? (
-                <span className="bg-[#12e2a3] border-[1.5px] border-black px-2.5 py-0.5 rounded-lg text-xs font-black text-black">
-                  اشتراک فعال
-                </span>
-              ) : (
-                <span className="bg-rose-200 border-[1.5px] border-black px-2.5 py-0.5 rounded-lg text-xs font-black text-rose-800">
-                  منقضی شده
-                </span>
+              {/* آیتم‌های سفارش */}
+              {order.items.map((item, idx) => (
+                <div key={idx} className="flex flex-col gap-3">
+                  {/* اطلاعات محصول */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-black text-sm md:text-base">{item.productTitle}</h3>
+                      <p className="text-xs font-bold text-gray-500 mt-0.5">{item.variantName}</p>
+                    </div>
+                    {item.accountStatus && (
+                      <span className={`text-[10px] font-black px-2 py-0.5 border rounded-md shrink-0 ${
+                        item.accountStatus === "SOLD" ? "bg-[#12e2a3] border-black" : "bg-gray-100 border-gray-300"
+                      }`}>
+                        {item.accountStatus === "SOLD" ? "فعال" : item.accountStatus}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* کدهای تحویل اگر موجود باشد */}
+                  {item.credentials && order.status === "PAID" && (
+                    <div className="bg-[#fff9c4] border-[2.5px] border-black p-4 rounded-xl">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-black flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                          اطلاعات ورود به اکانت
+                        </span>
+                        <button
+                          onClick={() => handleCopy(item.credentials, `${order.id}-${idx}`)}
+                          className="flex items-center gap-1 text-[10px] font-black bg-white border-[1.5px] border-black px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                          {copiedId === `${order.id}-${idx}` ? (
+                            <><Check className="w-3 h-3 text-emerald-600" /><span>کپی شد!</span></>
+                          ) : (
+                            <><Copy className="w-3 h-3" /><span>کپی کردن</span></>
+                          )}
+                        </button>
+                      </div>
+                      <pre className="dir-ltr text-right font-mono text-xs font-black whitespace-pre-wrap text-gray-900">
+                        {item.credentials}
+                      </pre>
+                    </div>
+                  )}
+
+                  {/* اگر پرداخت‌شده اما هنوز اعتبارنامه نیست */}
+                  {!item.credentials && order.status === "PAID" && (
+                    <div className="bg-yellow-50 border-[2px] border-yellow-400 p-3 rounded-xl text-xs font-bold text-yellow-700 flex items-center gap-2">
+                      <span>⏳</span>
+                      <span>اکانت در حال تخصیص است. اگر بیشتر از ۳۰ دقیقه گذشته، با پشتیبانی تماس بگیرید.</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* دکمه پرداخت برای سفارشات معلق */}
+              {order.status === "PENDING_PAYMENT" && (
+                <Link href="/checkout"
+                  className="w-full bg-[#ccff00] border-[2.5px] border-black py-2.5 rounded-xl font-black text-sm text-center shadow-[-3px_3px_0_0_rgba(0,0,0,1)] text-black no-underline block"
+                >
+                  تکمیل پرداخت
+                </Link>
+              )}
+
+              {/* شماره پیگیری */}
+              {order.payment?.refId && (
+                <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 border-t-[1.5px] border-gray-200 pt-3">
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>شماره پیگیری بانکی: </span>
+                  <span className="dir-ltr font-mono font-black text-gray-700">{order.payment.refId}</span>
+                </div>
               )}
             </div>
-
-            {/* بدنه سفارش */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-              <div className="md:col-span-7 flex items-center gap-3">
-                <div className="relative w-16 h-16 border-[2px] border-black rounded-xl overflow-hidden bg-gray-100 shrink-0">
-                  <Image src={order.image} alt={order.productTitle} fill className="object-cover" />
-                </div>
-                <div>
-                  <h3 className="font-black text-sm md:text-base">{order.productTitle}</h3>
-                  <p className="text-xs font-bold text-gray-600 mt-0.5">{order.variantName}</p>
-                  <span className="font-black text-xs text-black block mt-1">{order.price}</span>
-                </div>
-              </div>
-
-              {/* باکس کد تحویل اختصاصی */}
-              <div className="md:col-span-5 bg-[#fff9c4] border-[2.5px] border-black p-3.5 rounded-xl flex items-center justify-between shadow-[-3px_3px_0_0_rgba(0,0,0,1)]">
-                <div>
-                  <span className="text-[10px] font-black text-gray-600 block">کد تحویل تلگرام:</span>
-                  <span className="text-lg font-black dir-ltr text-black">{order.deliveryCode}</span>
-                </div>
-
-                <button
-                  onClick={() => handleCopy(order.deliveryCode, order.deliveryCode)}
-                  className="bg-white border-[1.5px] border-black p-2 rounded-lg text-xs font-black shadow-[-2px_2px_0_0_rgba(0,0,0,1)] active:translate-x-[-1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
-                >
-                  {copiedId === order.deliveryCode ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {/* باکس اطلاعات تحویل آنی اکانت */}
-            <div className="bg-[#f8f9fa] border-[2px] border-black p-4 rounded-xl flex flex-col gap-2">
-              <div className="flex items-center justify-between border-b border-gray-300 pb-2">
-                <span className="text-xs font-black flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-purple-600" />
-                  <span>اطلاعات اکانت تحویلی:</span>
-                </span>
-
-                <button
-                  onClick={() => handleCopy(order.accountDetails, order.id)}
-                  className="bg-[#12e2a3] border-[1.5px] border-black px-2.5 py-1 rounded-lg text-xs font-black shadow-[-2px_2px_0_0_rgba(0,0,0,1)] flex items-center gap-1 cursor-pointer"
-                >
-                  {copiedId === order.id ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedId === order.id ? "کپی شد" : "کپی اطلاعات"}</span>
-                </button>
-              </div>
-
-              <pre className="font-mono text-xs font-bold dir-ltr text-left bg-white border border-gray-300 p-3 rounded-lg overflow-x-auto">
-                {order.accountDetails}
-              </pre>
-            </div>
-
-            {/* اکشن‌های پایین کارت */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-              <a
-                href="https://t.me"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#e0f2fe] border-[2px] border-black px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-[-2px_2px_0_0_rgba(0,0,0,1)] text-black no-underline hover:bg-blue-100"
-              >
-                <Send className="w-3.5 h-3.5 text-blue-600" />
-                <span>دریافت سریع از ربات تلگرام</span>
-              </a>
-
-              {order.status === "EXPIRED" && (
-                <button className="bg-[#ccff00] border-[2px] border-black px-4 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-[-2px_2px_0_0_rgba(0,0,0,1)] cursor-pointer">
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>تمدید مجدد این اشتراک</span>
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

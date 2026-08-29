@@ -1,4 +1,3 @@
-// src/components/layout/header/Header.jsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -22,6 +21,12 @@ import {
   Music,
   GraduationCap,
   LayoutDashboard,
+  Film,
+  Gamepad2,
+  Palette,
+  TrendingUp,
+  BookOpen,
+  Send,
 } from "lucide-react";
 
 import SearchBar from "./SearchBar";
@@ -31,22 +36,26 @@ import UserMenu from "./UserMenu";
 import CartIcon from "../../cart/CartIcon";
 import { useAuthStatus } from "../../../hooks/useAuthStatus";
 
+// ✅ آیکون‌های دسته‌بندی‌های اشتراک‌ها و اکانت‌های پرمیوم
+const PREMIUM_CATEGORIES = [
+  { slug: "film-music",       label: "فیلم و موسیقی",       icon: Film,       color: "text-red-500"    },
+  { slug: "gaming",           label: "گیمینگ و بازی",        icon: Gamepad2,   color: "text-green-600"  },
+  { slug: "design-graphics",  label: "طراحی و گرافیک",       icon: Palette,    color: "text-purple-600" },
+  { slug: "seo-marketing",    label: "سئو و مارکتینگ",       icon: TrendingUp, color: "text-orange-500" },
+  { slug: "education-utility",label: "آموزش و کاربردی",      icon: BookOpen,   color: "text-blue-600"   },
+  { slug: "telegram",         label: "تلگرام",               icon: Send,       color: "text-cyan-500"   },
+];
+
 export default function Header() {
   const [activeMenu, setActiveMenu] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
-
-  // استیت‌های موبایل
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileAccordion, setMobileAccordion] = useState(null); // 'products' | 'vps' | null
+  const [mobileAccordion, setMobileAccordion] = useState(null);
   const { isLoggedIn, userName } = useAuthStatus();
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 30) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 30);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -78,7 +87,6 @@ export default function Header() {
               >
                 لیمیت!
               </span>
-
               <Image
                 src="/images/logo.png"
                 alt="لوگوی بای لیمیت"
@@ -93,7 +101,6 @@ export default function Header() {
                   filter: "drop-shadow(-3px 3px 0 rgba(0,0,0,1))",
                 }}
               />
-
               <span
                 className={`absolute right-2 font-black text-black select-none pointer-events-none transition-all duration-300 rotate-[40deg] ${
                   isScrolled ? "bottom-3 text-xl right-6" : "bottom-6 text-2xl"
@@ -104,48 +111,41 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* سرچ بار و منوهای دسکتاپ */}
-          <div className="hidden md:flex items-center flex-1 justify-between">
-            <SearchBar isScrolled={isScrolled} />
-            <div className="flex items-stretch h-full">
-              <CategoryDropdown
-                activeMenu={activeMenu}
-                setActiveMenu={setActiveMenu}
-                isScrolled={isScrolled}
-              />
-              <Navbar activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
-            </div>
+          {/* ناوبار دسکتاپ */}
+          <div className="hidden md:flex flex-1 items-center">
+            <Navbar activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
           </div>
 
-          {/* منوی کاربر دسکتاپ */}
-          <div className="hidden md:flex border-l-[3.5px] border-black items-stretch">
-            <UserMenu />
+          {/* سرچ‌بار دسکتاپ */}
+          <div className="hidden md:flex items-center flex-1 max-w-sm px-3">
+            <SearchBar />
           </div>
 
-          {/* هدر موبایل (تمیز و بدون دکمه اضافه) */}
-          <div className="flex md:hidden items-center justify-between w-full px-3 overflow-visible h-full relative">
+          {/* دکمه‌های راست دسکتاپ */}
+          <div className="hidden md:flex items-center gap-2 px-4">
+            <CartIcon />
+            <UserMenu isLoggedIn={isLoggedIn} userName={userName} />
+          </div>
+
+          {/* هدر موبایل */}
+          <div className="flex md:hidden items-center justify-between w-full px-4">
             <button
               onClick={() => setMobileMenuOpen(true)}
               className="p-2 bg-[#ccff00] border-[2.5px] border-black rounded-lg shadow-[-2px_2px_0_0_rgba(0,0,0,1)] active:translate-x-[-1px] active:translate-y-[1px] active:shadow-none transition-all z-10 cursor-pointer"
               aria-label="باز کردن منو"
             >
-              <Menu className="w-6 h-6 text-black stroke-[2.5]" />
+              <Menu className="w-5 h-5 stroke-[3]" />
             </button>
 
-            {/* لوگوی موبایل */}
             <Link
               href="/"
               className="absolute left-1/2 -translate-x-1/2 translate-y-0.5 top-0 bottom-0 flex items-end justify-center w-52 overflow-visible pointer-events-auto z-20"
             >
-              <span className="absolute left-3 bottom-3.5 font-black text-xl text-black select-none pointer-events-none -rotate-[40deg]">
-                لیمیت!
-              </span>
-
               <Image
                 src="/images/logo.png"
                 alt="لوگوی بای لیمیت"
                 width={120}
-                height={90}
+                height={80}
                 priority
                 className="bottom-[-6px] relative pointer-events-none"
                 style={{
@@ -155,7 +155,6 @@ export default function Header() {
                   filter: "drop-shadow(-2.5px 2.5px 0 rgba(0,0,0,1))",
                 }}
               />
-
               <span className="absolute right-4 bottom-4 font-black text-xl text-black select-none pointer-events-none rotate-[40deg]">
                 بای!
               </span>
@@ -166,11 +165,11 @@ export default function Header() {
         </div>
       </div>
 
-      {/* کشو و سایدبار منوی موبایل همراه با انیمیشن نرم Framer Motion */}
+      {/* کشو و سایدبار منوی موبایل */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-50 md:hidden">
-            {/* بک‌دراپ تاریک با انیمیشن Fade */}
+            {/* بک‌دراپ */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -180,7 +179,7 @@ export default function Header() {
               className="absolute inset-0 bg-black/60 backdrop-blur-xs"
             />
 
-            {/* کشوی اصلی با انیمیشن نرم Slide-In از راست */}
+            {/* کشوی اصلی */}
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
@@ -200,32 +199,25 @@ export default function Header() {
                   </button>
                 </div>
 
-                {/* سرچ بار زنده بین محصولات در منوی موبایل */}
+                {/* سرچ بار موبایل */}
                 <div className="w-full">
                   <SearchBar isScrolled={false} onNavigate={closeMobileMenu} />
                 </div>
 
-                {/* لیست آکاردئونی مگامنو موبایل */}
+                {/* آکاردئون‌های منو */}
                 <div className="flex flex-col gap-3 mt-1">
-                  {/* محصولات هوش مصنوعی */}
+
+                  {/* ابزارهای هوش مصنوعی */}
                   <div className="bg-white border-[2.5px] border-black rounded-xl overflow-hidden shadow-[-3px_3px_0_0_rgba(0,0,0,1)]">
                     <button
-                      onClick={() =>
-                        setMobileAccordion(
-                          mobileAccordion === "products" ? null : "products",
-                        )
-                      }
+                      onClick={() => setMobileAccordion(mobileAccordion === "products" ? null : "products")}
                       className="w-full p-3 font-black text-sm flex items-center justify-between bg-[#ccff00] cursor-pointer"
                     >
                       <div className="flex items-center gap-2">
                         <Sparkles className="w-4 h-4" />
                         <span>ابزارهای هوش مصنوعی</span>
                       </div>
-                      <ChevronDown
-                        className={`w-4 h-4 stroke-[3] transition-transform duration-200 ${
-                          mobileAccordion === "products" ? "rotate-180" : ""
-                        }`}
-                      />
+                      <ChevronDown className={`w-4 h-4 stroke-[3] transition-transform duration-200 ${mobileAccordion === "products" ? "rotate-180" : ""}`} />
                     </button>
 
                     <AnimatePresence>
@@ -236,81 +228,58 @@ export default function Header() {
                           exit={{ height: 0, opacity: 0 }}
                           className="p-2 bg-white flex flex-col gap-1 border-t-[2px] border-black overflow-hidden"
                         >
-                          <Link
-                            href="/products/category/text"
-                            onClick={closeMobileMenu}
-                            className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <FileText className="w-4 h-4 text-purple-600" />
-                            <span>تولید محتوا و متن</span>
-                          </Link>
-
-                          <Link
-                            href="/products/category/code"
-                            onClick={closeMobileMenu}
-                            className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <Code2 className="w-4 h-4 text-emerald-600" />
-                            <span>برنامه نویسی و توسعه نرم افزار</span>
-                          </Link>
-
-                          <Link
-                            href="/products/category/image"
-                            onClick={closeMobileMenu}
-                            className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <ImageIcon className="w-4 h-4 text-amber-600" />
-                            <span>ساخت و ادیت عکس</span>
-                          </Link>
-
-                          <Link
-                            href="/products/category/video"
-                            onClick={closeMobileMenu}
-                            className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <Video className="w-4 h-4 text-rose-600" />
-                            <span>ساخت و ادیت ویدیو</span>
-                          </Link>
-
-                          <Link
-                            href="/products/category/audio"
-                            onClick={closeMobileMenu}
-                            className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <Music className="w-4 h-4 text-cyan-600" />
-                            <span>ساخت صدا و موسیقی</span>
-                          </Link>
-
-                          <Link
-                            href="/products/category/research"
-                            onClick={closeMobileMenu}
-                            className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <GraduationCap className="w-4 h-4 text-indigo-600" />
-                            <span>تحقیق و آموزش</span>
-                          </Link>
+                          {[
+                            { href: "/products/category/text",     icon: FileText,      color: "text-purple-600", label: "تولید محتوا و متن" },
+                            { href: "/products/category/code",     icon: Code2,         color: "text-emerald-600", label: "برنامه‌نویسی و توسعه" },
+                            { href: "/products/category/image",    icon: ImageIcon,     color: "text-amber-600",  label: "ساخت و ادیت عکس" },
+                            { href: "/products/category/video",    icon: Video,         color: "text-rose-600",   label: "ساخت و ادیت ویدیو" },
+                            { href: "/products/category/audio",    icon: Music,         color: "text-cyan-600",   label: "ساخت صدا و موسیقی" },
+                            { href: "/products/category/research", icon: GraduationCap, color: "text-indigo-600", label: "تحقیق و آموزش" },
+                          ].map(({ href, icon: Icon, color, label }) => (
+                            <Link key={href} href={href} onClick={closeMobileMenu}
+                              className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
+                            >
+                              <Icon className={`w-4 h-4 ${color}`} />
+                              <span>{label}</span>
+                            </Link>
+                          ))}
                         </motion.div>
                       )}
                     </AnimatePresence>
                   </div>
 
-                  {/* اشتراک‌ها و اکانت‌های پرمیوم - هم‌ساختار با مگامنوی دسکتاپ */}
+                  {/* اشتراک‌ها و اکانت‌های پرمیوم - ✅ FIX: اضافه کردن آیکون به هر دسته */}
                   <div className="bg-white border-[2.5px] border-black rounded-xl overflow-hidden shadow-[-3px_3px_0_0_rgba(0,0,0,1)]">
                     <button
                       onClick={() => setMobileAccordion(mobileAccordion === "premium" ? null : "premium")}
                       className="w-full p-3 font-black text-sm flex items-center justify-between bg-[#ffd166] cursor-pointer"
                     >
-                      <div className="flex items-center gap-2"><Crown className="w-4 h-4" /><span>اشتراک‌ها و اکانت‌های پرمیوم</span></div>
-                      <ChevronDown className={`w-4 h-4 stroke-[3] transition-transform ${mobileAccordion === "premium" ? "rotate-180" : ""}`} />
+                      <div className="flex items-center gap-2">
+                        <Crown className="w-4 h-4" />
+                        <span>اشتراک‌ها و اکانت‌های پرمیوم</span>
+                      </div>
+                      <ChevronDown className={`w-4 h-4 stroke-[3] transition-transform duration-200 ${mobileAccordion === "premium" ? "rotate-180" : ""}`} />
                     </button>
+
                     <AnimatePresence>
                       {mobileAccordion === "premium" && (
-                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="p-2 grid grid-cols-2 gap-1 bg-white border-t-[2px] border-black overflow-hidden">
-                          {[
-                            ["film-music", "فیلم و موسیقی"], ["gaming", "گیمینگ و بازی"], ["design-graphics", "طراحی و گرافیک"],
-                            ["seo-marketing", "سئو و مارکتینگ"], ["education-utility", "آموزش و کاربردی"], ["telegram", "تلگرام"],
-                          ].map(([category, label]) => (
-                            <Link key={category} href={`/products/category/${category}`} onClick={closeMobileMenu} className="p-2 text-xs font-black rounded-lg hover:bg-gray-100">{label}</Link>
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="p-2 bg-white flex flex-col gap-1 border-t-[2px] border-black overflow-hidden"
+                        >
+                          {/* ✅ اکنون هر دسته آیکون مرتب دارد */}
+                          {PREMIUM_CATEGORIES.map(({ slug, label, icon: Icon, color }) => (
+                            <Link
+                              key={slug}
+                              href={`/products/category/${slug}`}
+                              onClick={closeMobileMenu}
+                              className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
+                            >
+                              <Icon className={`w-4 h-4 ${color}`} />
+                              <span>{label}</span>
+                            </Link>
                           ))}
                         </motion.div>
                       )}
@@ -320,22 +289,14 @@ export default function Header() {
                   {/* سرور مجازی (VPS) */}
                   <div className="bg-white border-[2.5px] border-black rounded-xl overflow-hidden shadow-[-3px_3px_0_0_rgba(0,0,0,1)]">
                     <button
-                      onClick={() =>
-                        setMobileAccordion(
-                          mobileAccordion === "vps" ? null : "vps",
-                        )
-                      }
+                      onClick={() => setMobileAccordion(mobileAccordion === "vps" ? null : "vps")}
                       className="w-full p-3 font-black text-sm flex items-center justify-between bg-[#12e2a3] cursor-pointer"
                     >
                       <div className="flex items-center gap-2">
                         <Server className="w-4 h-4" />
                         <span>سرور مجازی (VPS)</span>
                       </div>
-                      <ChevronDown
-                        className={`w-4 h-4 stroke-[3] transition-transform duration-200 ${
-                          mobileAccordion === "vps" ? "rotate-180" : ""
-                        }`}
-                      />
+                      <ChevronDown className={`w-4 h-4 stroke-[3] transition-transform duration-200 ${mobileAccordion === "vps" ? "rotate-180" : ""}`} />
                     </button>
 
                     <AnimatePresence>
@@ -346,41 +307,31 @@ export default function Header() {
                           exit={{ height: 0, opacity: 0 }}
                           className="p-2 bg-white flex flex-col gap-1 border-t-[2px] border-black overflow-hidden"
                         >
-                          <Link
-                            href="/products/vps-germany"
-                            onClick={closeMobileMenu}
-                            className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <span>🇩🇪 سرور مجازی آلمان</span>
-                          </Link>
-                          <Link
-                            href="/products/vps-usa"
-                            onClick={closeMobileMenu}
-                            className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
-                          >
-                            <span>🇺🇸 سرور مجازی آمریکا</span>
-                          </Link>
-                          <Link href="/products/vps-finland" onClick={closeMobileMenu} className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2">
-                            <span>🇫🇮 سرور مجازی فنلاند</span>
-                          </Link>
+                          {[
+                            { href: "/products/vps-germany", flag: "🇩🇪", label: "سرور مجازی آلمان" },
+                            { href: "/products/vps-usa",     flag: "🇺🇸", label: "سرور مجازی آمریکا" },
+                            { href: "/products/vps-finland", flag: "🇫🇮", label: "سرور مجازی فنلاند" },
+                          ].map(({ href, flag, label }) => (
+                            <Link key={href} href={href} onClick={closeMobileMenu}
+                              className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
+                            >
+                              <span>{flag}</span>
+                              <span>{label}</span>
+                            </Link>
+                          ))}
                         </motion.div>
                       )}
                     </AnimatePresence>
                   </div>
 
-                  {/* خدمات و تماس */}
-                  <Link
-                    href="/services"
-                    onClick={closeMobileMenu}
+                  <Link href="/services" onClick={closeMobileMenu}
                     className="bg-white border-[2.5px] border-black p-3 rounded-xl font-black text-sm shadow-[-3px_3px_0_0_rgba(0,0,0,1)] flex items-center justify-between"
                   >
                     <span>خدمات</span>
                     <Zap className="w-4 h-4" />
                   </Link>
 
-                  <Link
-                    href="/contact"
-                    onClick={closeMobileMenu}
+                  <Link href="/contact" onClick={closeMobileMenu}
                     className="bg-white border-[2.5px] border-black p-3 rounded-xl font-black text-sm shadow-[-3px_3px_0_0_rgba(0,0,0,1)] flex items-center justify-between"
                   >
                     <span>تماس با ما</span>
@@ -389,7 +340,7 @@ export default function Header() {
                 </div>
               </div>
 
-              {/* بخش اختصاصی حساب کاربری / ورود در انتهای منوی همبرگری */}
+              {/* بخش حساب کاربری در انتهای منوی همبرگری */}
               <div className="pt-4 border-t-[2.5px] border-black mt-4">
                 {isLoggedIn ? (
                   <Link
@@ -398,23 +349,19 @@ export default function Header() {
                     className="w-full bg-[#12e2a3] border-[3px] border-black p-3.5 rounded-xl font-black text-center text-sm shadow-[-4px_4px_0_0_rgba(0,0,0,1)] flex items-center justify-between no-underline text-black shrink-0 active:translate-x-[-1px] active:translate-y-[1px] active:shadow-none transition-all"
                   >
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 bg-white border border-black rounded-md flex items-center justify-center font-black text-xs">
-                        <User className="w-4 h-4" />
-                      </div>
-                      <span>{userName}</span>
+                      <LayoutDashboard className="w-5 h-5 stroke-[2.5]" />
+                      <span>{userName || "پنل کاربری"}</span>
                     </div>
-                    <span className="text-xs bg-white border border-black px-2 py-0.5 rounded font-black">
-                      پیشخوان
-                    </span>
+                    <ChevronDown className="w-4 h-4 -rotate-90 stroke-[3]" />
                   </Link>
                 ) : (
                   <Link
                     href="/auth"
                     onClick={closeMobileMenu}
-                    className="w-full bg-[#ff8f1f] border-[3px] border-black p-3.5 rounded-xl font-black text-center text-sm shadow-[-4px_4px_0_0_rgba(0,0,0,1)] flex items-center justify-center gap-2 no-underline text-black shrink-0 active:translate-x-[-1px] active:translate-y-[1px] active:shadow-none transition-all"
+                    className="w-full bg-black text-white border-[3px] border-black p-3.5 rounded-xl font-black text-center text-sm shadow-[-4px_4px_0_0_rgba(0,0,0,1)] flex items-center justify-center gap-2 no-underline active:translate-x-[-1px] active:translate-y-[1px] active:shadow-none transition-all"
                   >
                     <User className="w-5 h-5 stroke-[2.5]" />
-                    <span>ورود | ثبت‌نام</span>
+                    <span>ورود / ثبت‌نام</span>
                   </Link>
                 )}
               </div>
@@ -422,6 +369,9 @@ export default function Header() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* دراپ‌داون دسکتاپ */}
+      <CategoryDropdown activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
     </header>
   );
 }

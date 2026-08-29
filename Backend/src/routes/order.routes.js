@@ -1,10 +1,12 @@
-// Backend/src/routes/order.routes.js
+// src/routes/order.routes.js
 const express = require("express");
 const { z } = require("zod");
 const prisma = require("../lib/prisma");
-const { optionalAuth } = require("../middleware/auth");
+const { optionalAuth, requireAuth } = require("../middleware/auth");
+const authMiddleware = require("../middlewares/auth.middleware");
 const { calculateOrderTotals } = require("../lib/pricing");
 const { writeAuditLog } = require("../lib/audit");
+const { rialToToman } = require("../lib/pricing");
 
 const router = express.Router();
 
@@ -14,6 +16,16 @@ const createOrderSchema = z.object({
   fullName: z.string().optional().nullable(),
   orderLevelDiscountCode: z.string().optional().nullable(),
 });
+
+// وضعیت‌های قابل‌نمایش در پنل کاربری
+const STATUS_LABEL = {
+  PENDING_PAYMENT: "در انتظار پرداخت",
+  PAID: "پرداخت‌شده",
+  DELIVERED: "تحویل‌شده",
+  FAILED: "ناموفق",
+  REFUNDED: "مسترد شده",
+  CANCELLED: "لغو‌شده",
+};
 
 router.post("/quote", optionalAuth, async (req, res) => {
   const code = typeof req.body?.orderLevelDiscountCode === "string"
@@ -27,7 +39,12 @@ router.post("/quote", optionalAuth, async (req, res) => {
   });
   try {
     const totals = await calculateOrderTotals(cart?.items || [], code || null);
-    return res.json({ subtotalToman: Number(totals.subtotalRial / 10n), discountToman: Number(totals.discountRial / 10n), totalToman: Number(totals.totalRial / 10n), appliedCode: code });
+    return res.json({
+      subtotalToman: Number(totals.subtotalRial / 10n),
+      discountToman: Number(totals.discountRial / 10n),
+      totalToman: Number(totals.totalRial / 10n),
+      appliedCode: code,
+    });
   } catch (err) {
     return res.status(400).json({ error: err.message, code: err.code || "QUOTE_FAILED" });
   }
@@ -53,7 +70,6 @@ router.post("/", optionalAuth, async (req, res) => {
   }
 
   try {
-    // Prepare items for pricing - item-level discounts are ignored; only order-level code will be applied
     const itemsForPricing = cart.items.map((it) => ({ variantId: it.variantId }));
     const totals = await calculateOrderTotals(itemsForPricing, orderLevelDiscountCode?.trim().toUpperCase() || null);
 
@@ -75,7 +91,7 @@ router.post("/", optionalAuth, async (req, res) => {
           subtotalRial: totals.subtotalRial,
           discountRial: totals.discountRial,
           totalRial: totals.totalRial,
-          discountCodeId: totals.appliedOrderDiscountId || null, // رفع باگ ثبت نشدن آیدی
+          discountCodeId: totals.appliedOrderDiscountId || null,
           items: {
             create: totals.resolvedItems.map((it) => ({
               productId: it.productId,
@@ -83,7 +99,7 @@ router.post("/", optionalAuth, async (req, res) => {
               productTitleSnapshot: it.productTitleSnapshot,
               variantNameSnapshot: it.variantNameSnapshot,
               unitPriceRial: it.unitPriceRial,
-              quantity: 1, // همیشه ۱
+              quantity: 1,
             })),
           },
         },
@@ -101,47 +117,70 @@ router.post("/", optionalAuth, async (req, res) => {
       entityId: order.id,
       action: "order_created",
       newStatus: "PENDING_PAYMENT",
-      actorType: req.user ? "USER" : "SYSTEM",
-      actorId: req.user?.userId || null,
+      actorType: "USER",
       ipAddress: req.ip,
-      userAgent: req.headers["user-agent"],
+      metadata: { mobile, itemCount: order.items.length },
     });
 
-    return res.status(201).json({
-      orderId: order.id,
-      orderNumber: order.orderNumber,
-      totalToman: totals.totalToman,
-      subtotalToman: Number(totals.subtotalRial / 10n),
-      discountToman: Number(totals.discountRial / 10n),
-    });
+    return res.status(201).json({ orderId: order.id, orderNumber: order.orderNumber });
   } catch (err) {
-    const knownErrors = [
-      "VARIANT_PRICE_TBD",
-      "VARIANT_NOT_FOUND",
-      "DISCOUNT_INVALID",
-      "DISCOUNT_EXPIRED",
-      "DISCOUNT_EXHAUSTED",
-      "DISCOUNT_MIN_CART",
-      "EMPTY_CART",
-    ];
-    if (knownErrors.includes(err.code)) {
-      return res.status(400).json({ error: err.message, code: err.code });
-    }
-    console.error(err);
-    return res.status(500).json({ error: "خطای غیرمنتظره در ثبت سفارش." });
+    console.error("CREATE ORDER ERROR:", err);
+    return res.status(500).json({ error: "خطا در ثبت سفارش. لطفاً دوباره تلاش کنید." });
   }
 });
 
-router.get("/:orderNumber", async (req, res) => {
-  const mobile = req.query.mobile;
-  const order = await prisma.order.findUnique({
-    where: { orderNumber: req.params.orderNumber },
-    include: { items: true, payments: true },
-  });
-  if (!order || order.mobile !== mobile) {
-    return res.status(404).json({ error: "سفارش یافت نشد." });
+// ✅ NEW: دریافت سفارشات کاربر لاگین‌شده برای پنل کاربری
+router.get("/mine", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.userId || req.user.id;
+
+    const orders = await prisma.order.findMany({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            assignedAccount: {
+              select: {
+                id: true,
+                credentialsEncrypted: true, // ادمین باید این را در Prisma Studio وارد کند
+                status: true,
+              },
+            },
+          },
+        },
+        payments: {
+          where: { status: "VERIFIED" },
+          select: { refId: true, verifiedAt: true, cardPanMasked: true },
+          take: 1,
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const result = orders.map((order) => ({
+      id: order.id,
+      orderNumber: order.orderNumber,
+      status: order.status,
+      statusLabel: STATUS_LABEL[order.status] || order.status,
+      totalToman: rialToToman(order.totalRial),
+      createdAt: order.createdAt,
+      payment: order.payments[0] || null,
+      items: order.items.map((item) => ({
+        id: item.id,
+        productTitle: item.productTitleSnapshot,
+        variantName: item.variantNameSnapshot,
+        // اعتبارنامه‌های رمزگذاری‌شده - فرانت‌اند باید آن‌ها را نمایش دهد
+        // در صورت نیاز به رمزگشایی، آن را سمت سرور انجام دهید
+        credentials: item.assignedAccount?.credentialsEncrypted || null,
+        accountStatus: item.assignedAccount?.status || null,
+      })),
+    }));
+
+    return res.json(result);
+  } catch (err) {
+    console.error("GET ORDERS ERROR:", err);
+    return res.status(500).json({ error: "خطا در دریافت سفارشات." });
   }
-  res.json(order);
 });
 
 module.exports = router;

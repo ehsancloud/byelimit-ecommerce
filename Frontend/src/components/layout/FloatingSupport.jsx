@@ -1,11 +1,9 @@
-// src/components/layout/FloatingSupport.jsx
 "use client";
 
 import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircle, Phone, Send, X, Clock } from "lucide-react";
 
-// TODO: شماره تماس و آیدی/لینک تلگرام واقعی پشتیبانی جایگزین شود.
 const SUPPORT_PHONE_DISPLAY = "۰۲۱-۰۰۰۰۰۰۰";
 const SUPPORT_PHONE_TEL = "+9821xxxxxxx";
 const SUPPORT_TELEGRAM_URL = "https://t.me/byelimit_support";
@@ -28,7 +26,9 @@ export default function FloatingSupport() {
   return (
     <div
       ref={containerRef}
-      className="fixed bottom-6 right-6 z-50 font-[family-name:var(--font-farsi)] dir-rtl"
+      // ✅ FIX: z-30 به جای z-50 تا سایدبار موبایل (z-50) و کشوی فیلتر (z-50)
+      // روی این آیکون بیایند و آن را بپوشانند.
+      className="fixed bottom-6 right-6 z-30 font-[family-name:var(--font-farsi)] dir-rtl"
     >
       <AnimatePresence>
         {isOpen && (
@@ -37,7 +37,9 @@ export default function FloatingSupport() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 15, scale: 0.95 }}
             transition={{ duration: 0.18 }}
-            className="absolute bottom-[72px] left-0 w-64 bg-white border-[3px] border-black rounded-2xl shadow-[-6px_6px_0_0_rgba(0,0,0,1)] overflow-hidden"
+            // ✅ FIX: right-0 به جای left-0 تا پاپ‌آپ از سمت راست باز بشه و از صفحه بیرون نرود.
+            // باگ قبلی: left-0 باعث می‌شد پاپ‌آپ به سمت راست گسترش پیدا کند و از صفحه خارج شود.
+            className="absolute bottom-[72px] right-0 w-64 bg-white border-[3px] border-black rounded-2xl shadow-[-6px_6px_0_0_rgba(0,0,0,1)] overflow-hidden"
           >
             <div className="bg-[#12e2a3] border-b-[2.5px] border-black p-3 flex items-center justify-between">
               <span className="font-black text-sm text-black">راه‌های ارتباطی</span>

@@ -1,4 +1,3 @@
-// src/components/products/ProductsPageClient.jsx
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -9,15 +8,15 @@ import Filters from "./Filters";
 import MobileFilterDrawer from "./MobileFilterDrawer";
 import Pagination from "./Pagination";
 import SeoSection from "./SeoSection";
-import { CATEGORIES, getAllProducts, toProductCardProps } from "../../data/products";
+import { getAllProducts, toProductCardProps } from "../../data/products";
 
 const ITEMS_PER_PAGE = 10;
 
-export default function ProductsPageClient({ initialSearch = "" }) {
+export default function ProductsPageClient({ initialSearch = "", initialCategory = "all" }) {
   const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState(initialSearch);
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory] = useState(initialCategory); // دسته‌بندی از URL می‌آید، از Filters نه
   const [sortBy, setSortBy] = useState("popular");
   const [priceRange, setPriceRange] = useState({ min: 0, max: 50000000 });
   const [currentPage, setCurrentPage] = useState(1);
@@ -32,7 +31,6 @@ export default function ProductsPageClient({ initialSearch = "" }) {
     setCurrentPage(1);
   }, [initialSearch]);
 
-  // فیلتر دسته و جست‌وجو سمت سرور (بک‌اند) انجام می‌شود؛ قیمت/مرتب‌سازی سمت کلاینت
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
@@ -49,13 +47,10 @@ export default function ProductsPageClient({ initialSearch = "" }) {
         if (!cancelled) setIsLoading(false);
       });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [selectedCategory, searchQuery]);
 
   const handleResetFilters = () => {
-    setSelectedCategory("all");
     setSortBy("popular");
     setPriceRange({ min: 0, max: 50000000 });
     setCurrentPage(1);
@@ -67,6 +62,12 @@ export default function ProductsPageClient({ initialSearch = "" }) {
     router.replace("/products");
   };
 
+  // ✅ FIX: هنگام تغییر صفحه، اسکرول به بالا انجام می‌شود
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const filteredProducts = useMemo(() => {
     return rawProducts
       .filter((prod) => {
@@ -76,7 +77,6 @@ export default function ProductsPageClient({ initialSearch = "" }) {
         const cheapestPrice = pricedVariants.length
           ? Math.min(...pricedVariants.map((v) => v.price))
           : null;
-        // محصولات بدون قیمت نهایی (به‌زودی) همیشه نمایش داده می‌شوند
         if (cheapestPrice === null) return true;
         const min = priceRange?.min ?? 0;
         const max = priceRange?.max ?? Infinity;
@@ -84,10 +84,10 @@ export default function ProductsPageClient({ initialSearch = "" }) {
       })
       .map(toProductCardProps)
       .sort((a, b) => {
-        if (sortBy === "price-asc") return a.priceNum - b.priceNum;
+        if (sortBy === "price-asc")  return a.priceNum - b.priceNum;
         if (sortBy === "price-desc") return b.priceNum - a.priceNum;
-        if (sortBy === "newest") return String(b.id).localeCompare(String(a.id));
-        return b.ratingNum - a.ratingNum; // popular
+        if (sortBy === "newest")     return String(b.id).localeCompare(String(a.id));
+        return b.ratingNum - a.ratingNum;
       });
   }, [rawProducts, priceRange, sortBy]);
 
@@ -97,10 +97,8 @@ export default function ProductsPageClient({ initialSearch = "" }) {
     return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProducts, currentPage]);
 
+  // ✅ FIX: پراپ‌های category حذف شدند چون بخش "کاربرد و حوزه" از Filters برداشته شده
   const filterProps = {
-    categories: CATEGORIES,
-    selectedCategory,
-    setSelectedCategory: (cat) => { setSelectedCategory(cat); setCurrentPage(1); },
     sortBy,
     setSortBy,
     priceRange,
@@ -112,7 +110,6 @@ export default function ProductsPageClient({ initialSearch = "" }) {
     <main className="min-h-screen bg-[#f3f3f3] p-5 sm:p-8 md:p-12 font-[family-name:var(--font-farsi)] dir-rtl text-black">
       <div className="max-w-7xl mx-auto">
 
-        {/* عنوان صفحه */}
         <header className="mb-8 text-center md:text-right">
           <h1 className="text-3xl md:text-4xl font-black mb-2">
             فروشگاه اکانت‌های هوش مصنوعی
@@ -135,15 +132,11 @@ export default function ProductsPageClient({ initialSearch = "" }) {
           )}
         </header>
 
-        {/* بخش اصلی: فیلترها + شبکه محصولات */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 items-start">
-
-          {/* فیلترهای دسکتاپ */}
           <div className="hidden md:block md:col-span-1 sticky top-20">
             <Filters {...filterProps} />
           </div>
 
-          {/* شبکه محصولات (Grid) */}
           <div className="col-span-1 md:col-span-3">
             {isLoading ? (
               <div className="bg-white border-[3px] border-black rounded-[16px] p-12 text-center font-black text-sm shadow-[-6px_6px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2">
@@ -155,30 +148,28 @@ export default function ProductsPageClient({ initialSearch = "" }) {
                 {loadError}
               </div>
             ) : paginatedProducts.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {paginatedProducts.map((product) => (
                   <ProductCard key={product.id} {...product} />
                 ))}
               </div>
             ) : (
-              <div className="bg-white border-[3px] border-black rounded-[16px] p-12 text-center font-black text-lg shadow-[-6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <div className="bg-white border-[3px] border-black rounded-[16px] p-12 text-center font-black text-lg shadow-[-6px_6px_0_0_rgba(0,0,0,1)]">
                 هیچ محصولی با مشخصات انتخابی یافت نشد!
               </div>
             )}
 
-            {/* صفحه‌بندی ۱۰ تایی */}
+            {/* ✅ FIX: handlePageChange به جای setCurrentPage مستقیم - اسکرول به بالا */}
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={(page) => setCurrentPage(page)}
+              onPageChange={handlePageChange}
             />
           </div>
         </div>
 
-        {/* بخش سئو و جدول مقایسه‌ای پایین صفحه */}
         <SeoSection />
 
-        {/* فیلتر کشویی موبایل */}
         <MobileFilterDrawer
           isOpen={isMobileFilterOpen}
           setIsOpen={setIsMobileFilterOpen}
