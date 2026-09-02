@@ -38,7 +38,8 @@ npx prisma generate
 # بازیابی خودکار migrationهای شکست‌خورده (قبل از deploy جدید)
 # اگر مهاجرتی در وضعیت "failed" باشد، Prisma خطای P3009 می‌دهد و مهاجرت‌های
 # جدید اعمال نمی‌شوند. این بخش مهاجرت شکست‌خورده را rollback کرده و دوباره اجرا می‌کند.
-FAILED=$(npx prisma migrate status 2>&1 | grep -oE '[0-9]{14}_[a-zA-Z0-9_]+' | sort -u || true)
+# فقط migrationهای بخش "Following migration have failed:" را استخراج می‌کنیم.
+FAILED=$(npx prisma migrate status 2>&1 | sed -n '/Following migration have failed:/,/During development/p' | grep -oE '[0-9]{14}_[a-zA-Z0-9_]+' || true)
 if [[ -n "$FAILED" ]]; then
   for m in $FAILED; do
     echo "⚠️ مهاجرت شکست‌خورده یافت شد: $m → در حال rollback..."
