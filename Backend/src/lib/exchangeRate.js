@@ -22,10 +22,24 @@ async function fetchUsdtBuyPrice() {
   }
   const json = await res.json();
 
-  // ساختار ممکن: { data: { USDT: { buy_price } } } یا { USDT: { buy_price } }
-  const usdt = json?.data?.USDT ?? json?.USDT;
-  const buy = usdt?.buy_price;
-  if (typeof buy !== "number" || !Number.isFinite(buy) || buy <= 0) {
+  // ساختار واقعی ابان‌تتر: { data: { markets: { USDIRT: { symbol: "USDT", buy_price: "219244" } } } }
+  // بدیهی است buy_price به‌صورت رشته می‌آید.
+  const markets = json?.data?.markets;
+  let raw;
+  if (markets && typeof markets === "object") {
+    const key = markets.USDTIRT
+      ? "USDTIRT"
+      : Object.keys(markets).find((k) => markets[k]?.symbol === "USDT");
+    if (key) raw = markets[key]?.buy_price;
+  }
+  // ساختار قدیمی احتمالی: { data: { USDT: { buy_price } } } یا { USDT: { buy_price } }
+  if (raw == null) {
+    const usdt = json?.data?.USDT ?? json?.USDT;
+    raw = usdt?.buy_price;
+  }
+
+  const buy = Number(String(raw).replace(/,/g, ""));
+  if (!Number.isFinite(buy) || buy <= 0) {
     throw new Error("TICKER_BAD_SHAPE");
   }
   return buy;

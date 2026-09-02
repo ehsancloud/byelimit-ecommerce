@@ -63,6 +63,12 @@ enum PaymentGateway {
   ZARINPAL
 }
 
+enum TelegramNotifyStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
 // ===================== محصولات =====================
 
 model Product {
@@ -194,6 +200,7 @@ model CartItem {
   createdAt      DateTime @default(now())
 
   @@index([cartId])
+  @@index([addOnId])
   @@map("cart_items")
 }
 
@@ -310,6 +317,7 @@ model Payment {
   updatedAt              DateTime      @updatedAt
 
   @@index([orderId])
+  @@index([status])
   @@index([gateway, authority])
   @@map("payments")
 }
@@ -333,11 +341,14 @@ model AuditLog {
   previousStatus String?
   newStatus      String?
   actorType      String
+  actorId        String?
   ipAddress      String?
+  userAgent      String?
   metadata       Json?
   createdAt      DateTime @default(now())
 
   @@index([orderId])
+  @@index([entityType, entityId])
   @@map("audit_logs")
 }
 
@@ -348,10 +359,13 @@ model TelegramNotification {
   orderId   String
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   payload   Json
+  status    TelegramNotifyStatus @default(PENDING)
+  attempts  Int      @default(0)
   sentAt    DateTime?
   createdAt DateTime @default(now())
 
   @@index([orderId])
+  @@index([status])
   @@map("telegram_notifications")
 }
 
@@ -372,6 +386,8 @@ model FlashDeal {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
+  @@index([isActive])
+  @@index([sortOrder])
   @@map("flash_deals")
 }
 
