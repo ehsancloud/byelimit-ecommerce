@@ -37,18 +37,20 @@ npx prisma generate
 
 # بازیابی خودکار migrationهای شکست‌خورده (قبل از deploy جدید)
 # اگر مهاجرتی در وضعیت "failed" باشد، Prisma خطای P3009 می‌دهد و مهاجرت‌های
-# جدید اعمال نمی‌شوند. این بخش مهاجرت شکست‌خورده را rollback کرده و دوباره اجرا می‌کند.
-# فقط migrationهای بخش "Following migration have failed:" را استخراج می‌کنیم.
-FAILED=$(npx prisma migrate status 2>&1 | sed -n '/Following migration have failed:/,/During development/p' | grep -oE '[0-9]{14}_[a-zA-Z0-9_]+' || true)
-if [[ -n "$FAILED" ]]; then
-  for m in $FAILED; do
-    echo "⚠️ مهاجرت شکست‌خورده یافت شد: $m → در حال rollback..."
-    npx prisma migrate resolve --rolled-back "$m"
-  done
-fi
-
-# در production از migrationهای versioned استفاده می‌شود، نه db push.
-npx prisma migrate deploy
+# جدید اعمال نمی‌شوند. این بخش ابتدا deploy را امتحان می‌کند، و اگر خطای P3009
+# داد، نام migration شکست‌خورده را از خود خطا استخراج کرده، rollback و دوباره deploy می‌کند.
+DEPLOY_OUTPUT=$(npx prisma migrate deploy 2>&1) || {
+  FAILED=$(echo "$DEPLOY_OUTPUT" | grep -oP 'The `\K[0-9]{14}_[a-zA-Z0-9_]+(?=` migration)' || true)
+  if [[ -n "$FAILED" ]]; then
+    echo "⚠️ مهاجرت شکست‌خورده یافت شد: $FAILED → در حال rollback..."
+    npx prisma migrate resolve --rolled-back "$FAILED"
+    echo "🔄 تلاش مجدد برای deploy..."
+    npx prisma migrate deploy
+  else
+    echo "$DEPLOY_OUTPUT" >&2
+    exit 1
+  fi
+}
 
 echo "⚛️ [3/5] نصب وابستگی‌ها و build فرانت‌اند..."
 cd "$FRONTEND_DIR"
