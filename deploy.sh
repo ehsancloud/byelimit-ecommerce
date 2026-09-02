@@ -34,6 +34,18 @@ echo "📦 [2/5] نصب وابستگی‌های بک‌اند و اجرای migr
 cd "$BACKEND_DIR"
 npm ci
 npx prisma generate
+
+# بازیابی خودکار migrationهای شکست‌خورده (قبل از deploy جدید)
+# اگر مهاجرتی در وضعیت "failed" باشد، Prisma خطای P3009 می‌دهد و مهاجرت‌های
+# جدید اعمال نمی‌شوند. این بخش مهاجرت شکست‌خورده را rollback کرده و دوباره اجرا می‌کند.
+FAILED=$(npx prisma migrate status 2>&1 | grep -oE '[0-9]{14}_[a-zA-Z0-9_]+' | sort -u || true)
+if [[ -n "$FAILED" ]]; then
+  for m in $FAILED; do
+    echo "⚠️ مهاجرت شکست‌خورده یافت شد: $m → در حال rollback..."
+    npx prisma migrate resolve --rolled-back "$m"
+  done
+fi
+
 # در production از migrationهای versioned استفاده می‌شود، نه db push.
 npx prisma migrate deploy
 
