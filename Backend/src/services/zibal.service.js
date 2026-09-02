@@ -1,172 +1,109 @@
-// Backend/src/services/zibal.service.js
-// سرویس درگاه پرداخت زیبال — مطابق مستندات zibaldoc.md
-//
-// نکات کلیدی:
-//  - مبلغ در این API به **ریال** ارسال می‌شود (برخلاف زرین‌پال که تومان است)
-//  - callback با GET و Query String فرستاده می‌شود
-//  - هدر Referer هنگام هدایت کاربر به /start الزامی است (مرورگر خودکار می‌فرستد)
+// src/services/zibal.service.js
+// درگاه پرداخت زیبال - مرچنت: 6a97e1c9a9eb8b31692e4c28
+// مستندات: https://gateway.zibal.ir
 
-const IS_SANDBOX = process.env.ZIBAL_SANDBOX === "true";
-
+const MERCHANT = process.env.ZIBAL_MERCHANT_ID || "6a97e1c9a9eb8b31692e4c28";
 const BASE_URL = "https://gateway.zibal.ir";
-const START_URL = `${BASE_URL}/start`; // GET /start/{trackId}
 
-const MERCHANT_ID = process.env.ZIBAL_MERCHANT_ID || "zibal"; // پیش‌فرض تست زیبال
-
-const ZIBAL_ERROR_MESSAGES = {
-  "102": "مرچنت یافت نشد.",
-  "103": "مرچنت غیرفعال / عدم امضای قرارداد درگاه.",
-  "104": "مرچنت نامعتبر.",
-  "105": "مبلغ باید بزرگ‌تر از ۱,۰۰۰ ریال باشد.",
-  "106": "کال‌بک‌آدرس نامعتبر است.",
-  "107": "پارامتر درصد (percentMode) نامعتبر است.",
-  "112": "موجودی کیف پول کارمزد کافی نیست.",
-  "113": "مبلغ تراکنش از سقف تعیین‌شده بیشتر است.",
-  "115": "آی‌پی سرور در پنل زیبال ثبت نشده است.",
-  "201": "تراکنش قبلاً تایید شده است.",
-  "202": "سفارش پرداخت نشده یا ناموفق بوده است.",
-  "203": "شناسه پیگیری (trackId) نامعتبر است.",
+const ZIBAL_RESULT_MESSAGES = {
+  100: "موفق",
+  102: "merchant یافت نشد.",
+  103: "merchant غیر فعال است.",
+  104: "merchant نامعتبر است.",
+  105: "amount بایستی بزرگتر از 1,000 ریال باشد.",
+  106: "callbackUrl نامعتبر است.",
+  113: "amount مبلغ تراکنش از سقف مجاز بیشتر است.",
+  201: "قبلاً تأیید شده است.",
+  202: "سفارش پرداخت نشده یا ناموفق است.",
+  203: "trackId نامعتبر است.",
 };
 
-function getErrorMessage(code) {
-  return (
-    ZIBAL_ERROR_MESSAGES[String(code)] ||
-    "خطایی در ارتباط با درگاه زیبال رخ داد. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید."
-  );
-}
-
-async function callZibal(path, body) {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify(body),
-    // زیبال سمت ایران است؛ با SSD از همان کشور زمان‌بندی عادی دارد
-    signal: AbortSignal.timeout(15_000),
-  });
-  if (!res.ok) {
-    return { result: -99, message: `HTTP ${res.status}` };
-  }
-  try {
-    return await res.json();
-  } catch {
-    return { result: -99, message: "پاسخ نامعتبر از درگاه زیبال." };
-  }
+function getZibalError(result) {
+  return ZIBAL_RESULT_MESSAGES[result] || `خطای زیبال: کد ${result}`;
 }
 
 /**
  * مرحله ۱: درخواست پرداخت و دریافت trackId
- *
  * @param {Object} params
- * @param {number|bigint} params.amountRial - مبلغ به ریال
- * @param {string} params.callbackUrl - آدرس بازگشت پذیرنده
- * @param {string} params.orderId - شناسه سفارش شما (در گزارشات زیبال)
- * @param {string} [params.description]
+ * @param {bigint} params.amountRial - مبلغ به ریال
+ * @param {string} params.callbackUrl
+ * @param {string} params.description
+ * @param {string} params.orderId
  * @param {string} [params.mobile]
  */
-async function requestPayment({ amountRial, callbackUrl, orderId, description, mobile }) {
-  const amount = Number(BigInt(amountRial));
-  const payload = {
-    merchant: MERCHANT_ID,
-    amount, // ریال
+async function requestPayment({ amountRial, callbackUrl, description, orderId, mobile }) {
+  const body = {
+    merchant: MERCHANT,
+    amount: Number(amountRial), // ریال
     callbackUrl,
-    description: description || `پرداخت سفارش ${orderId} - بای لیمیت`,
+    description,
     orderId,
   };
-  if (mobile) payload.mobile = mobile;
+  if (mobile) body.mobile = mobile;
 
-  const json = await callZibal("/v1/request", payload);
-
-  if (json.result === 100 && json.trackId) {
-    return {
-      success: true,
-      trackId: json.trackId,
-      startPayUrl: `${START_URL}/${json.trackId}`,
-      raw: json,
-    };
-  }
-
-  return {
-    success: false,
-    errorCode: json.result,
-    message: getErrorMessage(json.result),
-    raw: json,
-  };
-}
-
-/**
- * مرحله ۳: تایید پرداخت (Verify)
- * فقط بعد از موفقیت در callback باید صدا زده شود تا تراکنش نهایی و واریز شود.
- */
-async function verifyPayment({ trackId }) {
-  const json = await callZibal("/v1/verify", {
-    merchant: MERCHANT_ID,
-    trackId,
+  const res = await fetch(`${BASE_URL}/v1/request`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
-
-  // result 100 = تایید موفق | result 201 = قبلاً تایید شده (idempotent retry)
-  if (json.result === 100 || json.result === 201) {
-    return {
-      success: true,
-      alreadyVerified: json.result === 201,
-      refId: json.refNumber,
-      cardPan: json.cardNumber,
-      paidAt: json.paidAt,
-      amount: json.amount,
-      raw: json,
-    };
-  }
-
-  return {
-    success: false,
-    errorCode: json.result,
-    message: getErrorMessage(json.result),
-    raw: json,
-  };
-}
-
-/** استعلام وضعیت تراکنش (بدون نهایی‌سازی) */
-async function inquiryPayment({ trackId }) {
-  const json = await callZibal("/v1/inquiry", {
-    merchant: MERCHANT_ID,
-    trackId,
-  });
+  const json = await res.json();
 
   if (json.result === 100) {
     return {
       success: true,
-      status: json.status,
-      amount: json.amount,
-      refId: json.refNumber,
-      raw: json,
+      trackId: String(json.trackId),
+      startPayUrl: `${BASE_URL}/start/${json.trackId}`,
     };
   }
 
   return {
     success: false,
-    errorCode: json.result,
-    message: getErrorMessage(json.result),
-    raw: json,
+    result: json.result,
+    message: getZibalError(json.result),
   };
 }
 
 /**
- * ترجمه‌ی وضعیت لینک زیبال به نتیجه‌ی قابل‌استفاده:
- * جدول وضعیت‌های زیبال: 1=پرداخت و تایید، 2=پرداخت بدون تایید، 3=لغو، 4..12=خطا، -1=در انتظار
+ * مرحله ۳: تأیید پرداخت
+ * @param {string} trackId
  */
-function interpretCallbackStatus(success, status) {
-  if (String(success) === "1") {
-    if (status === 1) return { ok: true, verified: true };
-    if (status === 2) return { ok: true, verified: false };
+async function verifyPayment(trackId) {
+  const res = await fetch(`${BASE_URL}/v1/verify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ merchant: MERCHANT, trackId: Number(trackId) }),
+  });
+  const json = await res.json();
+
+  // 100 = موفق, 201 = قبلاً تأیید شده
+  if (json.result === 100 || json.result === 201) {
+    return {
+      success: true,
+      alreadyVerified: json.result === 201,
+      refNumber: json.refNumber ? String(json.refNumber) : null,
+      cardNumber: json.cardNumber || null,
+      amount: json.amount,
+    };
   }
-  return { ok: false, verified: false };
+
+  return {
+    success: false,
+    result: json.result,
+    message: getZibalError(json.result),
+  };
 }
 
-module.exports = {
-  requestPayment,
-  verifyPayment,
-  inquiryPayment,
-  interpretCallbackStatus,
-  getErrorMessage,
-  IS_SANDBOX,
-  BASE_URL,
-};
+/**
+ * استعلام وضعیت تراکنش
+ */
+async function inquiryPayment(trackId) {
+  const res = await fetch(`${BASE_URL}/v1/inquiry`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ merchant: MERCHANT, trackId: Number(trackId) }),
+  });
+  const json = await res.json();
+  return { success: json.result === 100, ...json };
+}
+
+module.exports = { requestPayment, verifyPayment, inquiryPayment, getZibalError };

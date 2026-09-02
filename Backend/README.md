@@ -90,3 +90,11 @@ src/jobs/                    unverified-cron.js | worker.js (BullMQ)
 - افزودن رکوردهای واقعی `AccountInventory` (کردنشیال اکانت‌های واقعی، رمزنگاری‌شده)
 - دیپلوی روی سرور واقعی + اتصال `DATABASE_URL`/`REDIS_URL` به سرویس‌های واقعی
 - ساخت ربات تلگرام طبق قرارداد بالا
+
+## محصول تستی زیبال
+
+برای تست درگاه زیبال، یک محصول ۱۰۰ تومانی از طریق Prisma Studio ایجاد کنید:
+```
+Product: slug="test-zibal-100-toman", title="تست درگاه"
+Variant: name="پلن تستی", priceRial=1000 (= 100 تومان)
+```

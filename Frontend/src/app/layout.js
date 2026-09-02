@@ -4,7 +4,6 @@ import Footer from "../components/layout/footer/Footer";
 import FloatingSupport from "../components/layout/FloatingSupport";
 import Breadcrumb from "../components/common/Breadcrumb";
 import { CartProvider } from "../context/CartContext";
-import { AuthProvider } from "../context/AuthContext";
 import "./globals.css";
 
 const fontFarsi = localFont({
@@ -34,7 +33,6 @@ export default function RootLayout({ children }) {
         <meta httpEquiv="Content-Language" content="fa" />
       </head>
       <body className="font-[family-name:var(--font-farsi)] antialiased bg-[#f3f3f3] text-black">
-        <AuthProvider>
         <CartProvider>
           <Header />
           {/* ✅ بردکرامب سراسری - روی همه صفحات (جز صفحه اصلی) نمایش داده می‌شود */}
@@ -45,7 +43,6 @@ export default function RootLayout({ children }) {
           <Footer />
           <FloatingSupport />
         </CartProvider>
-        </AuthProvider>
       </body>
     </html>
   );

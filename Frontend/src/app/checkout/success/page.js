@@ -13,13 +13,9 @@ import {
   ArrowLeft,
   Clock,
   Loader2,
-  Copy,
-  Check,
-  CreditCard,
 } from "lucide-react";
 import { useCart } from "../../../context/CartContext";
 import { apiFetch } from "../../../lib/apiClient";
-import { formatPriceToman } from "../../../lib/formatters";
 
 // TODO: نام کاربری ربات تلگرام واقعی جایگزین شود.
 // این یک دیپ‌لینک استاندارد تلگرام است: با باز شدن، پیام "/start order_<orderNumber>"
@@ -45,9 +41,10 @@ function CheckoutSuccessInner() {
   const [order, setOrder] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [copiedIdx, setCopiedIdx] = useState(null);
 
   useEffect(() => {
+    // سبد خرید کاربر در بک‌اند پس از ثبت سفارش خودکار به وضعیت CONVERTED رفته -
+    // این‌جا فقط state محلی سبد را با واقعیت سرور (سبد جدید و خالی) هماهنگ می‌کنیم.
     refetchCart();
   }, [refetchCart]);
 
@@ -65,12 +62,6 @@ function CheckoutSuccessInner() {
 
   const telegramDeepLink = `https://t.me/${SUPPORT_BOT_USERNAME}?start=order_${orderNumber}`;
   const totalToman = order ? Math.round(Number(order.totalRial) / 10) : 0;
-
-  const handleCopy = (text, idx) => {
-    navigator.clipboard.writeText(text).catch(() => {});
-    setCopiedIdx(idx);
-    setTimeout(() => setCopiedIdx(null), 2000);
-  };
 
   return (
     <main className="min-h-screen bg-[#f3f3f3] p-4 sm:p-6 md:p-10 font-[family-name:var(--font-farsi)] dir-rtl text-black select-none">
@@ -133,39 +124,7 @@ function CheckoutSuccessInner() {
             </div>
           </div>
 
-          {/* نمایش اعتبارنامه / کد تحویل اگر سفارش قبلاً پردازش شده */}
-          {order && (order.status === "PAID" || order.status === "DELIVERED") &&
-            order.items?.some((i) => i.credentials) && (
-            <div className="w-full bg-[#fff9c4] border-[2.5px] border-black rounded-2xl p-5 text-right flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-black stroke-[2.5]" />
-                <span className="font-black text-sm">اعتبارنامه / کد تحویل شما</span>
-              </div>
-              {order.items.filter((i) => i.credentials).map((item, i) => (
-                <div key={i} className="flex items-start justify-between gap-2 bg-white border border-black p-3 rounded-xl">
-                  <div className="min-w-0">
-                    <span className="text-[10px] font-bold text-gray-600 block mb-1">{item.productTitle}</span>
-                    <pre className="dir-ltr text-right font-mono text-xs font-black whitespace-pre-wrap break-all">
-                      {item.credentials}
-                    </pre>
-                  </div>
-                  <button
-                    onClick={() => handleCopy(item.credentials, `creds-${i}`)}
-                    className="p-1.5 bg-white border border-black rounded-lg hover:bg-gray-100 shrink-0"
-                    aria-label="کپی"
-                  >
-                    {copiedIdx === `creds-${i}` ? (
-                      <Check className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
-                    ) : (
-                      <Copy className="w-4 h-4 stroke-[2.5]" />
-                    )}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* جزئیات فاکتور */}
+          {/* جزئیات فاکتور - از دیتابیس واقعی خوانده می‌شود */}
           {isLoading ? (
             <div className="w-full flex items-center justify-center gap-2 text-xs font-bold text-gray-500 py-2">
               <Loader2 className="w-4 h-4 animate-spin" />

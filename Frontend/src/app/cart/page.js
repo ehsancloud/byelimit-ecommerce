@@ -82,11 +82,6 @@ export default function CartPage() {
                     <p className="text-[11px] font-bold text-gray-600 mt-0.5">
                       {it.variantName}
                     </p>
-                    {it.addOnName && (
-                      <p className="text-[11px] font-black text-purple-700 mt-0.5">
-                        + {it.addOnName}
-                      </p>
-                    )}
 
                     <div className="mt-3">
                       <span className="font-black text-sm">

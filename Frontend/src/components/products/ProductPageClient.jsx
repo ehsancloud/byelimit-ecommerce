@@ -18,45 +18,26 @@ export default function ProductPageClient({ product }) {
   const [selectedVariant, setSelectedVariant] = useState(
     product.variants.find((v) => v.isPopular) || product.variants[0],
   );
-  // ✅ افزودنی‌ها (Add-On) - مثل «پرداخت امن بین‌المللی» کلاد - اختیاری
-  const [selectedAddOnId, setSelectedAddOnId] = useState(null);
   const [activeTab, setActiveTab] = useState("description");
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [claudeSecureAddon, setClaudeSecureAddon] = useState(false);
+  const CLAUDE_SECURE_ADDON_TOMAN = 1495000; // پرداخت فوق امن بین‌المللی
   const [addToCartError, setAddToCartError] = useState("");
 
-  // افزودنی‌های مرتبط با پلن انتخاب‌شده
-  const variantAddOns = useMemo(
-    () => (product.addOns || []).filter((a) => a.variantId === selectedVariant.id),
-    [product.addOns, selectedVariant],
-  );
-
-  const selectedAddOn = variantAddOns.find((a) => a.id === selectedAddOnId) || null;
-
-  // Pricing is based on variant price + optional add-on. Discounts are applied at order (checkout) level only.
-  const finalUnitPrice = useMemo(
-    () =>
-      selectedVariant.price == null
-        ? null
-        : selectedVariant.price + (selectedAddOn ? selectedAddOn.price : 0),
-    [selectedVariant, selectedAddOn],
-  );
+  // Pricing is based on variant price. Discounts are applied at order (checkout) level only.
+  const finalUnitPrice = useMemo(() => selectedVariant.price, [selectedVariant]);
 
   // انتخاب پلن جدید یعنی کد تخفیف قبلی (که روی پلن قبلی محاسبه شده بود) دیگر معتبر نیست
   const handleSelectVariant = (variant) => {
     setSelectedVariant(variant);
-    setSelectedAddOnId(null); // افزودنیِ پلن قبلی معتبر نیست
-  };
-
-  const handleSelectAddOn = (addOnId) => {
-    setSelectedAddOnId((prev) => (prev === addOnId ? null : addOnId));
   };
 
   const handleAddToCart = async () => {
     setIsAddingToCart(true);
     setAddToCartError("");
     try {
-      await addItem(product, selectedVariant, { addOnId: selectedAddOn?.id || null });
+      await addItem(product, selectedVariant);
       setIsCartModalOpen(true);
     } catch (err) {
       setAddToCartError(err.message || "افزودن به سبد خرید ناموفق بود. دوباره تلاش کنید.");
@@ -78,9 +59,10 @@ export default function ProductPageClient({ product }) {
           onAddToCart={handleAddToCart}
           isAddingToCart={isAddingToCart}
           addToCartError={addToCartError}
-          addOns={variantAddOns}
-          selectedAddOnId={selectedAddOnId}
-          onSelectAddOn={handleSelectAddOn}
+          isClaude={product.slug?.includes('claude') || product.category === 'text'}
+          claudeSecureAddon={claudeSecureAddon}
+          onToggleClaudeAddon={setClaudeSecureAddon}
+          claudeAddonPrice={CLAUDE_SECURE_ADDON_TOMAN}
         />
 
         {/* بخش تب‌ها */}

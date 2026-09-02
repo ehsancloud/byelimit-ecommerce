@@ -22,7 +22,6 @@ import {
   Music,
   GraduationCap,
   LayoutDashboard,
-  DollarSign,
 } from "lucide-react";
 
 import SearchBar from "./SearchBar";
@@ -30,29 +29,30 @@ import CategoryDropdown from "./CategoryDropdown";
 import Navbar from "./Navbar";
 import UserMenu from "./UserMenu";
 import CartIcon from "../../cart/CartIcon";
-import { useAuthStatus } from "../../../hooks/useAuthStatus";
+import DollarBox from "./DollarBox";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function Header() {
   const [activeMenu, setActiveMenu] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [displayRate, setDisplayRate] = useState(null);
 
   // استیت‌های موبایل
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileAccordion, setMobileAccordion] = useState(null);
-  const { isLoggedIn, userName } = useAuthStatus();
+  const [mobileAccordion, setMobileAccordion] = useState(null); // 'products' | 'vps' | null
+  const { user } = useAuth();
+  const isLoggedIn = !!user;
+  const userName = user?.fullName || user?.mobile || "";
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 30);
+    const handleScroll = () => {
+      if (window.scrollY > 30) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  useEffect(() => {
-    fetch("/api/payment/rate")
-      .then((r) => r.json())
-      .then((d) => setDisplayRate(d.displayRate))
-      .catch(() => {});
   }, []);
 
   const closeMobileMenu = () => {
@@ -109,7 +109,7 @@ export default function Header() {
 
           {/* سرچ بار و منوهای دسکتاپ */}
           <div className="hidden md:flex items-center flex-1 justify-between">
-            <SearchBar isScrolled={isScrolled} />
+            <div className="flex items-center gap-2 flex-1"><SearchBar isScrolled={isScrolled} /><DollarBox /></div>
             <div className="flex items-stretch h-full">
               <CategoryDropdown
                 activeMenu={activeMenu}
@@ -120,14 +120,8 @@ export default function Header() {
             </div>
           </div>
 
-          {/* نرخ تتر و منوی کاربر دسکتاپ */}
+          {/* منوی کاربر دسکتاپ */}
           <div className="hidden md:flex border-l-[3.5px] border-black items-stretch">
-            {displayRate && (
-              <div className="flex items-center gap-1.5 px-3 bg-[#f8f9fa] border-l border-black text-[10px] font-black text-gray-700 shrink-0">
-                <DollarSign className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
-                <span>{Number(displayRate).toLocaleString("fa-IR")} <span className="text-gray-400 font-bold">تومان</span></span>
-              </div>
-            )}
             <UserMenu />
           </div>
 

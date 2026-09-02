@@ -15,8 +15,7 @@ const services = JSON.parse(
 // سرورهای مجازی - در شیت اصلی نبودند، طبق داده‌ای که قبلاً برای فرانت‌اند ساخته شد
 const vpsProducts = [
   {
-    slug: "vps-germany", sku: "VPS-DE-01", category: "vps", title: "خرید سرور مجازی آلمان (Germany VPS)",
-    subtitle: "Germany VPS",
+    slug: "vps-germany", sku: "VPS-DE-01", category: "vps", title: "سرور مجازی آلمان (Germany VPS)",
     sourcingRegion: null,
     variants: [
       { id: "var-1gb", name: "۱ گیگ رم / ۱ ماهه", costUsd: null, isPopular: false },
@@ -24,8 +23,7 @@ const vpsProducts = [
     ],
   },
   {
-    slug: "vps-usa", sku: "VPS-US-01", category: "vps", title: "خرید سرور مجازی آمریکا (USA VPS)",
-    subtitle: "USA VPS",
+    slug: "vps-usa", sku: "VPS-US-01", category: "vps", title: "سرور مجازی آمریکا (USA VPS)",
     sourcingRegion: null,
     variants: [
       { id: "var-1gb", name: "۱ گیگ رم / ۱ ماهه", costUsd: null, isPopular: false },
@@ -33,8 +31,7 @@ const vpsProducts = [
     ],
   },
   {
-    slug: "vps-finland", sku: "VPS-FI-01", category: "vps", title: "خرید سرور مجازی فنلاند (Finland VPS)",
-    subtitle: "Finland VPS",
+    slug: "vps-finland", sku: "VPS-FI-01", category: "vps", title: "سرور مجازی فنلاند (Finland VPS)",
     sourcingRegion: null,
     variants: [
       { id: "var-1gb", name: "۱ گیگ رم / ۱ ماهه", costUsd: null, isPopular: false },
@@ -43,90 +40,44 @@ const vpsProducts = [
   },
 ];
 
-// محصول تستی ۱۰۰۰ تومانی برای بررسی صحت کل فرآیند پرداخت
-const testProduct = {
-  slug: "test-product-1000",
-  sku: "TEST-1000",
-  category: "test",
-  title: "محصول تستی ۱۰۰۰ تومانی",
-  sourcingRegion: null,
-  variants: [
-    { id: "test-1000", name: "تست پرداخت", costUsd: null, isPopular: true },
-  ],
-};
-
 async function main() {
   console.log("در حال seed کردن محصولات...");
 
-  for (const [serviceIndex, svc] of [...services, ...vpsProducts, testProduct].entries()) {
+  for (const [serviceIndex, svc] of [...services, ...vpsProducts].entries()) {
     const product = await prisma.product.upsert({
       where: { slug: svc.slug },
-      // ⚠️ فقط اطلاعات متنی/سئو رفرش می‌شود؛ قیمت‌ها و تنظیمات ادمین دست نمی‌خورند
-      update: {
-        title: svc.title,
-        subtitle: svc.subtitle || null,
-        category: svc.category,
-        metaTitle: `خرید ${svc.title} | بای لیمیت`,
-        metaDescription: `${svc.title} با تحویل سریع، ضمانت ۱۰۰٪ بازگشت وجه و پشتیبانی هرروز ۱۰ تا ۲۲ از فروشگاه بای لیمیت.`,
-      },
+      update: {},
       create: {
         slug: svc.slug,
         sku: svc.sku,
         category: svc.category,
         title: svc.title,
-        subtitle: svc.subtitle || null,
-        metaTitle: `خرید ${svc.title} | بای لیمیت`,
-        metaDescription: `${svc.title} با تحویل سریع، ضمانت ۱۰۰٪ بازگشت وجه و پشتیبانی هرروز ۱۰ تا ۲۲ از فروشگاه بای لیمیت.`,
+        subtitle: null,
+        metaTitle: `خرید اشتراک ${svc.title} | بای لیمیت`,
+        metaDescription: `خرید اشتراک اختصاصی ${svc.title} با تحویل سریع و ضمانت ۱۰۰٪.`,
         mainImage: "/images/logo.png",
-        requiresVpn: svc.category !== "vps" && svc.category !== "test",
-        vpnNote: svc.category !== "vps" && svc.category !== "test" ? "برای استفاده از این سرویس نیازمند تحریم‌شکن با IP ثابت و معتبر هستید." : null,
+        requiresVpn: svc.category !== "vps",
+        vpnNote: svc.category !== "vps" ? "برای استفاده از این سرویس نیازمند تحریم‌شکن با IP ثابت و معتبر هستید." : null,
         longDescription: `اشتراک ${svc.title} به‌زودی با قیمت نهایی و توضیحات کامل در دسترس قرار می‌گیرد.`,
       },
     });
 
     for (const v of svc.variants) {
-      const isTest = svc.slug === testProduct.slug;
       await prisma.productVariant.upsert({
         where: { productId_name: { productId: product.id, name: v.name } },
-        update: {
-          costUsd: v.costUsd ?? null,
-        },
+        update: {},
         create: {
           productId: product.id,
           name: v.name,
           type: v.isPopular ? "exclusive" : "shared",
           productTitle: svc.title,
-          // محصول تستی: قیمت ثابت ۱۰۰۰ تومان
-          pricingMode: isTest ? "FIXED_RIAL" : "DYNAMIC_USD",
-          fixedPriceRial: isTest ? 10000n : null, // ۱۰۰۰ تومان = ۱۰۰۰۰ ریال
-          priceRial: isTest ? 10000n : null,
-          originalPriceRial: isTest ? 10000n : null,
-          costUsd: isTest ? null : v.costUsd,
+          // قیمت‌های نمونه برای تست کامل سبد و پرداخت؛ ادمین می‌تواند در Studio تغییر دهد.
+          priceRial: BigInt((serviceIndex + 1) * 1500000 + (v.isPopular ? 1000000 : 0)) * 10n,
+          originalPriceRial: BigInt((serviceIndex + 1) * 1800000 + (v.isPopular ? 1200000 : 0)) * 10n,
+          costUsd: v.costUsd,
           sourcingRegion: svc.sourcingRegion,
           deliveryTimeMinutes: 0,
           isPopular: v.isPopular,
-        },
-      });
-    }
-  }
-
-  // ─── افزودنی کلود: پرداخت امن بین‌المللی (۱٬۴۹۵٬۰۰۰ تومان) ───
-  const claude = await prisma.product.findUnique({ where: { slug: "claude" } });
-  if (claude) {
-    const claudeVariants = await prisma.productVariant.findMany({
-      where: { productId: claude.id },
-    });
-    for (const variant of claudeVariants) {
-      await prisma.productAddOn.upsert({
-        where: { id: `addon-secure-pay-${variant.id}` },
-        update: {},
-        create: {
-          id: `addon-secure-pay-${variant.id}`,
-          variantId: variant.id,
-          name: "پرداخت امن بین‌المللی",
-          description: "گزینه پرداخت فوق امن و مطمئن بین‌المللی برای اکانت کلود",
-          priceRial: 14950000n, // ۱٬۴۹۵٬۰۰۰ تومان
-          isActive: true,
         },
       });
     }
@@ -144,7 +95,7 @@ async function main() {
     create: { code: "OFF10", type: "PERCENT", percent: 10, minCartAmountRial: 1000000n, maxDiscountRial: 2000000n, isActive: true },
   });
 
-  console.log(`✅ ${services.length + vpsProducts.length + 1} محصول seed شد (شامل محصول تستی ۱۰۰۰ تومانی).`);
+  console.log(`✅ ${services.length + vpsProducts.length} محصول seed شد.`);
 }
 
 main()

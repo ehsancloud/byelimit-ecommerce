@@ -5,13 +5,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ShoppingBag, User, LogOut, LayoutDashboard, Home } from "lucide-react";
 import { apiFetch } from "../../lib/apiClient";
-import { useAuth } from "../../context/AuthContext";
 
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState(null);
-  const { logout } = useAuth();
 
   useEffect(() => {
     apiFetch("/api/auth/me", { silent404: true })
@@ -19,6 +17,7 @@ export default function DashboardLayout({ children }) {
         if (data?.user) {
           setUser(data.user);
         } else {
+          // اگر لاگین نیست، به صفحه ورود هدایت شود
           router.replace("/auth");
         }
       })
@@ -26,7 +25,11 @@ export default function DashboardLayout({ children }) {
   }, [router]);
 
   const handleLogout = async () => {
-    await logout();
+    try {
+      await apiFetch("/api/auth/logout", { method: "POST" });
+      localStorage.removeItem("byelimit_user");
+      localStorage.removeItem("byelimit_token");
+    } catch {}
     router.replace("/auth");
   };
 

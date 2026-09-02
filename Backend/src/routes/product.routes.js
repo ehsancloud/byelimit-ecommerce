@@ -5,7 +5,8 @@ const { rialToToman } = require("../lib/pricing");
 
 const router = express.Router();
 
-// محتوای عمومی سوالات متداول
+// محتوای عمومی سوالات متداول - تا سیستم نظرات/FAQ اختصاصی per-محصول ساخته شود
+// (فعلاً بخشی خارج از محدوده‌ی این فاز است)، همین محتوای مشترک نمایش داده می‌شود.
 const GENERIC_FAQS = [
   {
     question: "آیا این اکانت قانونی و بدون ریسک است؟",
@@ -26,11 +27,8 @@ function serializeVariant(v) {
     name: v.name,
     type: v.type,
     durationDays: v.durationDays,
-    pricingMode: v.pricingMode || "DYNAMIC_USD",
     price: priceTBD ? null : rialToToman(v.priceRial),
     originalPrice: v.originalPriceRial ? rialToToman(v.originalPriceRial) : null,
-    basePrice: v.basePriceRial ? rialToToman(v.basePriceRial) : null,
-    costUsd: v.costUsd != null ? Number(v.costUsd) : null,
     priceTBD,
     deliveryTimeMinutes: v.deliveryTimeMinutes,
     isPopular: v.isPopular,
@@ -38,18 +36,6 @@ function serializeVariant(v) {
 }
 
 function serializeProduct(p) {
-  // افزودنی‌ها از طریق واریانت‌ها جمع می‌شوند
-  const allAddOns = (p.variants || []).flatMap((v) =>
-    (v.addOns || []).map((a) => ({
-      id: a.id,
-      name: a.name,
-      description: a.description,
-      price: rialToToman(a.priceRial),
-      priceRial: a.priceRial.toString(),
-      variantId: v.id,
-    })),
-  );
-
   return {
     id: p.id,
     slug: p.slug,
@@ -69,7 +55,6 @@ function serializeProduct(p) {
     totalSalesCount: p.totalSalesCount,
     demoVideoUrl: null,
     variants: p.variants.map(serializeVariant),
-    addOns: allAddOns,
     faqs: GENERIC_FAQS,
     reviews: [],
     comparisonTable: [],
@@ -91,9 +76,7 @@ router.get("/", async (req, res) => {
           }
         : {}),
     },
-    include: {
-      variants: { where: { isActive: true }, include: { addOns: { where: { isActive: true } } } },
-    },
+    include: { variants: { where: { isActive: true } } },
     orderBy: { createdAt: "desc" },
   });
   res.json(products.map(serializeProduct));
@@ -102,9 +85,7 @@ router.get("/", async (req, res) => {
 router.get("/:slug", async (req, res) => {
   const product = await prisma.product.findUnique({
     where: { slug: req.params.slug },
-    include: {
-      variants: { where: { isActive: true }, include: { addOns: { where: { isActive: true } } } },
-    },
+    include: { variants: { where: { isActive: true } } },
   });
   if (!product || !product.isActive) {
     return res.status(404).json({ error: "محصول یافت نشد." });

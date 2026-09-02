@@ -7,7 +7,6 @@ const authMiddleware = require("../middlewares/auth.middleware");
 const { calculateOrderTotals } = require("../lib/pricing");
 const { writeAuditLog } = require("../lib/audit");
 const { rialToToman } = require("../lib/pricing");
-const { decryptCredentials } = require("../lib/crypto");
 
 const router = express.Router();
 
@@ -99,8 +98,6 @@ router.post("/", optionalAuth, async (req, res) => {
               variantId: it.variantId,
               productTitleSnapshot: it.productTitleSnapshot,
               variantNameSnapshot: it.variantNameSnapshot,
-              addOnNameSnapshot: it.addOnNameSnapshot || null,
-              addOnPriceRial: it.addOnPriceRial || null,
               unitPriceRial: it.unitPriceRial,
               quantity: 1,
             })),
@@ -172,12 +169,9 @@ router.get("/mine", authMiddleware, async (req, res) => {
         id: item.id,
         productTitle: item.productTitleSnapshot,
         variantName: item.variantNameSnapshot,
-        addOnName: item.addOnNameSnapshot || null,
-        // رمزگشایی سمت سرور (در صورت ذخیره‌سازی رمزنگاری‌شده AES)
-        credentials:
-          item.assignedAccount?.status === "SOLD"
-            ? decryptCredentials(item.assignedAccount?.credentialsEncrypted)
-            : null,
+        // اعتبارنامه‌های رمزگذاری‌شده - فرانت‌اند باید آن‌ها را نمایش دهد
+        // در صورت نیاز به رمزگشایی، آن را سمت سرور انجام دهید
+        credentials: item.assignedAccount?.credentialsEncrypted || null,
         accountStatus: item.assignedAccount?.status || null,
       })),
     }));
@@ -186,72 +180,6 @@ router.get("/mine", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("GET ORDERS ERROR:", err);
     return res.status(500).json({ error: "خطا در دریافت سفارشات." });
-  }
-});
-
-// ✅ NEW: دریافت تک‌سفارش برای صفحه موفقیت پرداخت و نمایش کد تحویل.
-// امنیت: شماره سفارش UUID غیرقابل‌حدس + تطبیق دقیق شماره موبایل خریدار الزامی است.
-router.get("/:orderNumber", async (req, res) => {
-  try {
-    const { orderNumber } = req.params;
-    const mobile = String(req.query.mobile || "").replace(/\D/g, "");
-
-    if (!orderNumber || !mobile) {
-      return res.status(400).json({ error: "اطلاعات سفارش ناقص است." });
-    }
-
-    const order = await prisma.order.findUnique({
-      where: { orderNumber },
-      include: {
-        items: {
-          include: {
-            assignedAccount: {
-              select: { credentialsEncrypted: true, status: true },
-            },
-          },
-        },
-        payments: {
-          where: { status: "VERIFIED" },
-          select: { refId: true, verifiedAt: true, cardPanMasked: true, gateway: true },
-          take: 1,
-        },
-      },
-    });
-
-    if (!order) {
-      return res.status(404).json({ error: "سفارش یافت نشد." });
-    }
-
-    // تطبیق موبایل خریدار - بدون آن هیچ اطلاعاتی فاش نمی‌شود
-    if (order.mobile.replace(/\D/g, "") !== mobile) {
-      return res.status(403).json({ error: "شماره موبایل با سفارش مطابقت ندارد." });
-    }
-
-    const isFinalized = order.status === "PAID" || order.status === "DELIVERED";
-
-    return res.json({
-      orderNumber: order.orderNumber,
-      status: order.status,
-      statusLabel: STATUS_LABEL[order.status] || order.status,
-      totalRial: order.totalRial.toString(),
-      createdAt: order.createdAt,
-      payment: order.payments[0] || null,
-      items: order.items.map((item) => ({
-        id: item.id,
-        productTitle: item.productTitleSnapshot,
-        variantName: item.variantNameSnapshot,
-        addOnName: item.addOnNameSnapshot || null,
-        // کد تحویل فقط برای سفارشات نهایی‌شده و اکانت فروخته‌شده
-        credentials:
-          isFinalized && item.assignedAccount?.status === "SOLD"
-            ? decryptCredentials(item.assignedAccount?.credentialsEncrypted)
-            : null,
-        accountStatus: item.assignedAccount?.status || null,
-      })),
-    });
-  } catch (err) {
-    console.error("GET SINGLE ORDER ERROR:", err);
-    return res.status(500).json({ error: "خطا در دریافت سفارش." });
   }
 });
 

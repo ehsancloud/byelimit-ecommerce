@@ -13,7 +13,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { apiFetch } from "../../lib/apiClient";
-import { useAuth } from "../../context/AuthContext";
 
 // Next.js نیازمند این است که هر کامپوننتی که از useSearchParams استفاده می‌کند
 // داخل یک Suspense boundary باشد - این باگ build از قبل در پروژه وجود داشت.
@@ -29,7 +28,6 @@ function AuthPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/dashboard";
-  const { login } = useAuth();
 
   // استیت‌های ورود (مرحله ۱: دریافت شماره / مرحله ۲: دریافت کد OTP)
   const [step, setStep] = useState(1);
@@ -136,7 +134,9 @@ function AuthPageInner() {
         method: "POST",
         body: JSON.stringify({ mobile, code: fullCode }),
       });
-      login(result.user, result.token);
+      if (result.user?.fullName) {
+        window.localStorage.setItem("byelimit_user_name", result.user.fullName);
+      }
       router.push(redirectTo);
     } catch (err) {
       setOtpError(err.message || "کد تایید نادرست یا منقضی است.");
