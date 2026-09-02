@@ -47,6 +47,22 @@ enum OtpPurpose {
   CHECKOUT_VERIFY
 }
 
+enum PricingMode {
+  DYNAMIC_USD
+  FIXED_RIAL
+}
+
+enum ProfitMode {
+  NONE
+  PERCENT
+  FIXED
+}
+
+enum PaymentGateway {
+  ZIBAL
+  ZARINPAL
+}
+
 // ===================== محصولات =====================
 
 model Product {
@@ -94,12 +110,20 @@ model ProductVariant {
   deliveryTimeMinutes Int     @default(0)
   isPopular          Boolean @default(false)
   isActive           Boolean @default(true)
+  // ═══════ قیمت‌گذاری پویا (USDT) / ثابت ═══════
+  pricingMode        PricingMode @default(DYNAMIC_USD)
+  fixedPriceRial     BigInt?       // قیمت ثابت (اگر FIXED_RIAL باشد)
+  basePriceRial      BigInt?       // قیمت تمام‌شده (قبل از سود)
+  profitMode         ProfitMode @default(NONE)
+  profitValue        Decimal? @db.Decimal(10, 2) // درصد یا مبلغ ثابت (ریال)
+  lastPricedAt       DateTime?     // آخرین به‌روزرسانی خودکار قیمت
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
   cartItems     CartItem[]
   orderItems    OrderItem[]
   accountPool   AccountInventory[]
+  addOns        ProductAddOn[]
 
   @@unique([productId, name])
   @@index([productId])
@@ -162,6 +186,9 @@ model CartItem {
   product        Product  @relation(fields: [productId], references: [id])
   variantId      String
   variant        ProductVariant @relation(fields: [variantId], references: [id])
+  // افزودنی انتخاب‌شده (مثل پرداخت امن بین‌المللی کلاد) - اختیاری
+  addOnId        String?
+  addOn          ProductAddOn? @relation(fields: [addOnId], references: [id])
   quantity       Int      @default(1)
   unitPriceRial  BigInt
   createdAt      DateTime @default(now())
@@ -248,6 +275,8 @@ model OrderItem {
   variant                ProductVariant @relation(fields: [variantId], references: [id])
   productTitleSnapshot   String
   variantNameSnapshot    String
+  addOnNameSnapshot      String?
+  addOnPriceRial         BigInt?
   unitPriceRial          BigInt
   quantity               Int      @default(1)
   assignedAccountId      String?  @unique
@@ -264,7 +293,9 @@ model Payment {
   id                    String        @id @default(uuid())
   orderId               String
   order                 Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  authority              String        @unique
+  gateway               PaymentGateway @default(ZIBAL)
+  authority             String        @unique
+  gatewayTrackId        BigInt?       // trackId زیبال
   refId                  String?
   amountRial             BigInt
   feeRial                BigInt?
@@ -273,11 +304,13 @@ model Payment {
   gatewayErrorCode       String?
   cardPanMasked          String?
   sessionSnapshot        Json?
+  gatewayMetadata        Json?         // پاسخ خام درگاه
   verifiedAt             DateTime?
   createdAt              DateTime      @default(now())
   updatedAt              DateTime      @updatedAt
 
   @@index([orderId])
+  @@index([gateway, authority])
   @@map("payments")
 }
 
@@ -340,4 +373,39 @@ model FlashDeal {
   updatedAt DateTime  @updatedAt
 
   @@map("flash_deals")
+}
+
+// ===================== افزودنی‌های محصول (Add-On) =====================
+
+model ProductAddOn {
+  id          String         @id @default(uuid())
+  variantId   String
+  variant     ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  priceRial   BigInt
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  cartItems   CartItem[]
+
+  @@index([variantId])
+  @@map("product_add_ons")
+}
+
+// ===================== نرخ ارز (USDT) =====================
+
+/// تنظیمات و آخرین نرخ دریافت‌شده از ابان‌تتر. فقط یک رکورد (id = "singleton").
+model ExchangeRateSetting {
+  id               String   @id @default("singleton")
+  sourceBuyPrice   Float    @default(0) // قیمت خرید خام از API
+  roundedRate      Int      @default(0) // نرخ گرد‌شده کاربردی (با ۲٪ کرایه)
+  displayRate      Int      @default(0) // نرخ نمایشی (تمیز و کمی پایین‌تر)
+  lastFetchedAt    DateTime?
+  lastError        String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("exchange_rate_settings")
 }

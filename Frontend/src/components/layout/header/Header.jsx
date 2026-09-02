@@ -22,6 +22,7 @@ import {
   Music,
   GraduationCap,
   LayoutDashboard,
+  DollarSign,
 } from "lucide-react";
 
 import SearchBar from "./SearchBar";
@@ -34,22 +35,24 @@ import { useAuthStatus } from "../../../hooks/useAuthStatus";
 export default function Header() {
   const [activeMenu, setActiveMenu] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [displayRate, setDisplayRate] = useState(null);
 
   // استیت‌های موبایل
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileAccordion, setMobileAccordion] = useState(null); // 'products' | 'vps' | null
+  const [mobileAccordion, setMobileAccordion] = useState(null);
   const { isLoggedIn, userName } = useAuthStatus();
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 30) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 30);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/payment/rate")
+      .then((r) => r.json())
+      .then((d) => setDisplayRate(d.displayRate))
+      .catch(() => {});
   }, []);
 
   const closeMobileMenu = () => {
@@ -117,8 +120,14 @@ export default function Header() {
             </div>
           </div>
 
-          {/* منوی کاربر دسکتاپ */}
+          {/* نرخ تتر و منوی کاربر دسکتاپ */}
           <div className="hidden md:flex border-l-[3.5px] border-black items-stretch">
+            {displayRate && (
+              <div className="flex items-center gap-1.5 px-3 bg-[#f8f9fa] border-l border-black text-[10px] font-black text-gray-700 shrink-0">
+                <DollarSign className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
+                <span>{Number(displayRate).toLocaleString("fa-IR")} <span className="text-gray-400 font-bold">تومان</span></span>
+              </div>
+            )}
             <UserMenu />
           </div>
 

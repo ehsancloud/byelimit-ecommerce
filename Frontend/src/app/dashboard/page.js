@@ -46,7 +46,7 @@ export default function DashboardHomePage() {
   };
 
   const paidOrders = orders.filter((o) => o.status === "PAID" || o.status === "DELIVERED");
-  const lastOrder = orders[0]; // آخرین سفارش (هر وضعیتی)
+  const lastOrder = paidOrders[0];
 
   if (loading) {
     return (
@@ -95,9 +95,9 @@ export default function DashboardHomePage() {
 
         <div className="bg-white border-[2.5px] border-black p-5 rounded-2xl shadow-[-4px_4px_0_0_rgba(0,0,0,1)] flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold text-gray-500 block">مجموع سفارشات</span>
+            <span className="text-xs font-bold text-gray-500 block">مجموع سفارشات (نهایی‌شده)</span>
             <span className="text-2xl font-black text-black mt-1 block">
-              {orders.length.toLocaleString("fa-IR")} عدد
+              {paidOrders.length.toLocaleString("fa-IR")} عدد
             </span>
           </div>
           <div className="p-3 bg-[#ff8f1f] border-[2px] border-black rounded-xl">
@@ -135,7 +135,6 @@ export default function DashboardHomePage() {
               </span>
             </div>
 
-            {/* نمایش اعتبارنامه‌ها اگر پرداخت‌شده */}
             {lastOrder.status === "PAID" && lastOrder.items.some((i) => i.credentials) && (
               <div className="flex flex-col gap-2">
                 {lastOrder.items.filter((i) => i.credentials).map((item, i) => (
@@ -158,14 +157,6 @@ export default function DashboardHomePage() {
                   </div>
                 ))}
               </div>
-            )}
-
-            {lastOrder.status === "PENDING_PAYMENT" && (
-              <Link href="/checkout"
-                className="w-full bg-[#ccff00] border-[2.5px] border-black py-2.5 rounded-xl font-black text-sm text-center shadow-[-3px_3px_0_0_rgba(0,0,0,1)] text-black no-underline"
-              >
-                تکمیل پرداخت
-              </Link>
             )}
           </div>
         ) : (

@@ -15,6 +15,8 @@ function mapServerCart(serverCart) {
     productImage: it.productImage,
     variantId: it.variantId,
     variantName: it.variantName,
+    addOnId: it.addOnId || null,
+    addOnName: it.addOnName || null,
     unitPrice: Math.round(Number(it.unitPriceRial) / 10),
   }));
 }
@@ -43,6 +45,7 @@ export function CartProvider({ children }) {
       body: JSON.stringify({
         productId: product.id,
         variantId: variant.id,
+        addOnId: options.addOnId || null,
       }),
     });
 

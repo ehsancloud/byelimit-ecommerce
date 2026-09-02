@@ -10,9 +10,9 @@ import {
 } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 import { apiFetch } from "../../lib/apiClient";
+import { formatPriceToman } from "../../lib/formatters";
 
 const STEPS = [
-  { key: "cart",    label: "سبد خرید"         },
   { key: "info",    label: "اطلاعات خریدار"    },
   { key: "invoice", label: "پیش‌فاکتور و پرداخت" },
 ];
@@ -39,6 +39,70 @@ function StepIndicator({ currentKey }) {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════
+// انتخاب درگاه پرداخت
+// ═══════════════════════════════════════════════════════════════
+
+function GatewaySelector({ selected, onChange }) {
+  const gateways = [
+    {
+      id: "ZIBAL",
+      name: "زیبال",
+      label: "درگاه پرداخت زیبال",
+      enabled: true,
+      logo: "https://zibal.ir/trust/assets/2.png",
+    },
+    {
+      id: "ZARINPAL",
+      name: "زرین‌پال",
+      label: "درگاه پرداخت زرین‌پال",
+      enabled: false,
+      logo: "https://cdn.zarinpal.com/assets/img/logo.png",
+    },
+  ];
+
+  return (
+    <div className="flex flex-col gap-2 mt-3">
+      <span className="text-xs font-black text-black">درگاه پرداخت مورد نظر را انتخاب کنید:</span>
+      <div className="grid grid-cols-2 gap-3">
+        {gateways.map((gw) => {
+          const isSelected = selected === gw.id;
+          return (
+            <button
+              key={gw.id}
+              type="button"
+              disabled={!gw.enabled}
+              onClick={() => gw.enabled && onChange(gw.id)}
+              className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-[2.5px] border-black transition-all ${
+                isSelected
+                  ? "bg-[#12e2a3] shadow-[-3px_3px_0_0_rgba(0,0,0,1)] translate-x-[-1px] translate-y-[-1px]"
+                  : gw.enabled
+                    ? "bg-white hover:bg-gray-50 shadow-[-2px_2px_0_0_rgba(0,0,0,1)]"
+                    : "bg-gray-100 opacity-50 cursor-not-allowed"
+              }`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={gw.logo}
+                alt={gw.name}
+                className="h-8 object-contain"
+              />
+              <span className="text-[11px] font-black">{gw.label}</span>
+              {!gw.enabled && (
+                <span className="text-[9px] font-bold text-gray-400">به‌زودی فعال می‌شود</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// صفحه اصلی چک‌اوت
+// ═══════════════════════════════════════════════════════════════
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, totalPrice: cartTotalPrice, isHydrated } = useCart();
@@ -47,10 +111,10 @@ export default function CheckoutPage() {
   const [mobileError, setMobileError] = useState("");
   const [step, setStep] = useState("info");
 
-  // ✅ FIX: نگه‌داری orderId پس از ساخت سفارش برای retry پرداخت
   const [pendingOrderId, setPendingOrderId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [selectedGateway, setSelectedGateway] = useState("ZIBAL");
 
   const [discountCode, setDiscountCode]               = useState("");
   const [appliedOrderDiscount, setAppliedOrderDiscount] = useState(0);
@@ -102,7 +166,6 @@ export default function CheckoutPage() {
     try {
       let orderId = pendingOrderId;
 
-      // ✅ FIX: اگر سفارش قبلاً ساخته شده (retry)، مرحله ساخت سفارش را رد کن
       if (!orderId) {
         const orderResult = await apiFetch("/api/orders", {
           method: "POST",
@@ -114,25 +177,23 @@ export default function CheckoutPage() {
           }),
         });
         orderId = orderResult.orderId;
-        setPendingOrderId(orderId); // ذخیره برای retry
+        setPendingOrderId(orderId);
       }
 
       const paymentResult = await apiFetch("/api/payment/request", {
         method: "POST",
-        body: JSON.stringify({ orderId }),
+        body: JSON.stringify({ orderId, gateway: selectedGateway }),
       });
 
-      // ✅ FIX: بررسی اینکه startPayUrl واقعاً آمده - باگ قبلی: undefined بود و هیچ اتفاقی نمی‌افتاد
       if (!paymentResult?.startPayUrl) {
         throw new Error("آدرس درگاه پرداخت دریافت نشد. لطفاً چند لحظه صبر کرده و دوباره تلاش کنید.");
       }
 
-      // هدایت به درگاه زرین‌پال
       window.location.href = paymentResult.startPayUrl;
 
     } catch (err) {
       setSubmitError(err.message || "خطا در اتصال به درگاه. لطفاً دوباره تلاش کنید.");
-      setIsSubmitting(false); // ✅ دکمه را فعال کن تا کاربر بتواند retry کند
+      setIsSubmitting(false);
     }
   };
 
@@ -160,7 +221,7 @@ export default function CheckoutPage() {
           <span className="bg-[#ccff00] border-[2px] border-black px-3 py-1 rounded-lg text-xs font-black shadow-[-2px_2px_0_0_rgba(0,0,0,1)]">تسویه حساب</span>
         </div>
 
-        <StepIndicator currentKey={step === "info" ? "info" : "invoice"} />
+        <StepIndicator currentKey={step} />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-7 flex flex-col gap-6">
@@ -249,12 +310,6 @@ export default function CheckoutPage() {
                       <span className="font-black text-black">{formData.telegramId}</span>
                     </div>
                   )}
-                  {pendingOrderId && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">شماره سفارش:</span>
-                      <span className="font-black text-black dir-ltr">{pendingOrderId.slice(0,8).toUpperCase()}</span>
-                    </div>
-                  )}
                 </div>
 
                 {!pendingOrderId && (
@@ -279,7 +334,12 @@ export default function CheckoutPage() {
                   </form>
                 )}
 
-                {/* ✅ دکمه پرداخت - با نمایش loader و reset صحیح */}
+                {/* انتخاب درگاه پرداخت */}
+                {!pendingOrderId && (
+                  <GatewaySelector selected={selectedGateway} onChange={setSelectedGateway} />
+                )}
+
+                {/* دکمه پرداخت */}
                 <button type="button" onClick={handleGoToGateway} disabled={isSubmitting}
                   className="w-full bg-[#ccff00] hover:bg-[#b5e600] border-[3px] border-black rounded-xl py-4 font-black text-base shadow-[-4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-[-2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer mt-2 disabled:opacity-70"
                 >
@@ -299,7 +359,7 @@ export default function CheckoutPage() {
 
                 <div className="flex items-center gap-2 text-[11px] font-bold text-gray-500 justify-center">
                   <Lock className="w-3.5 h-3.5" />
-                  <span>پرداخت امن از طریق درگاه رسمی زرین‌پال</span>
+                  <span>پرداخت امن از طریق درگاه رسمی زیبال</span>
                 </div>
               </div>
             )}
@@ -321,26 +381,29 @@ export default function CheckoutPage() {
                       <div className="min-w-0">
                         <p className="font-black truncate">{item.title}</p>
                         <p className="text-gray-500 truncate">{item.variantName}</p>
+                        {item.addOnName && (
+                          <p className="text-purple-700 truncate">+ {item.addOnName}</p>
+                        )}
                       </div>
                     </div>
-                    <span className="font-black shrink-0">{Number(item.price).toLocaleString("fa-IR")} ت</span>
+                    <span className="font-black shrink-0">{formatPriceToman(item.price)} ت</span>
                   </div>
                 ))}
               </div>
               <div className="border-t-[2px] border-black pt-3 flex flex-col gap-2 text-xs font-bold">
                 <div className="flex justify-between">
                   <span className="text-gray-600">جمع کل:</span>
-                  <span className="font-black">{cartTotalPrice.toLocaleString("fa-IR")} تومان</span>
+                  <span className="font-black">{formatPriceToman(cartTotalPrice)} تومان</span>
                 </div>
                 {appliedOrderDiscount > 0 && (
                   <div className="flex justify-between text-emerald-700">
                     <span>تخفیف کد:</span>
-                    <span className="font-black">- {appliedOrderDiscount.toLocaleString("fa-IR")} تومان</span>
+                    <span className="font-black">- {formatPriceToman(appliedOrderDiscount)} تومان</span>
                   </div>
                 )}
                 <div className="flex justify-between text-base font-black border-t-[2px] border-black pt-2 mt-1">
                   <span>مبلغ قابل پرداخت:</span>
-                  <span className="text-xl">{totalPrice.toLocaleString("fa-IR")} تومان</span>
+                  <span className="text-xl">{formatPriceToman(totalPrice)} تومان</span>
                 </div>
               </div>
             </div>
@@ -349,7 +412,7 @@ export default function CheckoutPage() {
               {[
                 [ShieldCheck, "ضمانت ۱۰۰٪ بازگشت وجه"],
                 [Clock,       "تحویل سریع در ساعات کاری"],
-                [Lock,        "پرداخت امن از طریق زرین‌پال"],
+                [Lock,        "پرداخت امن از طریق زیبال"],
               ].map(([Icon, text]) => (
                 <div key={text} className="flex items-center gap-2">
                   <Icon className="w-4 h-4 stroke-[2.5] shrink-0" />

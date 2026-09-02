@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Copy, Check, Sparkles, ShoppingBag, Loader2, AlertCircle, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { apiFetch } from "../../../lib/apiClient";
+import { formatPriceToman, rialToFormattedToman } from "../../../lib/formatters";
 
 const STATUS_COLOR = {
   PAID:      "bg-[#12e2a3] border-black",
@@ -86,7 +87,7 @@ export default function DashboardOrdersPage() {
                   <span className="text-gray-400">•</span>
                   <span className="text-xs font-bold text-gray-600">{new Date(order.createdAt).toLocaleDateString("fa-IR")}</span>
                   <span className="text-gray-400">•</span>
-                  <span className="text-xs font-bold text-gray-600">{Number(order.totalToman).toLocaleString("fa-IR")} تومان</span>
+                  <span className="text-xs font-bold text-gray-600">{rialToFormattedToman(order.totalRial)} تومان</span>
                 </div>
                 <span className={`text-[10px] font-black px-3 py-1 border-[2px] rounded-lg ${STATUS_COLOR[order.status] || "bg-gray-100 border-black"}`}>
                   {STATUS_LABEL[order.status] || order.status}

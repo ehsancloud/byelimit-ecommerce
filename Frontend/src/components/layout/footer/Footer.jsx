@@ -57,48 +57,61 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* ✅ نماد اعتماد الکترونیکی eNamad - بارز و قابل کلیک */}
-          <div className="bg-[#f8f9fa] border-[2.5px] border-black rounded-2xl p-4 shadow-[-4px_4px_0_0_rgba(0,0,0,1)]">
-            <h4 className="font-black text-xs mb-3 flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              نماد اعتماد الکترونیکی
-            </h4>
-            <div className="flex items-center gap-4">
-              {/* باج رسمی eNamad با کد اصلی سایت */}
+          {/* نماد اعتماد الکترونیکی — ساده و بارز */}
+          <div className="flex items-center gap-3">
+            <a
+              referrerPolicy="origin"
+              target="_blank"
+              rel="noopener noreferrer"
+              href={`https://trustseal.enamad.ir/?id=${ENAMAD_ID}&Code=${ENAMAD_CODE}`}
+              className="shrink-0 hover:opacity-90 transition-opacity"
+              title="نماد اعتماد الکترونیکی - کلیک برای استعلام"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                referrerPolicy="origin"
+                src={`https://trustseal.enamad.ir/logo.aspx?id=${ENAMAD_ID}&Code=${ENAMAD_CODE}`}
+                alt="نماد اعتماد الکترونیکی بای لیمیت"
+                // eslint-disable-next-line react/no-unknown-property
+                code={ENAMAD_CODE}
+                className="w-16 h-16 object-contain cursor-pointer"
+                style={{ imageRendering: "auto" }}
+              />
+            </a>
+            <div className="flex flex-col gap-1">
               <a
                 referrerPolicy="origin"
                 target="_blank"
                 rel="noopener noreferrer"
                 href={`https://trustseal.enamad.ir/?id=${ENAMAD_ID}&Code=${ENAMAD_CODE}`}
-                className="shrink-0 hover:opacity-90 transition-opacity"
-                title="نماد اعتماد الکترونیکی - کلیک برای استعلام"
+                className="text-[11px] font-black text-emerald-700 hover:underline leading-tight"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  referrerPolicy="origin"
-                  src={`https://trustseal.enamad.ir/logo.aspx?id=${ENAMAD_ID}&Code=${ENAMAD_CODE}`}
-                  alt="نماد اعتماد الکترونیکی بای لیمیت"
-                  // eslint-disable-next-line react/no-unknown-property
-                  code={ENAMAD_CODE}
-                  className="w-20 h-20 object-contain cursor-pointer"
-                  style={{ imageRendering: "auto" }}
-                />
+                نماد اعتماد الکترونیکی
               </a>
-              <div>
-                <p className="font-black text-xs leading-tight mb-1">درگاه پرداخت قانونی</p>
-                <p className="text-[11px] font-bold text-gray-600 leading-relaxed">
-                  این فروشگاه دارای نماد اعتماد الکترونیکی از وزارت صنعت، معدن و تجارت ایران است.
-                </p>
-                <a
-                  referrerPolicy="origin"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href={`https://trustseal.enamad.ir/?id=${ENAMAD_ID}&Code=${ENAMAD_CODE}`}
-                  className="text-[10px] font-black text-emerald-700 hover:underline mt-1 block"
-                >
-                  استعلام اعتبار &larr;
-                </a>
-              </div>
+              <span className="text-[10px] font-bold text-gray-500">وزارت صمت</span>
+            </div>
+          </div>
+
+          {/* نماد اعتماد زیبال */}
+          <div className="flex items-center gap-3">
+            <a
+              href="https://zibal.ir"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 hover:opacity-90 transition-opacity"
+              title="درگاه پرداخت زیبال"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://zibal.ir/trust/assets/2.png"
+                alt="نماد زیبال"
+                className="w-16 h-10 object-contain"
+                style={{ imageRendering: "auto" }}
+              />
+            </a>
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] font-black text-black leading-tight">درگاه پرداخت زیبال</span>
+              <span className="text-[10px] font-bold text-gray-500">پرداخت امن و سریع</span>
             </div>
           </div>
         </div>

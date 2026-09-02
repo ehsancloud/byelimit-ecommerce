@@ -50,6 +50,8 @@ function serializeCart(cart) {
       productImage: it.product.mainImage,
       variantId: it.variantId,
       variantName: it.variant.name,
+      addOnId: it.addOnId || null,
+      addOnName: it.addOn?.name || null,
       unitPriceRial: it.unitPriceRial.toString(),
       quantity: 1, // همیشه 1
     })),
@@ -60,7 +62,7 @@ router.get("/", optionalAuth, async (req, res) => {
   const cartStub = await resolveCart(req, res);
   const cart = await prisma.cart.findUnique({
     where: { id: cartStub.id },
-    include: { items: { include: { product: true, variant: true } } },
+    include: { items: { include: { product: true, variant: true, addOn: true } } },
   });
   res.json(serializeCart(cart));
 });
@@ -68,6 +70,8 @@ router.get("/", optionalAuth, async (req, res) => {
 const addItemSchema = z.object({
   productId: z.string().uuid(),
   variantId: z.string().uuid(),
+  // توجه: id افزودنی‌ها در seed به شکل "addon-secure-pay-<uuid>" است؛ پس uuid سخت‌گیرانه نمی‌پذیریم
+  addOnId: z.string().min(8).max(80).optional().nullable(),
 });
 
 router.post("/items", optionalAuth, async (req, res) => {
@@ -75,7 +79,7 @@ router.post("/items", optionalAuth, async (req, res) => {
   if (!parsed.success) {
     return res.status(400).json({ error: "اطلاعات آیتم سبد خرید نامعتبر است." });
   }
-  const { productId, variantId } = parsed.data;
+  const { productId, variantId, addOnId } = parsed.data;
 
   const variant = await prisma.productVariant.findUnique({ where: { id: variantId } });
   if (!variant || variant.productId !== productId || !variant.isActive) {
@@ -84,6 +88,16 @@ router.post("/items", optionalAuth, async (req, res) => {
   if (variant.priceRial == null) {
     return res.status(409).json({ error: "قیمت این پلن هنوز نهایی نشده و قابل خرید نیست." });
   }
+
+  // اعتبارسنجی افزودنی: قیمت همیشه از دیتابیس خوانده می‌شود، هرگز از کلاینت
+  let addOn = null;
+  if (addOnId) {
+    addOn = await prisma.productAddOn.findUnique({ where: { id: addOnId } });
+    if (!addOn || !addOn.isActive || addOn.variantId !== variantId) {
+      return res.status(404).json({ error: "این افزودنی برای پلن انتخابی معتبر نیست." });
+    }
+  }
+  const linePriceRial = variant.priceRial + (addOn ? addOn.priceRial : 0n);
 
   const cart = await resolveCart(req, res);
 
@@ -101,14 +115,15 @@ router.post("/items", optionalAuth, async (req, res) => {
       cartId: cart.id,
       productId,
       variantId,
+      addOnId: addOn ? addOn.id : null,
       quantity: 1,
-      unitPriceRial: variant.priceRial,
+      unitPriceRial: linePriceRial,
     },
   });
 
   const updatedCart = await prisma.cart.findUnique({
     where: { id: cart.id },
-    include: { items: { include: { product: true, variant: true } } },
+    include: { items: { include: { product: true, variant: true, addOn: true } } },
   });
   res.status(201).json(serializeCart(updatedCart));
 });
@@ -121,7 +136,7 @@ router.delete("/items/:itemId", optionalAuth, async (req, res) => {
 
   const updatedCart = await prisma.cart.findUnique({
     where: { id: cart.id },
-    include: { items: { include: { product: true, variant: true } } },
+    include: { items: { include: { product: true, variant: true, addOn: true } } },
   });
   res.json(serializeCart(updatedCart));
 });

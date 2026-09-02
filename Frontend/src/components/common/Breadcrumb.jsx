@@ -76,15 +76,19 @@ export default function Breadcrumb({ productTitle, className = "" }) {
   return (
     <nav
       aria-label="breadcrumb"
-      className={`flex items-center flex-wrap gap-1 text-xs font-bold text-gray-600 dir-rtl ${className}`}
+      className={`flex items-center flex-wrap gap-x-0.5 gap-y-1 text-[11px] font-bold text-gray-500 dir-rtl ${className}`}
     >
       {crumbs.map((crumb, i) => {
         const isLast = i === crumbs.length - 1;
+        const isFirst = i === 0;
         return (
-          <span key={crumb.href} className="flex items-center gap-1">
-            {i === 0 && <Home className="w-3.5 h-3.5 shrink-0" />}
+          <span key={crumb.href} className="flex items-center gap-x-0.5">
+            {!isFirst && (
+              <ChevronLeft className="w-3 h-3 shrink-0 text-gray-300 mx-0.5" />
+            )}
+            {isFirst && <Home className="w-3 h-3 shrink-0 text-gray-400 mx-0.5" />}
             {isLast ? (
-              <span className="font-black text-black truncate max-w-[160px] sm:max-w-none">
+              <span className="font-black text-black truncate max-w-[180px] sm:max-w-[260px]">
                 {crumb.label}
               </span>
             ) : (
@@ -94,9 +98,6 @@ export default function Breadcrumb({ productTitle, className = "" }) {
               >
                 {crumb.label}
               </Link>
-            )}
-            {!isLast && (
-              <ChevronLeft className="w-3 h-3 shrink-0 text-gray-400" />
             )}
           </span>
         );

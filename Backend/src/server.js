@@ -22,6 +22,8 @@ const flashDealRoutes = require("./routes/flashdeal.routes"); // ✅ NEW
 const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
 const { generalApiRateLimiter } = require("./middleware/rateLimit");
 const { startUnverifiedCron } = require("./jobs/unverified-cron");
+const { startZibalCron } = require("./jobs/unverified-zibal-cron");
+const { startPricingCron } = require("./jobs/pricing-cron");
 
 const app = express();
 
@@ -70,4 +72,6 @@ const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`🚀 بک‌اند بای لیمیت روی پورت ${PORT} اجرا شد (${process.env.NODE_ENV || "development"})`);
   startUnverifiedCron();
+  startZibalCron();
+  startPricingCron();
 });

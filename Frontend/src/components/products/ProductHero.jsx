@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   Clock,
   X,
+  Check,
 } from "lucide-react";
 
 export default function ProductHero({
@@ -25,6 +26,9 @@ export default function ProductHero({
   onAddToCart,
   isAddingToCart,
   addToCartError,
+  addOns = [],
+  selectedAddOnId = null,
+  onSelectAddOn,
 }) {
   // Discount codes are intentionally not supported at the product page level.
 
@@ -159,6 +163,52 @@ export default function ProductHero({
               })}
             </div>
           </div>
+
+          {/* ✅ افزودنی‌ها (Add-On) - اختیاری، مثل «پرداخت امن بین‌المللی» کلاد */}
+          {addOns && addOns.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-black text-black">
+                گزینه‌های تکمیلی (اختیاری):
+              </span>
+              {addOns.map((ao) => {
+                const isSel = selectedAddOnId === ao.id;
+                return (
+                  <button
+                    key={ao.id}
+                    type="button"
+                    onClick={() => onSelectAddOn?.(ao.id)}
+                    className={`flex items-start justify-between gap-3 text-right p-3.5 rounded-xl border-[2.5px] border-black transition-all cursor-pointer ${
+                      isSel
+                        ? "bg-purple-200 shadow-[-4px_4px_0_0_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]"
+                        : "bg-white hover:bg-gray-50 shadow-[-2px_2px_0_0_rgba(0,0,0,1)]"
+                    }`}
+                  >
+                    <div className="flex items-start gap-2.5 min-w-0">
+                      <span
+                        className={`mt-0.5 w-5 h-5 shrink-0 rounded-md border-[2px] border-black flex items-center justify-center ${
+                          isSel ? "bg-black" : "bg-white"
+                        }`}
+                        aria-hidden="true"
+                      >
+                        {isSel && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
+                      </span>
+                      <div className="min-w-0">
+                        <span className="block font-black text-xs md:text-sm">{ao.name}</span>
+                        {ao.description && (
+                          <span className="block text-[11px] font-bold text-gray-600 mt-0.5">
+                            {ao.description}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <span className="font-black text-xs md:text-sm shrink-0 whitespace-nowrap">
+                      + {ao.price.toLocaleString("fa-IR")} تومان
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Social Proof - فقط وقتی داده واقعی فروش وجود دارد نمایش داده می‌شود */}
           {hasSalesData && (

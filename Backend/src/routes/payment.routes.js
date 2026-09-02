@@ -1,21 +1,34 @@
 // src/routes/payment.routes.js
+// درگاه‌های پرداخت: زیبال (فعال) و زرین‌پال (غیرفعال تا اخذ مجوز رسمی)
+
 const express = require("express");
 const prisma = require("../lib/prisma");
 const zarinpal = require("../services/zarinpal.service");
+const zibal = require("../services/zibal.service");
 const { paymentRateLimiter } = require("../middleware/rateLimit");
 const { writeAuditLog } = require("../lib/audit");
 const { rialToToman } = require("../lib/pricing");
+const { fulfillOrder } = require("../jobs/fulfill-helper");
 
 const router = express.Router();
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "https://byelimit.ir";
+// FRONTEND_URL ممکن است لیست کاما‌جداشده باشد (برای CORS)؛ برای ریدایرکت/کال‌بک فقط دامنه اول معتبر است
+const FRONTEND_URL = (process.env.FRONTEND_URL || "https://byelimit.ir").split(",")[0].trim();
+const ZARINPAL_ENABLED = process.env.ZARINPAL_ENABLED === "true";
 
-/**
- * مرحله ۱: ساخت Authority و هدایت کاربر به درگاه.
- */
+// ═══════════════════════════════════════════════════════════════
+// مرحله ۱: ساخت درخواست پرداخت
+// ═══════════════════════════════════════════════════════════════
+
 router.post("/request", paymentRateLimiter, async (req, res) => {
-  const { orderId, cardPan } = req.body || {};
+  const { orderId, gateway: requestedGateway, cardPan } = req.body || {};
   if (!orderId) return res.status(400).json({ error: "شناسه سفارش الزامی است." });
+
+  // تعیین درگاه: فقط زیبال فعال است
+  const gateway = "ZIBAL";
+  if (!ZARINPAL_ENABLED && requestedGateway === "ZARINPAL") {
+    return res.status(400).json({ error: "درگاه زرین‌پال فعلاً غیرفعال است. لطفاً زیبال را انتخاب کنید." });
+  }
 
   const order = await prisma.order.findUnique({ where: { id: orderId } });
   if (!order) return res.status(404).json({ error: "سفارش یافت نشد." });
@@ -23,59 +36,246 @@ router.post("/request", paymentRateLimiter, async (req, res) => {
     return res.status(409).json({ error: "این سفارش قبلاً پردازش شده است." });
   }
 
-  const amountToman = rialToToman(order.totalRial);
+  const amountRial = order.totalRial;
 
-  // ✅ FIX: این URL را می‌سازیم و به requestPayment می‌دهیم تا ZarinPal بتواند
-  // orderId را در بازگشت به ما برگرداند. باگ قبلی: این URL محاسبه می‌شد اما
-  // به تابع requestPayment داده نمی‌شد - پس orderId هیچ‌وقت به کال‌بک نمی‌رسید
-  // و همه پرداخت‌ها ناموفق می‌شدند.
-  const callbackUrl = `${process.env.ZARINPAL_CALLBACK_URL}?orderId=${order.id}`;
+  // ──── زیبال ────
+  if (gateway === "ZIBAL") {
+    const callbackUrl = `${process.env.ZIBAL_CALLBACK_URL || `${FRONTEND_URL}/api/payment/callback/zibal`}?orderId=${order.id}`;
 
-  const result = await zarinpal.requestPayment({
-    amountToman,
-    description: `پرداخت سفارش ${order.orderNumber} - بای لیمیت`,
-    orderId: order.id,
-    mobile: order.mobile,
-    cardPan: cardPan ? [cardPan] : undefined,
-    callbackUrl, // ✅ پاس دادن URL کامل با orderId
+    const result = await zibal.requestPayment({
+      amountRial,
+      callbackUrl,
+      orderId: order.id,
+      description: `پرداخت سفارش ${order.orderNumber} - بای لیمیت`,
+      mobile: order.mobile,
+    });
+
+    if (!result.success) {
+      await writeAuditLog({
+        orderId: order.id,
+        entityType: "payment",
+        entityId: order.id,
+        action: "payment_request_failed",
+        actorType: "SYSTEM",
+        metadata: { gateway: "ZIBAL", errorCode: result.errorCode, raw: result.raw },
+      });
+      return res.status(502).json({ error: result.message });
+    }
+
+    await prisma.payment.create({
+      data: {
+        orderId: order.id,
+        gateway: "ZIBAL",
+        authority: `zibal:${result.trackId}`,
+        gatewayTrackId: BigInt(result.trackId),
+        amountRial,
+        status: "PENDING",
+        isSandbox: zibal.IS_SANDBOX,
+        sessionSnapshot: {
+          orderId: order.id,
+          mobile: order.mobile,
+          ip: req.ip,
+          userAgent: req.headers["user-agent"],
+          requestedAt: new Date().toISOString(),
+          gateway: "ZIBAL",
+        },
+      },
+    });
+
+    return res.json({ startPayUrl: result.startPayUrl });
+  }
+
+  // ──── زرین‌پال (غیرفعال) ────
+  if (gateway === "ZARINPAL" && ZARINPAL_ENABLED) {
+    const amountToman = rialToToman(order.totalRial);
+    const callbackUrl = `${process.env.ZARINPAL_CALLBACK_URL}?orderId=${order.id}`;
+
+    const result = await zarinpal.requestPayment({
+      amountToman,
+      description: `پرداخت سفارش ${order.orderNumber} - بای لیمیت`,
+      orderId: order.id,
+      mobile: order.mobile,
+      cardPan: cardPan ? [cardPan] : undefined,
+      callbackUrl,
+    });
+
+    if (!result.success) {
+      await writeAuditLog({
+        orderId: order.id,
+        entityType: "payment",
+        entityId: order.id,
+        action: "payment_request_failed",
+        actorType: "SYSTEM",
+        metadata: { gateway: "ZARINPAL", errorCode: result.errorCode, raw: result.raw },
+      });
+      return res.status(502).json({ error: result.message });
+    }
+
+    await prisma.payment.create({
+      data: {
+        orderId: order.id,
+        gateway: "ZARINPAL",
+        authority: result.authority,
+        amountRial,
+        status: "PENDING",
+        isSandbox: zarinpal.IS_SANDBOX,
+        sessionSnapshot: {
+          orderId: order.id,
+          mobile: order.mobile,
+          ip: req.ip,
+          userAgent: req.headers["user-agent"],
+          requestedAt: new Date().toISOString(),
+          gateway: "ZARINPAL",
+        },
+      },
+    });
+
+    return res.json({ startPayUrl: result.startPayUrl });
+  }
+
+  return res.status(400).json({ error: "درگاه پرداخت نامعتبر است." });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// مرحله ۲: بازگشت از درگاه زیبال (Callback)
+// ═══════════════════════════════════════════════════════════════
+
+router.get("/callback/zibal", async (req, res) => {
+  const { success, trackId, orderId } = req.query;
+
+  if (!trackId || !orderId) {
+    return res.redirect(`${FRONTEND_URL}/checkout/failed`);
+  }
+
+  const payment = await prisma.payment.findUnique({
+    where: { authority: `zibal:${trackId}` },
+  });
+  if (!payment) {
+    return res.redirect(`${FRONTEND_URL}/checkout/failed`);
+  }
+
+  const snapshot = payment.sessionSnapshot || {};
+  if (snapshot.orderId !== orderId || payment.orderId !== orderId) {
+    await writeAuditLog({
+      orderId: payment.orderId,
+      entityType: "payment",
+      entityId: payment.id,
+      action: "session_validation_failed",
+      actorType: "SYSTEM",
+      ipAddress: req.ip,
+      metadata: { queryOrderId: orderId, snapshotOrderId: snapshot.orderId, gateway: "ZIBAL" },
+    });
+    return res.redirect(`${FRONTEND_URL}/checkout/failed`);
+  }
+
+  const order = await prisma.order.findUnique({
+    where: { id: payment.orderId },
+    include: { items: true },
   });
 
-  if (!result.success) {
+  // قبلاً تکمیل شده؟
+  if (payment.status === "VERIFIED" && order.status === "PAID") {
+    return res.redirect(
+      `${FRONTEND_URL}/checkout/success?orderId=${order.orderNumber}&mobile=${encodeURIComponent(order.mobile)}`,
+    );
+  }
+  if (payment.status !== "PENDING") {
+    return res.redirect(`${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}`);
+  }
+
+  // پرداخت ناموفق
+  if (String(success) !== "1") {
+    await prisma.payment.update({ where: { id: payment.id }, data: { status: "FAILED" } });
     await writeAuditLog({
       orderId: order.id,
       entityType: "payment",
-      entityId: order.id,
-      action: "payment_request_failed",
-      actorType: "SYSTEM",
-      metadata: { errorCode: result.errorCode, raw: result.raw },
+      entityId: payment.id,
+      action: "payment_cancelled_by_user",
+      newStatus: "FAILED",
+      actorType: "USER",
+      ipAddress: req.ip,
+      metadata: { gateway: "ZIBAL" },
     });
-    return res.status(502).json({ error: result.message });
+    return res.redirect(`${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}`);
   }
 
-  await prisma.payment.create({
-    data: {
+  // تایید مبلغ
+  const verifyResult = await zibal.verifyPayment({ trackId: Number(trackId) });
+
+  if (!verifyResult.success) {
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: { status: "FAILED", gatewayErrorCode: String(verifyResult.errorCode) },
+    });
+    await writeAuditLog({
       orderId: order.id,
-      authority: result.authority,
-      amountRial: order.totalRial,
-      status: "PENDING",
-      isSandbox: zarinpal.IS_SANDBOX,
-      sessionSnapshot: {
-        orderId: order.id,
-        mobile: order.mobile,
-        ip: req.ip,
-        userAgent: req.headers["user-agent"],
-        requestedAt: new Date().toISOString(),
-      },
-    },
+      entityType: "payment",
+      entityId: payment.id,
+      action: "payment_verify_failed",
+      newStatus: "FAILED",
+      actorType: "SYSTEM",
+      metadata: { errorCode: verifyResult.errorCode, gateway: "ZIBAL" },
+    });
+    return res.redirect(`${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}`);
+  }
+
+  // اعتبارسنجی مبلغ: مبلغ وریفای باید با مبلغ سفارش برابر باشد
+  const expected = Number(BigInt(payment.amountRial));
+  if (verifyResult.amount != null && Number(verifyResult.amount) !== expected) {
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: { status: "FAILED", gatewayErrorCode: "AMOUNT_MISMATCH" },
+    });
+    return res.redirect(`${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}`);
+  }
+
+  // تکمیل سفارش
+  const fulfillmentResult = await fulfillOrder({
+    order,
+    payment,
+    verifyResult,
+    req,
   });
 
-  return res.json({ startPayUrl: result.startPayUrl });
+  if (!fulfillmentResult.success) {
+    // استرداد خودکار در صورت عدم تخصیص اکانت
+    // ⚠️ زیبال API استرداد مستقیم ندارد؛ در لاگ ثبت و پشتیبانی دستی پیگیری می‌شود
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: { status: "VERIFIED", gatewayErrorCode: "NEEDS_MANUAL_REVERSE" },
+    });
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { status: "FAILED" },
+    });
+    await writeAuditLog({
+      orderId: order.id,
+      entityType: "payment",
+      entityId: payment.id,
+      action: "auto_reverse_no_inventory_zibal",
+      newStatus: "FAILED",
+      actorType: "SYSTEM",
+      metadata: { reason: fulfillmentResult.reason },
+    });
+    return res.redirect(
+      `${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}&reason=out_of_stock`,
+    );
+  }
+
+  return res.redirect(
+    `${FRONTEND_URL}/checkout/success?orderId=${order.orderNumber}&mobile=${encodeURIComponent(order.mobile)}`,
+  );
 });
 
-/**
- * مرحله ۲: بازگشت کاربر از درگاه (Callback).
- */
+// ═══════════════════════════════════════════════════════════════
+// مرحله ۲: بازگشت از درگاه زرین‌پال (Callback)
+// ═══════════════════════════════════════════════════════════════
+
 router.get("/callback", async (req, res) => {
+  if (!ZARINPAL_ENABLED) {
+    return res.redirect(`${FRONTEND_URL}/checkout/failed`);
+  }
+
   const { Authority, Status, orderId } = req.query;
 
   if (!Authority || !orderId) {
@@ -107,7 +307,9 @@ router.get("/callback", async (req, res) => {
   });
 
   if (payment.status === "VERIFIED" && order.status === "PAID") {
-    return res.redirect(`${FRONTEND_URL}/checkout/success?orderId=${order.orderNumber}&mobile=${encodeURIComponent(order.mobile)}`);
+    return res.redirect(
+      `${FRONTEND_URL}/checkout/success?orderId=${order.orderNumber}&mobile=${encodeURIComponent(order.mobile)}`,
+    );
   }
   if (payment.status !== "PENDING") {
     return res.redirect(`${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}`);
@@ -147,7 +349,12 @@ router.get("/callback", async (req, res) => {
     return res.redirect(`${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}`);
   }
 
-  const fulfillmentResult = await fulfillOrder({ order, payment, verifyResult, req });
+  const fulfillmentResult = await fulfillOrder({
+    order,
+    payment,
+    verifyResult,
+    req,
+  });
 
   if (!fulfillmentResult.success) {
     const reverseResult = await zarinpal.reversePayment({ authority: Authority });
@@ -170,90 +377,34 @@ router.get("/callback", async (req, res) => {
       actorType: "SYSTEM",
       metadata: { reverseResult },
     });
-    return res.redirect(`${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}&reason=out_of_stock`);
+    return res.redirect(
+      `${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}&reason=out_of_stock`,
+    );
   }
 
-  return res.redirect(`${FRONTEND_URL}/checkout/success?orderId=${order.orderNumber}&mobile=${encodeURIComponent(order.mobile)}`);
+  return res.redirect(
+    `${FRONTEND_URL}/checkout/success?orderId=${order.orderNumber}&mobile=${encodeURIComponent(order.mobile)}`,
+  );
 });
 
-async function fulfillOrder({ order, payment, verifyResult, req }) {
+// ═══════════════════════════════════════════════════════════════
+// API endpoint: دریافت نرخ لحظه‌ای دلار (public)
+// ═══════════════════════════════════════════════════════════════
+
+router.get("/rate", async (_req, res) => {
   try {
-    await prisma.$transaction(async (tx) => {
-      for (const item of order.items) {
-        const rows = await tx.$queryRaw`
-          SELECT id FROM account_inventory
-          WHERE variant_id = ${item.variantId}::uuid AND status = 'AVAILABLE'
-          LIMIT 1
-          FOR UPDATE SKIP LOCKED
-        `;
-
-        if (!rows || rows.length === 0) {
-          throw new Error(`NO_INVENTORY:${item.variantId}`);
-        }
-
-        const accountId = rows[0].id;
-
-        await tx.accountInventory.update({
-          where: { id: accountId },
-          data: { status: "SOLD", reservedForOrderId: order.id, soldAt: new Date() },
-        });
-        await tx.orderItem.update({
-          where: { id: item.id },
-          data: { assignedAccountId: accountId },
-        });
-      }
-
-      await tx.payment.update({
-        where: { id: payment.id },
-        data: {
-          status: "VERIFIED",
-          refId: String(verifyResult.refId),
-          cardPanMasked: verifyResult.cardPan || null,
-          feeRial: verifyResult.fee ? BigInt(verifyResult.fee) * 10n : null,
-          verifiedAt: new Date(),
-        },
-      });
-
-      await tx.order.update({ where: { id: order.id }, data: { status: "PAID" } });
-
-      await tx.telegramNotification.create({
-        data: {
-          orderId: order.id,
-          payload: {
-            orderNumber: order.orderNumber,
-            mobile: order.mobile,
-            telegramId: order.telegramId,
-            totalToman: rialToToman(order.totalRial),
-            items: order.items.map((it) => ({
-              title: it.productTitleSnapshot,
-              variant: it.variantNameSnapshot,
-              quantity: it.quantity,
-            })),
-          },
-        },
-      });
-    });
-
-    await writeAuditLog({
-      orderId: order.id,
-      entityType: "order",
-      entityId: order.id,
-      action: "payment_verified_and_fulfilled",
-      previousStatus: "PENDING_PAYMENT",
-      newStatus: "PAID",
-      actorType: "SYSTEM",
-      ipAddress: req.ip,
-      metadata: { refId: verifyResult.refId },
-    });
-
-    return { success: true };
-  } catch (err) {
-    if (String(err.message).startsWith("NO_INVENTORY")) {
-      return { success: false, reason: "NO_INVENTORY" };
+    const row = await prisma.exchangeRateSetting.findUnique({ where: { id: "singleton" } });
+    if (!row || !row.lastFetchedAt) {
+      return res.json({ available: false });
     }
-    console.error("FULFILL ORDER ERROR:", err);
-    return { success: false, reason: "UNKNOWN", error: err };
+    return res.json({
+      available: true,
+      displayRate: row.displayRate,
+      lastFetchedAt: row.lastFetchedAt,
+    });
+  } catch {
+    return res.json({ available: false });
   }
-}
+});
 
 module.exports = router;

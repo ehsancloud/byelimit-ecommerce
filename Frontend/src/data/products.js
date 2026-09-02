@@ -87,8 +87,10 @@ export function toProductCardProps(product) {
 
   return {
     id: product.id,
-    titleFa: product.title.split(" ").slice(0, 2).join(" "),
-    titleEn: product.title,
+    // تیتر سئوشده کامل (مثل «خرید اکانت ChatGPT (چت‌جی‌پی‌تی)»)
+    titleFa: product.title,
+    // نام انگلیسی محصول از subtitle
+    titleEn: product.subtitle || product.title,
     guaranteeText: "ضمانت ۱۰۰٪",
     deliveryText: "تحویل سریع",
     rating: product.ratingCount > 0 ? product.ratingAverage?.toLocaleString("fa-IR") : null,
