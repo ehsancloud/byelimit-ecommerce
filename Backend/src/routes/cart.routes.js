@@ -178,14 +178,6 @@ router.post("/items", optionalAuth, async (req, res) => {
       return res.status(409).json({ error: "قیمت‌گذاری این پلن هنوز انجام نشده است." });
     }
 
-    // استعلام لحظه‌ای موجودی انبار
-    const availableInventory = await prisma.accountInventory.count({
-      where: { variantId, status: "AVAILABLE" },
-    });
-
-    if (availableInventory === 0) {
-      return res.status(400).json({ error: "متأسفانه موجودی این اکانت به اتمام رسیده است." });
-    }
 
     const cart = await resolveCart(req, res);
 

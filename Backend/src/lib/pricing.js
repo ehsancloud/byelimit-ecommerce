@@ -113,17 +113,6 @@ async function calculateOrderTotals(items, orderLevelDiscountCode = null, tx = p
       throw err;
     }
 
-    // بررسی حداقل ۱ موجودی فعال در انبار اکانت‌ها
-    const availableCount = await tx.accountInventory.count({
-      where: { variantId: variant.id, status: "AVAILABLE" },
-    });
-
-    if (availableCount === 0) {
-      const err = new Error(`متأسفانه موجودی پلن «${variant.product.title} - ${variant.name}» در حال حاضر به اتمام رسیده است.`);
-      err.code = "OUT_OF_STOCK";
-      throw err;
-    }
-
     const itemPrice = BigInt(variant.priceRial);
     subtotalRial += itemPrice;
 
