@@ -28,7 +28,7 @@ export default function FloatingSupport() {
       ref={containerRef}
       // ✅ FIX: z-30 به جای z-50 تا سایدبار موبایل (z-50) و کشوی فیلتر (z-50)
       // روی این آیکون بیایند و آن را بپوشانند.
-      className="fixed bottom-6 right-6 z-30 font-[family-name:var(--font-farsi)] dir-rtl"
+      className="fixed bottom-24 sm:bottom-6 right-4 sm:right-6 z-30 font-[family-name:var(--font-farsi)] dir-rtl"
     >
       <AnimatePresence>
         {isOpen && (

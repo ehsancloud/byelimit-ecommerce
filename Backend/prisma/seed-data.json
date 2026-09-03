@@ -89,7 +89,7 @@
   {
     "slug": "claude",
     "sku": "CLAUDE-01",
-    "category": "code",
+    "category": "text",
     "title": "Claude",
     "sourcingRegion": "_",
     "variants": [
@@ -845,6 +845,342 @@
         "name": "Per 50",
         "costUsd": 0.75,
         "isPopular": true
+      }
+    ]
+  },
+  {
+    "slug": "perplexity",
+    "sku": "AI-PERP-01",
+    "category": "text",
+    "variants": [
+      {
+        "name": "پلن Pro یک ماهه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 20.0
+      },
+      {
+        "name": "پلن Max یک ماهه",
+        "durationDays": 30,
+        "isPopular": true,
+        "costUsd": 50.0
+      }
+    ]
+  },
+  {
+    "slug": "gamma",
+    "sku": "AI-GAMMA-01",
+    "category": "text",
+    "variants": [
+      {
+        "name": "پلن Plus یک ماهه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 10.0
+      },
+      {
+        "name": "پلن Pro یک ماهه",
+        "durationDays": 30,
+        "isPopular": true,
+        "costUsd": 20.0
+      }
+    ]
+  },
+  {
+    "slug": "lovable",
+    "sku": "AI-LOVABLE-01",
+    "category": "code",
+    "variants": [
+      {
+        "name": "پلن Pro یک ماهه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 25.0
+      },
+      {
+        "name": "پلن Business یک ماهه",
+        "durationDays": 30,
+        "isPopular": true,
+        "costUsd": 50.0
+      }
+    ]
+  },
+  {
+    "slug": "base44",
+    "sku": "AI-BASE44-01",
+    "category": "code",
+    "variants": [
+      {
+        "name": "پلن Starter یک ماهه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 20.0
+      },
+      {
+        "name": "پلن Builder یک ماهه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 50.0
+      },
+      {
+        "name": "پلن Pro یک ماهه",
+        "durationDays": 30,
+        "isPopular": true,
+        "costUsd": 100.0
+      },
+      {
+        "name": "پلن Elite یک ماهه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 200.0
+      }
+    ]
+  },
+  {
+    "slug": "v0-vercel",
+    "sku": "AI-V0-01",
+    "category": "code",
+    "variants": [
+      {
+        "name": "پلن Premium یک ماهه",
+        "durationDays": 30,
+        "isPopular": true,
+        "costUsd": 20.0
+      }
+    ]
+  },
+  {
+    "slug": "runway",
+    "sku": "AI-RUNWAY-01",
+    "category": "video",
+    "variants": [
+      {
+        "name": "پلن Standard یک ماهه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 15.0
+      },
+      {
+        "name": "پلن Pro یک ماهه",
+        "durationDays": 30,
+        "isPopular": true,
+        "costUsd": 35.0
+      },
+      {
+        "name": "پلن Unlimited یک ماهه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 95.0
+      }
+    ]
+  },
+  {
+    "slug": "luma-dream-machine",
+    "sku": "AI-LUMA-01",
+    "category": "video",
+    "variants": [
+      {
+        "name": "پلن Lite یک ماهه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 8.0
+      },
+      {
+        "name": "پلن Standard یک ماهه",
+        "durationDays": 30,
+        "isPopular": true,
+        "costUsd": 30.0
+      },
+      {
+        "name": "پلن Plus یک ماهه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 65.0
+      }
+    ]
+  },
+  {
+    "slug": "envato-elements",
+    "sku": "SUB-ENVATO-01",
+    "category": "design-graphics",
+    "variants": [
+      {
+        "name": "اشتراک سالانه",
+        "durationDays": 365,
+        "isPopular": true,
+        "costUsd": 16.5
+      },
+      {
+        "name": "اشتراک ماهانه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 39.0
+      }
+    ]
+  },
+  {
+    "slug": "freepik",
+    "sku": "SUB-FREEPIK-01",
+    "category": "design-graphics",
+    "variants": [
+      {
+        "name": "پلن Premium یک ماهه",
+        "durationDays": 30,
+        "isPopular": true,
+        "costUsd": 15.0
+      }
+    ]
+  },
+  {
+    "slug": "adobe-creative-cloud",
+    "sku": "SUB-ADOBE-01",
+    "category": "design-graphics",
+    "variants": [
+      {
+        "name": "All Apps سالانه",
+        "durationDays": 365,
+        "isPopular": true,
+        "costUsd": 55.0
+      },
+      {
+        "name": "All Apps ماهانه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 70.0
+      }
+    ]
+  },
+  {
+    "slug": "crunchyroll",
+    "sku": "SUB-CRUNCHY-01",
+    "category": "film-music",
+    "variants": [
+      {
+        "name": "پلن Fan یک ماهه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 8.0
+      },
+      {
+        "name": "پلن Mega Fan یک ماهه",
+        "durationDays": 30,
+        "isPopular": true,
+        "costUsd": 10.0
+      }
+    ]
+  },
+  {
+    "slug": "tradingview",
+    "sku": "EDU-TV-01",
+    "category": "education-utility",
+    "variants": [
+      {
+        "name": "پلن Essential یک ماهه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 15.0
+      },
+      {
+        "name": "پلن Plus یک ماهه",
+        "durationDays": 30,
+        "isPopular": true,
+        "costUsd": 30.0
+      },
+      {
+        "name": "پلن Premium یک ماهه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 60.0
+      }
+    ]
+  },
+  {
+    "slug": "grammarly",
+    "sku": "EDU-GRAM-01",
+    "category": "education-utility",
+    "variants": [
+      {
+        "name": "پلن Premium ماهانه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 30.0
+      },
+      {
+        "name": "پلن Premium سالانه",
+        "durationDays": 365,
+        "isPopular": true,
+        "costUsd": 12.0
+      }
+    ]
+  },
+  {
+    "slug": "microsoft-365",
+    "sku": "EDU-MS365-01",
+    "category": "education-utility",
+    "variants": [
+      {
+        "name": "Personal یک ماهه (۱ کاربر)",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 7.0
+      },
+      {
+        "name": "Family یک ماهه (۶ کاربر)",
+        "durationDays": 30,
+        "isPopular": true,
+        "costUsd": 10.0
+      }
+    ]
+  },
+  {
+    "slug": "google-one",
+    "sku": "EDU-GONE-01",
+    "category": "education-utility",
+    "variants": [
+      {
+        "name": "پایه ۱۰۰GB یک ماهه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 2.0
+      },
+      {
+        "name": "استاندارد ۲۰۰GB یک ماهه",
+        "durationDays": 30,
+        "isPopular": false,
+        "costUsd": 3.0
+      },
+      {
+        "name": "پرمیوم ۲TB یک ماهه",
+        "durationDays": 30,
+        "isPopular": true,
+        "costUsd": 10.0
+      }
+    ]
+  },
+  {
+    "slug": "jetbrains",
+    "sku": "EDU-JB-01",
+    "category": "education-utility",
+    "variants": [
+      {
+        "name": "All Products یک ماهه",
+        "durationDays": 30,
+        "isPopular": true,
+        "costUsd": 29.0
+      }
+    ]
+  },
+  {
+    "slug": "test-zibal-100-toman",
+    "sku": "TEST-ZIBAL-001",
+    "category": "test",
+    "variants": [
+      {
+        "name": "پلن تستی ۱۰۰ تومانی",
+        "durationDays": 1,
+        "isPopular": false,
+        "costUsd": null,
+        "priceRial_override": 1000
       }
     ]
   }

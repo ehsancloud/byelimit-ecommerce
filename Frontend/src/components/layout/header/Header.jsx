@@ -1,5 +1,6 @@
 // src/components/layout/header/Header.jsx
 "use client";
+import React from "react";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -31,6 +32,31 @@ import UserMenu from "./UserMenu";
 import CartIcon from "../../cart/CartIcon";
 import DollarBox from "./DollarBox";
 import { useAuth } from "../../../context/AuthContext";
+
+
+// نرخ دلار در منوی موبایل - کامپوننت کوچک inline
+function MobileDollarRow() {
+  const [price, setPrice] = React.useState(null);
+  React.useEffect(() => {
+    const load = async () => {
+      try {
+        const r = await fetch("/api/payment/usd-rate");
+        const d = await r.json();
+        if (d?.displayPrice) setPrice(Math.round(d.displayPrice));
+      } catch {}
+    };
+    load();
+    const t = setInterval(load, 15 * 60 * 1000);
+    return () => clearInterval(t);
+  }, []);
+  if (!price) return null;
+  return (
+    <div className="bg-[#fff9c4] border-[2.5px] border-black p-3 rounded-xl flex items-center justify-between shadow-[-3px_3px_0_0_rgba(0,0,0,1)]">
+      <span className="font-black text-sm">نرخ لحظه‌ای دلار / تتر</span>
+      <span className="font-black text-sm dir-ltr">{price.toLocaleString("fa-IR")} تومان</span>
+    </div>
+  );
+}
 
 export default function Header() {
   const [activeMenu, setActiveMenu] = useState(null);
@@ -372,14 +398,6 @@ export default function Header() {
                   </div>
 
                   {/* خدمات و تماس */}
-                  <Link
-                    href="/services"
-                    onClick={closeMobileMenu}
-                    className="bg-white border-[2.5px] border-black p-3 rounded-xl font-black text-sm shadow-[-3px_3px_0_0_rgba(0,0,0,1)] flex items-center justify-between"
-                  >
-                    <span>خدمات</span>
-                    <Zap className="w-4 h-4" />
-                  </Link>
 
                   <Link
                     href="/contact"

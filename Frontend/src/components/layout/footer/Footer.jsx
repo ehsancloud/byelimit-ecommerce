@@ -60,15 +60,29 @@ export default function Footer() {
 
           {/* نماد اعتماد - ساده و مستقیم */}
           <div>
-            <p className="text-[11px] font-black text-gray-500 mb-2">نماد اعتماد الکترونیک فروشگاه بای لیمیت</p>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <a referrerPolicy="origin" target="_blank" rel="noopener noreferrer" href={ENAMAD_HREF}>
-              <img referrerPolicy="origin" src={ENAMAD_IMG} alt="نماد اعتماد الکترونیکی بای لیمیت"
-                // eslint-disable-next-line react/no-unknown-property
-                code={ENAMAD_CODE}
-                className="w-20 h-20 object-contain cursor-pointer"
-                style={{ imageRendering: "auto" }} />
-            </a>
+            <p className="text-[11px] font-black text-gray-500 mb-2">نمادهای اعتماد فروشگاه بای لیمیت</p>
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* eNamad - دقیقاً طبق کد رسمی */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <a referrerPolicy="origin" target="_blank"
+                href="https://trustseal.enamad.ir/?id=7510836&Code=Ceg4lOPM2wFTkgCRKw3gAG5KgbSSAXTC">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img referrerPolicy="origin"
+                  src="https://trustseal.enamad.ir/logo.aspx?id=7510836&Code=Ceg4lOPM2wFTkgCRKw3gAG5KgbSSAXTC"
+                  alt=""
+                  // eslint-disable-next-line react/no-unknown-property
+                  code="Ceg4lOPM2wFTkgCRKw3gAG5KgbSSAXTC"
+                  style={{ cursor: "pointer", width: "80px", height: "auto" }} />
+              </a>
+              {/* Zibal Trust Badge */}
+              <a href="https://gateway.zibal.ir/trustMe/byelimit.ir" target="_blank" rel="noopener">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://zibal.ir/trust/assets/2.png"
+                  alt="پرداخت آنلاین زیبال"
+                  style={{ maxWidth: "90px", height: "auto" }} />
+              </a>
+            </div>
           </div>
         </div>
 

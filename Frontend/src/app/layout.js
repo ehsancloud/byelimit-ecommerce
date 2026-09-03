@@ -5,6 +5,7 @@ import FloatingSupport from "../components/layout/FloatingSupport";
 import Breadcrumb from "../components/common/Breadcrumb";
 import { CartProvider } from "../context/CartContext";
 import { AuthProvider } from "../context/AuthContext";
+import DollarBox from "../components/layout/header/DollarBox";
 import "./globals.css";
 
 const fontFarsi = localFont({

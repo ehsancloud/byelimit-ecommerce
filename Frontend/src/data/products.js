@@ -97,7 +97,9 @@ export function toProductCardProps(product) {
     price: hasRealPrice ? cheapestVariant.price.toLocaleString("fa-IR") : null,
     priceTBD: !hasRealPrice,
     oldPrice:
-      hasRealPrice && cheapestVariant.originalPrice > cheapestVariant.price
+      hasRealPrice &&
+      cheapestVariant.originalPrice != null &&
+      cheapestVariant.originalPrice > cheapestVariant.price * 1.02 // حداقل 2٪ تخفیف واقعی
         ? cheapestVariant.originalPrice.toLocaleString("fa-IR")
         : undefined,
     imageSrc: product.mainImage,

@@ -26,7 +26,7 @@ export default function DollarBox() {
   if (loading || !displayPrice) return null;
 
   return (
-    <div className="hidden md:flex items-center gap-1.5 bg-[#fff9c4] border-[2px] border-black rounded-lg px-2.5 py-1 text-[11px] font-black shadow-[-2px_2px_0_0_rgba(0,0,0,1)] shrink-0" title="نرخ لحظه‌ای دلار / تتر">
+    <div className="flex items-center gap-1.5 bg-[#fff9c4] border-[2px] border-black rounded-lg px-2.5 py-1 text-[11px] font-black shadow-[-2px_2px_0_0_rgba(0,0,0,1)] shrink-0" title="نرخ لحظه‌ای دلار / تتر">
       <TrendingUp className="w-3.5 h-3.5 text-emerald-700" />
       <span className="text-gray-600">دلار:</span>
       <span className="text-black dir-ltr">{displayPrice.toLocaleString("fa-IR")}</span>

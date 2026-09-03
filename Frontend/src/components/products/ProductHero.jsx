@@ -143,8 +143,18 @@ export default function ProductHero({
                         محبوب‌ترین
                       </span>
                     )}
-                    <div className="font-black text-xs md:text-sm mb-1">
-                      {variant.name}
+                    <div className="font-black text-xs md:text-sm mb-1 flex items-center gap-1.5 flex-wrap">
+                      <span>{variant.name}</span>
+                      {variant.durationDays && (
+                        <span className="text-[9px] font-black bg-black text-white px-1.5 py-0.5 rounded shrink-0">
+                          {variant.durationDays === 30 ? "۱ ماهه"
+                            : variant.durationDays === 90 ? "۳ ماهه"
+                            : variant.durationDays === 180 ? "۶ ماهه"
+                            : variant.durationDays === 365 ? "۱ ساله"
+                            : variant.durationDays === 1 ? "تستی"
+                            : `${variant.durationDays} روزه`}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center justify-between text-xs font-bold">
                       <span className="text-gray-700">

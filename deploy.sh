@@ -1,51 +1,71 @@
 #!/usr/bin/env bash
-# Deploy ByeLimit on an Ubuntu VPS. Run as the deploy user, not root.
+# ══════════════════════════════════════════════════════════
+# deploy.sh — بای لیمیت v0.97
+# دیپلوی ایمن: داده مشتریان حذف نمی‌شود، محصولات upsert می‌شوند
+# ══════════════════════════════════════════════════════════
 set -Eeuo pipefail
+trap 'echo "❌ دیپلوی در خط $LINENO متوقف شد." >&2' ERR
 
 PROJECT_DIR="${PROJECT_DIR:-/var/www/byelimit}"
 BACKEND_DIR="$PROJECT_DIR/Backend"
 FRONTEND_DIR="$PROJECT_DIR/Frontend"
 SYSTEM_ENV_FILE="${SYSTEM_ENV_FILE:-/etc/byelimit/.env}"
 
-trap 'echo "❌ دیپلوی در خط $LINENO متوقف شد." >&2' ERR
-
-if [[ ! -d "$PROJECT_DIR/.git" ]]; then
-  echo "❌ پروژه در $PROJECT_DIR پیدا نشد یا Git repository نیست." >&2
-  exit 1
-fi
-
-# dotenv در بک‌اند، .env داخل Backend را می‌خواند. رازها بیرون از Git نگه داشته
-# می‌شوند و فقط برای اجرای برنامه به صورت symlink در دسترس قرار می‌گیرند.
+# ── بررسی وجود .env ──────────────────────────────────────
 if [[ ! -f "$BACKEND_DIR/.env" ]]; then
   if [[ -f "$SYSTEM_ENV_FILE" ]]; then
-    ln -s "$SYSTEM_ENV_FILE" "$BACKEND_DIR/.env"
+    ln -sf "$SYSTEM_ENV_FILE" "$BACKEND_DIR/.env"
+    echo "🔗 .env symlink ایجاد شد از $SYSTEM_ENV_FILE"
   else
-    echo "❌ فایل محیطی یافت نشد: $BACKEND_DIR/.env یا $SYSTEM_ENV_FILE" >&2
-    echo "ابتدا Backend/.env.example را با مقادیر production تکمیل کنید." >&2
+    echo "❌ $BACKEND_DIR/.env یا $SYSTEM_ENV_FILE یافت نشد." >&2
     exit 1
   fi
 fi
 
-echo "🚀 [1/5] دریافت آخرین تغییرات از گیت‌هاب..."
+# ── [1] دریافت تغییرات از گیت ────────────────────────────
+echo "🚀 [1/6] دریافت آخرین تغییرات از گیت‌هاب..."
 cd "$PROJECT_DIR"
+git fetch origin main
 git pull --ff-only origin main
 
-echo "📦 [2/5] نصب وابستگی‌های بک‌اند و اجرای migration دیتابیس..."
+# ── [2] بک‌اند: npm install + migration ──────────────────
+echo "📦 [2/6] نصب وابستگی‌های بک‌اند و migration..."
 cd "$BACKEND_DIR"
-npm ci
+npm ci --omit=dev --prefer-offline 2>/dev/null || npm install --omit=dev
 npx prisma generate
-# در production از migrationهای versioned استفاده می‌شود، نه db push.
+# ایمن‌ترین گزینه در production:
 npx prisma migrate deploy
 
-echo "⚛️ [3/5] نصب وابستگی‌ها و build فرانت‌اند..."
-cd "$FRONTEND_DIR"
-npm ci
-npm run build -- --webpack
+# ── [3] seed محصولات (upsert - داده مشتریان دست نمی‌خوره) ─
+echo "🌱 [3/6] بارگذاری/بروزرسانی محصولات (upsert ایمن)..."
+node prisma/seed.js
+echo "✅ محصولات بروز شدند."
 
-echo "🔄 [4/5] ری‌لود امن پروسه‌های PM2..."
+# ── [4] فرانت‌اند: install + build ──────────────────────
+echo "⚛️  [4/6] build فرانت‌اند..."
+cd "$FRONTEND_DIR"
+npm ci --prefer-offline 2>/dev/null || npm install
+npm run build
+
+# ── [5] PM2 reload بدون downtime ────────────────────────
+echo "🔄 [5/6] ری‌لود PM2..."
 cd "$PROJECT_DIR"
 pm2 startOrReload ecosystem.config.js --update-env
 pm2 save
 
-echo "✅ [5/5] دیپلوی با موفقیت انجام شد!"
-echo "Health check: curl -fsS http://127.0.0.1:4000/health"
+# ── [6] Health check ────────────────────────────────────
+echo "🏥 [6/6] Health check..."
+sleep 2
+if curl -fsS http://127.0.0.1:4000/health > /dev/null; then
+  echo "✅ بک‌اند سالم است."
+else
+  echo "⚠️  Health check ناموفق — لاگ‌ها را بررسی کنید: pm2 logs"
+fi
+
+echo ""
+echo "════════════════════════════════════════"
+echo "✅ دیپلوی با موفقیت انجام شد!"
+echo "   لاگ بک‌اند:  pm2 logs byelimit-backend"
+echo "   لاگ فرانت:   pm2 logs byelimit-frontend"
+echo "   Prisma Studio: npx prisma studio --port 5555 (در Backend/)"
+echo "════════════════════════════════════════"

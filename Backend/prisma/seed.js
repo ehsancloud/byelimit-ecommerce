@@ -1,108 +1,116 @@
-// prisma/seed.js
-// اجرا: npm run prisma:migrate  سپس  node prisma/seed.js
-// (یا با افزودن "prisma": {"seed": "node prisma/seed.js"} به package.json و اجرای npx prisma db seed)
-
+// prisma/seed.js — v0.97
+// اجرا: node prisma/seed.js
+// ایمن: از upsert استفاده می‌کند (داده‌های موجود حذف نمی‌شود)
+"use strict";
 const { PrismaClient } = require("@prisma/client");
-const fs = require("fs");
+const fs   = require("fs");
 const path = require("path");
-
 const prisma = new PrismaClient();
 
-const services = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "seed-data.json"), "utf-8"),
-);
+const SEO_TITLES = {
+  text:"خرید اشتراک", code:"خرید اشتراک", image:"خرید اکانت",
+  video:"خرید اشتراک", audio:"خرید اشتراک", research:"خرید اشتراک",
+  "film-music":"خرید اشتراک","gaming":"خرید اکانت","design-graphics":"خرید اشتراک",
+  "seo-marketing":"خرید اشتراک","education-utility":"خرید اشتراک",
+  telegram:"خرید","vps":"خرید سرور مجازی",test:"محصول تستی",
+};
+const DISPLAY_NAMES = {
+  chatgpt:"ChatGPT (چت‌جی‌پی‌تی)", claude:"Claude (کلود)", gemini:"Gemini (جمینی)",
+  grok:"Grok (گراک)", perplexity:"Perplexity AI (پرپلکسیتی)", gamma:"Gamma (گاما)",
+  quillbot:"QuillBot (کوئیل‌بات)",
+  copilot:"GitHub Copilot", cursor:"Cursor", windsurf:"Windsurf (Devin)",
+  lovable:"Lovable", replit:"Replit", base44:"Base44", "v0-vercel":"v0 by Vercel",
+  midjourney:"Midjourney", "leonardo-ai":"Leonardo AI", canva:"Canva",
+  capcut:"CapCut", kling:"Kling AI", runway:"Runway Gen-3",
+  "luma-dream-machine":"Luma Dream Machine",
+  suno:"Suno", elevenlabs:"ElevenLabs", manus:"Manus AI",
+  spotify:"Spotify", "youtube-premium":"YouTube Premium", "apple-music":"Apple Music",
+  netflix:"Netflix", "apple-tv":"Apple TV+", crunchyroll:"Crunchyroll",
+  "playstation-plus":"PlayStation Plus", "xbox-game-pass":"Xbox Game Pass",
+  "discord-nitro":"Discord Nitro",
+  figma:"Figma", "envato-elements":"Envato Elements", freepik:"Freepik",
+  "adobe-creative-cloud":"Adobe Creative Cloud",
+  semrush:"Semrush", ahrefs:"Ahrefs", "linkedin-premium":"LinkedIn Premium",
+  duolingo:"Duolingo", coursera:"Coursera", tradingview:"TradingView",
+  grammarly:"Grammarly", "microsoft-365":"Microsoft 365",
+  "google-one":"Google One", jetbrains:"JetBrains",
+  "telegram-premium":"Telegram Premium", "telegram-stars":"Telegram Stars",
+  "vps-germany":"سرور مجازی آلمان", "vps-usa":"سرور مجازی آمریکا",
+  "vps-finland":"سرور مجازی فنلاند",
+  "test-zibal-100-toman":"محصول تستی درگاه",
+};
 
-// سرورهای مجازی - در شیت اصلی نبودند، طبق داده‌ای که قبلاً برای فرانت‌اند ساخته شد
+const services = JSON.parse(fs.readFileSync(path.join(__dirname, "seed-data.json"), "utf-8"));
 const vpsProducts = [
-  {
-    slug: "vps-germany", sku: "VPS-DE-01", category: "vps", title: "سرور مجازی آلمان (Germany VPS)",
-    sourcingRegion: null,
-    variants: [
-      { id: "var-1gb", name: "۱ گیگ رم / ۱ ماهه", costUsd: null, isPopular: false },
-      { id: "var-2gb", name: "۲ گیگ رم / ۱ ماهه", costUsd: null, isPopular: true },
-    ],
-  },
-  {
-    slug: "vps-usa", sku: "VPS-US-01", category: "vps", title: "سرور مجازی آمریکا (USA VPS)",
-    sourcingRegion: null,
-    variants: [
-      { id: "var-1gb", name: "۱ گیگ رم / ۱ ماهه", costUsd: null, isPopular: false },
-      { id: "var-2gb", name: "۲ گیگ رم / ۱ ماهه", costUsd: null, isPopular: true },
-    ],
-  },
-  {
-    slug: "vps-finland", sku: "VPS-FI-01", category: "vps", title: "سرور مجازی فنلاند (Finland VPS)",
-    sourcingRegion: null,
-    variants: [
-      { id: "var-1gb", name: "۱ گیگ رم / ۱ ماهه", costUsd: null, isPopular: false },
-      { id: "var-2gb", name: "۲ گیگ رم / ۱ ماهه", costUsd: null, isPopular: true },
-    ],
-  },
+  { slug:"vps-germany",sku:"VPS-DE-01",category:"vps",sourcingRegion:"Germany",
+    variants:[{name:"۱ گیگ رم / ۱ ماهه",durationDays:30,costUsd:null,isPopular:false},
+              {name:"۲ گیگ رم / ۱ ماهه",durationDays:30,costUsd:null,isPopular:true}]},
+  { slug:"vps-usa",sku:"VPS-US-01",category:"vps",sourcingRegion:"USA",
+    variants:[{name:"۱ گیگ رم / ۱ ماهه",durationDays:30,costUsd:null,isPopular:false},
+              {name:"۲ گیگ رم / ۱ ماهه",durationDays:30,costUsd:null,isPopular:true}]},
+  { slug:"vps-finland",sku:"VPS-FI-01",category:"vps",sourcingRegion:"Finland",
+    variants:[{name:"۱ گیگ رم / ۱ ماهه",durationDays:30,costUsd:null,isPopular:false},
+              {name:"۲ گیگ رم / ۱ ماهه",durationDays:30,costUsd:null,isPopular:true}]},
 ];
 
-async function main() {
-  console.log("در حال seed کردن محصولات...");
+function seoTitle(svc) {
+  const prefix = SEO_TITLES[svc.category] || "خرید";
+  const name   = DISPLAY_NAMES[svc.slug] || svc.title || svc.slug;
+  return `${prefix} ${name}`;
+}
 
-  for (const [serviceIndex, svc] of [...services, ...vpsProducts].entries()) {
+async function main() {
+  const all = [...services, ...vpsProducts];
+  console.log(`Seeding ${all.length} products...`);
+
+  for (const svc of all) {
+    const title = seoTitle(svc);
     const product = await prisma.product.upsert({
-      where: { slug: svc.slug },
-      update: {},
+      where:  { slug: svc.slug },
+      update: { category: svc.category }, // فقط category را آپدیت می‌کند اگر تغییر کرده
       create: {
-        slug: svc.slug,
-        sku: svc.sku,
-        category: svc.category,
-        title: svc.title,
-        subtitle: null,
-        metaTitle: `خرید اشتراک ${svc.title} | بای لیمیت`,
-        metaDescription: `خرید اشتراک اختصاصی ${svc.title} با تحویل سریع و ضمانت ۱۰۰٪.`,
-        mainImage: "/images/logo.png",
-        requiresVpn: svc.category !== "vps",
-        vpnNote: svc.category !== "vps" ? "برای استفاده از این سرویس نیازمند تحریم‌شکن با IP ثابت و معتبر هستید." : null,
-        longDescription: `اشتراک ${svc.title} به‌زودی با قیمت نهایی و توضیحات کامل در دسترس قرار می‌گیرد.`,
+        slug:            svc.slug,
+        sku:             svc.sku,
+        category:        svc.category,
+        title,
+        metaTitle:       `${title} | بای لیمیت`,
+        metaDescription: `${title} با تحویل سریع، قیمت منصفانه و ضمانت ۱۰۰٪.`,
+        mainImage:       `/images/products/${svc.slug}.png`,
+        requiresVpn:     svc.category !== "vps" && svc.category !== "test",
+        vpnNote:         (svc.category !== "vps" && svc.category !== "test")
+          ? "برای استفاده از این سرویس نیازمند تحریم‌شکن با IP ثابت و معتبر هستید." : null,
+        longDescription: `اشتراک ${title} با بهترین قیمت، تحویل سریع و پشتیبانی اختصاصی.`,
       },
     });
 
     for (const v of svc.variants) {
+      // قیمت: priceRial_override > بدون قیمت (null، از Prisma Studio تنظیم می‌شود)
+      const priceRial = v.priceRial_override != null
+        ? BigInt(v.priceRial_override)
+        : null; // بدون هاردکد — ادمین از Prisma Studio یا جاب دلاری تنظیم می‌کند
+
       await prisma.productVariant.upsert({
-        where: { productId_name: { productId: product.id, name: v.name } },
-        update: {},
+        where:  { productId_name: { productId: product.id, name: v.name } },
+        update: { durationDays: v.durationDays ?? null, costUsd: v.costUsd ?? null },
         create: {
-          productId: product.id,
-          name: v.name,
-          type: v.isPopular ? "exclusive" : "shared",
-          productTitle: svc.title,
-          // قیمت‌های نمونه برای تست کامل سبد و پرداخت؛ ادمین می‌تواند در Studio تغییر دهد.
-          priceRial: BigInt((serviceIndex + 1) * 1500000 + (v.isPopular ? 1000000 : 0)) * 10n,
-          originalPriceRial: BigInt((serviceIndex + 1) * 1800000 + (v.isPopular ? 1200000 : 0)) * 10n,
-          costUsd: v.costUsd,
-          sourcingRegion: svc.sourcingRegion,
-          deliveryTimeMinutes: 0,
-          isPopular: v.isPopular,
+          productId:            product.id,
+          name:                 v.name,
+          productTitle:         title,
+          type:                 v.isPopular ? "exclusive" : "shared",
+          durationDays:         v.durationDays ?? null,
+          priceRial,
+          originalPriceRial:    null, // بدون هاردکد — اگر خواستید از Prisma Studio تنظیم کنید
+          costUsd:              v.costUsd ?? null,
+          sourcingRegion:       svc.sourcingRegion ?? null,
+          deliveryTimeMinutes:  0,
+          isPopular:            v.isPopular,
+          isActive:             true,
         },
       });
     }
+    process.stdout.write(".");
   }
-
-  // کدهای تخفیف نمونه - همان دو کدی که در دموی فرانت‌اند استفاده شده بود
-  await prisma.discountCode.upsert({
-    where: { code: "SAVE50" },
-    update: {},
-    create: { code: "SAVE50", type: "FIXED", amountRial: 500000n, minCartAmountRial: 2000000n, maxDiscountRial: 500000n, isActive: true },
-  });
-  await prisma.discountCode.upsert({
-    where: { code: "OFF10" },
-    update: {},
-    create: { code: "OFF10", type: "PERCENT", percent: 10, minCartAmountRial: 1000000n, maxDiscountRial: 2000000n, isActive: true },
-  });
-
-  console.log(`✅ ${services.length + vpsProducts.length} محصول seed شد.`);
+  console.log(`\n✅ Done. ${all.length} products seeded.`);
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch(console.error).finally(() => prisma.$disconnect());
