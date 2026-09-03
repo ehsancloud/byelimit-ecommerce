@@ -54,23 +54,18 @@ router.post("/request", paymentRateLimiter, async (req, res) => {
     });
 
     if (!result.success) {
-      try {
-        await writeAuditLog({
-          orderId: order.id,
-          entityType: "payment",
-          entityId: order.id,
-          action: "payment_request_failed",
-          actorType: "SYSTEM",
-          ipAddress: req.ip,
-          metadata: { result: result.result, message: result.message },
-        });
-      } catch (logErr) {
-        console.error("Audit log error:", logErr);
-      }
+      await writeAuditLog({
+        orderId: order.id,
+        entityType: "payment",
+        entityId: order.id,
+        action: "payment_request_failed",
+        actorType: "SYSTEM",
+        ipAddress: req.ip,
+        metadata: { result: result.result, message: result.message },
+      });
       return res.status(502).json({ error: result.message });
     }
 
-    // ایجاد رکورد جدید پرداخت
     await prisma.payment.create({
       data: {
         orderId: order.id,
@@ -92,10 +87,7 @@ router.post("/request", paymentRateLimiter, async (req, res) => {
     return res.json({ startPayUrl: result.startPayUrl });
   } catch (err) {
     console.error("CRITICAL PAYMENT REQUEST ERROR:", err);
-    return res.status(500).json({
-      error: "خطای سرور در ایجاد درخواست پرداخت.",
-      detail: process.env.NODE_ENV === "development" ? err.message : undefined,
-    });
+    return res.status(500).json({ error: "خطای سرور در ایجاد درخواست پرداخت." });
   }
 });
 
@@ -131,7 +123,7 @@ router.get("/callback/zibal", async (req, res) => {
       );
     }
 
-    // بررسی لغو پرداخت توسط کاربر
+    // لغو پرداخت توسط کاربر در درگاه زیبال
     if (String(success) !== "1") {
       await prisma.payment.update({
         where: { id: payment.id },
@@ -140,7 +132,7 @@ router.get("/callback/zibal", async (req, res) => {
       return res.redirect(`${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}&reason=cancelled`);
     }
 
-    // تایید پرداخت از سمت زیبال
+    // تایید تراکنش در زیبال
     const verifyResult = await zibal.verifyPayment(trackId);
 
     if (!verifyResult.success) {
@@ -151,7 +143,7 @@ router.get("/callback/zibal", async (req, res) => {
       return res.redirect(`${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}&reason=verify_failed`);
     }
 
-    // اعتبارسنجی تطابق مبلغ پرداختی با فاکتور
+    // بررسی تطابق مبلغ
     if (verifyResult.amount && verifyResult.amount !== payment.amountRial) {
       console.error(`[SECURITY ALERT] عدم تطابق مبلغ! پرداختی: ${verifyResult.amount} | فاکتور: ${payment.amountRial}`);
       await prisma.payment.update({
@@ -161,7 +153,7 @@ router.get("/callback/zibal", async (req, res) => {
       return res.redirect(`${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}&reason=amount_mismatch`);
     }
 
-    // تحویل اکانت و ثبت نهایی
+    // تحویل اکانت و ثبت قطعی پرداخت در دیتابیس
     await fulfillOrderSafe({ order, payment, verifyResult, req });
 
     return res.redirect(
@@ -173,10 +165,11 @@ router.get("/callback/zibal", async (req, res) => {
   }
 });
 
-// ───────────── تحویل سفارش ─────────────
+// ───────────── تحویل امن سفارش و ثبت در دیتابیس ─────────────
 async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
   try {
     await prisma.$transaction(async (tx) => {
+      // ۱. تایید وضعیت پرداخت
       await tx.payment.update({
         where: { id: payment.id },
         data: {
@@ -187,33 +180,41 @@ async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
         },
       });
 
+      // ۲. تخصیص اکانت‌های موجود بدون استفاده از raw query خطاساز
       for (const item of order.items) {
         if (item.assignedAccountId) continue;
 
-        const rows = await tx.$queryRaw`
-          SELECT id FROM account_inventory
-          WHERE variant_id = ${item.variantId}::text AND status = 'AVAILABLE'
-          LIMIT 1 FOR UPDATE SKIP LOCKED
-        `;
+        const availableAccount = await tx.accountInventory.findFirst({
+          where: {
+            variantId: item.variantId,
+            status: "AVAILABLE",
+          },
+        });
 
-        if (rows && rows.length > 0) {
-          const accountId = rows[0].id;
+        if (availableAccount) {
           await tx.accountInventory.update({
-            where: { id: accountId },
-            data: { status: "SOLD", reservedForOrderId: order.id, soldAt: new Date() },
+            where: { id: availableAccount.id },
+            data: {
+              status: "SOLD",
+              reservedForOrderId: order.id,
+              soldAt: new Date(),
+            },
           });
+
           await tx.orderItem.update({
             where: { id: item.id },
-            data: { assignedAccountId: accountId },
+            data: { assignedAccountId: availableAccount.id },
           });
         }
       }
 
+      // ۳. تایید وضعیت سفارش به PAID
       await tx.order.update({
         where: { id: order.id },
         data: { status: "PAID" },
       });
 
+      // ۴. اعمال مصرف کد تخفیف
       if (order.discountCodeId) {
         await tx.discountCode.update({
           where: { id: order.discountCodeId },
@@ -221,11 +222,13 @@ async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
         });
       }
 
+      // ۵. تبدیل و تخلیه سبد خرید
       if (order.cartId) {
         await tx.cart.update({ where: { id: order.cartId }, data: { status: "CONVERTED" } });
         await tx.cartItem.deleteMany({ where: { cartId: order.cartId } });
       }
 
+      // ۶. ثبت نوتیفیکیشن
       try {
         await tx.telegramNotification.create({
           data: {
@@ -242,6 +245,17 @@ async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
       } catch (tgErr) {
         console.error("Telegram notification error:", tgErr);
       }
+    });
+
+    await writeAuditLog({
+      orderId: order.id,
+      entityType: "order",
+      entityId: order.id,
+      action: "payment_verified_and_fulfilled",
+      newStatus: "PAID",
+      actorType: "SYSTEM",
+      ipAddress: req.ip,
+      metadata: { refNumber: verifyResult.refNumber, gateway: "ZIBAL" },
     });
 
     return { success: true };

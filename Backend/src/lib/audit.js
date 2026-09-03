@@ -1,10 +1,6 @@
-// src/lib/audit.js
+// Backend/src/lib/audit.js
 const prisma = require("./prisma");
 
-/**
- * لاگ‌گیری تغییرناپذیر (Append-only). هرگز رکورد audit_log آپدیت یا حذف نمی‌شود -
- * فقط insert. برای هر رویداد مهم مالی/سفارش باید فراخوانی شود.
- */
 async function writeAuditLog({
   orderId = null,
   entityType,
@@ -12,31 +8,29 @@ async function writeAuditLog({
   action,
   previousStatus = null,
   newStatus = null,
-  actorType,
-  actorId = null,
+  actorType = "SYSTEM",
   ipAddress = null,
-  userAgent = null,
   metadata = null,
 }) {
   try {
-    await prisma.auditLog.create({
-      data: {
-        orderId,
-        entityType,
-        entityId,
-        action,
-        previousStatus,
-        newStatus,
-        actorType,
-        actorId,
-        ipAddress,
-        userAgent,
-        metadata: metadata || undefined,
-      },
-    });
+    const data = {
+      entityType: String(entityType),
+      entityId: String(entityId),
+      action: String(action),
+      previousStatus: previousStatus || null,
+      newStatus: newStatus || null,
+      actorType: String(actorType),
+      ipAddress: ipAddress || null,
+      metadata: metadata || undefined,
+    };
+
+    if (orderId) {
+      data.order = { connect: { id: orderId } };
+    }
+
+    await prisma.auditLog.create({ data });
   } catch (err) {
-    // لاگ حسابرسی هرگز نباید کل درخواست را fail کند، اما باید جایی گزارش شود
-    console.error("AUDIT LOG WRITE FAILED:", err);
+    console.warn("[AUDIT LOG WARNING] خطا در ثبت لاگ مانیتورینگ:", err.message);
   }
 }
 

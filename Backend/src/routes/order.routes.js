@@ -62,7 +62,7 @@ router.post("/quote", optionalAuth, async (req, res) => {
   }
 });
 
-// ثبت یا بازیابی هوشمند سفارش
+// ثبت یا بازیابی سفارش
 router.post("/", optionalAuth, async (req, res) => {
   const parsed = createOrderSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -102,7 +102,6 @@ router.post("/", optionalAuth, async (req, res) => {
         },
       });
 
-      // ۱. بررسی سفارش‌های قبلی ثبت‌شده برای جلوگیری از تداخل cartId
       const existingOrder = await tx.order.findFirst({
         where: {
           OR: [
@@ -117,7 +116,6 @@ router.post("/", optionalAuth, async (req, res) => {
       let targetOrder = null;
 
       if (existingOrder && existingOrder.status === "PENDING_PAYMENT") {
-        // بروزرسانی فاکتور قبلی با اقلام و مبالغ جدید سبد خرید
         await tx.orderItem.deleteMany({ where: { orderId: existingOrder.id } });
 
         targetOrder = await tx.order.update({
@@ -147,12 +145,10 @@ router.post("/", optionalAuth, async (req, res) => {
         });
       }
 
-      // ۲. در صورتی که سفارشی وجود نداشت یا وضعیت سفارش قبلی PENDING_PAYMENT نبود
       if (!targetOrder) {
         const orderNumber = `BL-${Math.floor(100000 + Math.random() * 900000)}`;
 
         try {
-          // تلاش اول: ساخت سفارش به همراه شناسه سبد خرید
           targetOrder = await tx.order.create({
             data: {
               orderNumber,
@@ -180,12 +176,11 @@ router.post("/", optionalAuth, async (req, res) => {
             include: { items: true },
           });
         } catch (createErr) {
-          // ۳. مکانیزم عبور از خطای یکتایی (P2002): ساخت سفارش بدون ارجاع انحصاری cartId
           if (createErr.code === "P2002") {
             targetOrder = await tx.order.create({
               data: {
                 orderNumber: `BL-${Math.floor(100000 + Math.random() * 900000)}`,
-                cartId: null, // مقدار null توسط دیتابیس پذیرفته می‌شود و خطای یکتایی نخواهد داد
+                cartId: null,
                 userId: user.id,
                 mobile,
                 telegramId: telegramId ? telegramId.trim() : null,
@@ -214,23 +209,20 @@ router.post("/", optionalAuth, async (req, res) => {
         }
       }
 
-      // ۴. مدیریت سفارش‌های رایگان
+      // تحویل سفارش رایگان
       if (totals.totalRial === 0n) {
         for (const item of targetOrder.items) {
-          const rows = await tx.$queryRaw`
-            SELECT id FROM account_inventory
-            WHERE variant_id = ${item.variantId}::text AND status = 'AVAILABLE'
-            LIMIT 1 FOR UPDATE SKIP LOCKED
-          `;
-          if (rows && rows.length > 0) {
-            const accountId = rows[0].id;
+          const availableAccount = await tx.accountInventory.findFirst({
+            where: { variantId: item.variantId, status: "AVAILABLE" },
+          });
+          if (availableAccount) {
             await tx.accountInventory.update({
-              where: { id: accountId },
+              where: { id: availableAccount.id },
               data: { status: "SOLD", reservedForOrderId: targetOrder.id, soldAt: new Date() },
             });
             await tx.orderItem.update({
               where: { id: item.id },
-              data: { assignedAccountId: accountId },
+              data: { assignedAccountId: availableAccount.id },
             });
           }
         }
@@ -271,7 +263,7 @@ router.post("/", optionalAuth, async (req, res) => {
       totalToman: rialToToman(order.totalRial),
     });
   } catch (err) {
-    console.error("CREATE ORDER CRITICAL ERROR:", err);
+    console.error("CREATE ORDER ERROR:", err);
     return res.status(400).json({
       error: err.message || "خطا در ثبت سفارش. لطفاً دوباره تلاش کنید.",
       code: err.code || "ORDER_CREATION_FAILED",
@@ -279,7 +271,57 @@ router.post("/", optionalAuth, async (req, res) => {
   }
 });
 
-// دریافت سفارشات اختصاصی کاربر لاگین‌شده
+// ✅ اندپوینت فچ جزئیات سفارش برای صفحه موفقیت پرداخت و پیگیری
+router.get("/:orderNumber", async (req, res) => {
+  try {
+    const { orderNumber } = req.params;
+    const { mobile } = req.query;
+
+    const order = await prisma.order.findFirst({
+      where: {
+        orderNumber,
+        ...(mobile ? { mobile: String(mobile).trim() } : {}),
+      },
+      include: {
+        items: true,
+        payments: {
+          where: { status: "VERIFIED" },
+          select: { refId: true, verifiedAt: true, cardPanMasked: true },
+          take: 1,
+        },
+      },
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: "سفارش مورد نظر یافت نشد." });
+    }
+
+    return res.json({
+      id: order.id,
+      orderNumber: order.orderNumber,
+      status: order.status,
+      statusLabel: STATUS_LABEL[order.status] || order.status,
+      mobile: order.mobile,
+      fullName: order.fullName,
+      totalRial: order.totalRial.toString(),
+      totalToman: rialToToman(order.totalRial),
+      createdAt: order.createdAt,
+      payment: order.payments[0] || null,
+      items: order.items.map((it) => ({
+        id: it.id,
+        productTitle: it.productTitleSnapshot,
+        variantName: it.variantNameSnapshot,
+        unitPriceToman: rialToToman(it.unitPriceRial),
+        quantity: it.quantity,
+      })),
+    });
+  } catch (err) {
+    console.error("GET ORDER BY NUMBER ERROR:", err);
+    return res.status(500).json({ error: "خطا در بازیابی مشخصات سفارش." });
+  }
+});
+
+// دریافت سفارشات کاربر لاگین‌شده برای داشبورد
 router.get("/mine", requireAuth, async (req, res) => {
   try {
     const userId = req.user.userId || req.user.id;
