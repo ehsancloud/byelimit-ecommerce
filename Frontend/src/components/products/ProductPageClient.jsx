@@ -1,4 +1,4 @@
-// src/components/products/ProductPageClient.jsx
+// Frontend/src/components/products/ProductPageClient.jsx
 "use client";
 
 import { useState, useMemo } from "react";
@@ -22,13 +22,14 @@ export default function ProductPageClient({ product }) {
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [claudeSecureAddon, setClaudeSecureAddon] = useState(false);
-  const CLAUDE_SECURE_ADDON_TOMAN = 1495000; // پرداخت فوق امن بین‌المللی
+  const CLAUDE_SECURE_ADDON_TOMAN = 1495000;
   const [addToCartError, setAddToCartError] = useState("");
 
-  // Pricing is based on variant price. Discounts are applied at order (checkout) level only.
-  const finalUnitPrice = useMemo(() => selectedVariant.price, [selectedVariant]);
+  const finalUnitPrice = useMemo(() => {
+    const basePrice = selectedVariant?.price || 0;
+    return claudeSecureAddon ? basePrice + CLAUDE_SECURE_ADDON_TOMAN : basePrice;
+  }, [selectedVariant, claudeSecureAddon]);
 
-  // انتخاب پلن جدید یعنی کد تخفیف قبلی (که روی پلن قبلی محاسبه شده بود) دیگر معتبر نیست
   const handleSelectVariant = (variant) => {
     setSelectedVariant(variant);
   };
@@ -37,7 +38,10 @@ export default function ProductPageClient({ product }) {
     setIsAddingToCart(true);
     setAddToCartError("");
     try {
-      await addItem(product, selectedVariant);
+      await addItem(product, selectedVariant, {
+        hasSecureAddon: claudeSecureAddon,
+        addonPriceToman: claudeSecureAddon ? CLAUDE_SECURE_ADDON_TOMAN : 0,
+      });
       setIsCartModalOpen(true);
     } catch (err) {
       setAddToCartError(err.message || "افزودن به سبد خرید ناموفق بود. دوباره تلاش کنید.");
@@ -59,21 +63,19 @@ export default function ProductPageClient({ product }) {
           onAddToCart={handleAddToCart}
           isAddingToCart={isAddingToCart}
           addToCartError={addToCartError}
-          isClaude={product.slug?.includes('claude') || product.category === 'text'}
+          isClaude={product.slug?.includes("claude") || product.category === "text"}
           claudeSecureAddon={claudeSecureAddon}
           onToggleClaudeAddon={setClaudeSecureAddon}
           claudeAddonPrice={CLAUDE_SECURE_ADDON_TOMAN}
         />
 
-        {/* بخش تب‌ها */}
+        {/* تب‌ها */}
         <div className="bg-white border-[3.5px] border-black rounded-2xl overflow-hidden shadow-[-8px_8px_0_0_rgba(0,0,0,1)] mb-10">
           <div className="flex items-stretch overflow-x-auto border-b-[3.5px] border-black bg-gray-100 scrollbar-none">
             <button
               onClick={() => setActiveTab("description")}
               className={`px-6 py-4 font-black text-xs md:text-sm border-l-[3.5px] border-black whitespace-nowrap transition-colors cursor-pointer ${
-                activeTab === "description"
-                  ? "bg-[#12e2a3]"
-                  : "hover:bg-gray-200"
+                activeTab === "description" ? "bg-[#12e2a3]" : "hover:bg-gray-200"
               }`}
             >
               توضیحات و کاربردها
@@ -81,9 +83,7 @@ export default function ProductPageClient({ product }) {
             <button
               onClick={() => setActiveTab("comparison")}
               className={`px-6 py-4 font-black text-xs md:text-sm border-l-[3.5px] border-black whitespace-nowrap transition-colors cursor-pointer ${
-                activeTab === "comparison"
-                  ? "bg-[#12e2a3]"
-                  : "hover:bg-gray-200"
+                activeTab === "comparison" ? "bg-[#12e2a3]" : "hover:bg-gray-200"
               }`}
             >
               مقایسه شفاف پلن‌ها
@@ -94,7 +94,7 @@ export default function ProductPageClient({ product }) {
                 activeTab === "faq" ? "bg-[#12e2a3]" : "hover:bg-gray-200"
               }`}
             >
-              سوالات متداول ({product.faqs.length})
+              سوالات متداول ({product.faqs?.length || 0})
             </button>
             <button
               onClick={() => setActiveTab("reviews")}
@@ -102,7 +102,7 @@ export default function ProductPageClient({ product }) {
                 activeTab === "reviews" ? "bg-[#12e2a3]" : "hover:bg-gray-200"
               }`}
             >
-              نظرات خریداران ({product.reviews.length})
+              نظرات خریداران ({product.reviews?.length || 0})
             </button>
           </div>
 
@@ -123,11 +123,7 @@ export default function ProductPageClient({ product }) {
                       <span>ویدیو راهنما و دموی محیط ابزار:</span>
                     </h4>
                     <div className="aspect-video w-full bg-black rounded-lg overflow-hidden border-[2px] border-black">
-                      <video
-                        controls
-                        preload="none"
-                        className="w-full h-full object-cover"
-                      >
+                      <video controls preload="none" className="w-full h-full object-cover">
                         <source src={product.demoVideoUrl} type="video/mp4" />
                       </video>
                     </div>
@@ -137,22 +133,23 @@ export default function ProductPageClient({ product }) {
             )}
 
             {activeTab === "comparison" && (
-              <PlanComparisonTable data={product.comparisonTable} />
+              <PlanComparisonTable data={product.comparisonTable || []} />
             )}
 
-            {activeTab === "faq" && <FaqAccordion faqs={product.faqs} />}
+            {activeTab === "faq" && <FaqAccordion faqs={product.faqs || []} />}
 
             {activeTab === "reviews" && (
               <ProductReviews
-                reviews={product.reviews}
+                reviews={product.reviews || []}
                 average={product.ratingAverage}
                 count={product.ratingCount}
+                productId={product.id}
               />
             )}
           </div>
         </div>
 
-        {/* چت آنلاین */}
+        {/* پشتیبانی تلگرام */}
         <div className="bg-[#12e2a3] border-[3.5px] border-black rounded-2xl p-6 shadow-[-6px_6px_0_0_rgba(0,0,0,1)] flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-white border-[2.5px] border-black rounded-xl shadow-[-2px_2px_0_0_rgba(0,0,0,1)]">
@@ -171,7 +168,7 @@ export default function ProductPageClient({ product }) {
             href="https://t.me/byelimit_support"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white border-[2.5px] border-black px-6 py-2.5 rounded-xl font-black text-xs md:text-sm shadow-[-3px_3px_0_0_rgba(0,0,0,1)] hover:bg-yellow-200 transition-all shrink-0"
+            className="bg-white border-[2.5px] border-black px-6 py-2.5 rounded-xl font-black text-xs md:text-sm shadow-[-3px_3px_0_0_rgba(0,0,0,1)] hover:bg-yellow-200 transition-all shrink-0 no-underline text-black"
           >
             ارتباط مستقیم با پشتیبانی
           </a>

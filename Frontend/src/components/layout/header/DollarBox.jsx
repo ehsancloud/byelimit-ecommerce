@@ -10,7 +10,7 @@ export default function DollarBox() {
       const cached = localStorage.getItem("byelimit_usd_rate");
       if (cached && Number(cached) > 10000) return Number(cached);
     }
-    return 217100; // پیش‌فرض اولیه تا زمان دریافت اولین پاسخ
+    return 217100;
   });
 
   const fetchRate = async () => {
@@ -34,8 +34,8 @@ export default function DollarBox() {
 
   return (
     <div
-      className="flex items-center gap-2 px-4 h-full border-l-[3.5px] border-black bg-[#fff9c4] hover:bg-[#fff59d] transition-colors shrink-0 cursor-default select-none"
-      title="نرخ لحظه‌ای دلار / تتر (بروزرسانی خودکار هر ۱۵ دقیقه)"
+      className="flex items-center gap-2 px-4 h-full border-x-[3.5px] border-black bg-[#fff9c4] hover:bg-[#fff59d] transition-colors shrink-0 cursor-default select-none"
+      title="نرخ لحظه‌ای دلار / تتر"
     >
       <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
       <div className="flex items-center gap-1.5 font-black text-sm">

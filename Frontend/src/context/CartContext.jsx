@@ -30,6 +30,8 @@ function mapServerCart(serverCart) {
     productImage: it.productImage,
     variantId: it.variantId,
     variantName: it.variantName,
+    hasSecureAddon: Boolean(it.hasSecureAddon),
+    addonPriceToman: it.addonPriceToman || 0,
     unitPrice: typeof it.unitPriceToman === "number"
       ? it.unitPriceToman
       : Math.round(Number(it.unitPriceRial) / 10),
@@ -52,25 +54,29 @@ export function CartProvider({ children }) {
     }
   }, []);
 
-  // همگام‌سازی خودکار سبد خرید هنگام ورود، خروج یا لود صفحه
   useEffect(() => {
     refetchCart().finally(() => setIsHydrated(true));
   }, [refetchCart, user?.id]);
 
-  const addItem = useCallback(async (product, variant) => {
+  const addItem = useCallback(async (product, variant, options = {}) => {
     try {
       const updatedCart = await apiFetch("/api/cart/items", {
         method: "POST",
         body: JSON.stringify({
           productId: product.id,
           variantId: variant.id,
+          hasSecureAddon: Boolean(options.hasSecureAddon),
+          addonPriceToman: options.addonPriceToman || 0,
         }),
       });
 
       const mapped = mapServerCart(updatedCart);
       setItems(mapped);
 
-      const added = mapped.find((it) => it.variantId === variant.id) || mapped[mapped.length - 1];
+      const added = mapped.find(
+        (it) => it.variantId === variant.id && it.hasSecureAddon === Boolean(options.hasSecureAddon)
+      ) || mapped[mapped.length - 1];
+
       setLastAddedItem(added);
       return added;
     } catch (err) {

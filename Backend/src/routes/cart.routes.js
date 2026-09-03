@@ -10,14 +10,11 @@ const router = express.Router();
 
 const CART_COOKIE = "cart_token";
 const CART_COOKIE_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
+const CLAUDE_SECURE_ADDON_RIAL = 14950000n; // ۱۴,۹۵۰,۰۰۰ ریال معادل ۱,۴۹۵,۰۰۰ تومان
 
-/**
- * بازیابی یا ساخت سبد خرید همراه با ادغام هوشمند سبد مهمان پس از لاگین
- */
 async function resolveCart(req, res) {
   const guestToken = req.cookies?.[CART_COOKIE];
 
-  // حالت ۱: کاربر لاگین شده است
   if (req.user) {
     const userId = req.user.userId || req.user.id;
 
@@ -33,7 +30,6 @@ async function resolveCart(req, res) {
       });
     }
 
-    // ادغام سبد خرید مهمان در سبد خرید کاربر در صورت وجود
     if (guestToken) {
       const guestCart = await prisma.cart.findFirst({
         where: { guestToken, status: "ACTIVE" },
@@ -42,11 +38,13 @@ async function resolveCart(req, res) {
 
       if (guestCart && guestCart.id !== userCart.id) {
         if (guestCart.items.length > 0) {
-          const userVariantIds = new Set(userCart.items.map((i) => i.variantId));
+          const userItemKeys = new Set(
+            userCart.items.map((i) => `${i.variantId}_${Boolean(i.hasSecureAddon)}`)
+          );
 
           for (const gItem of guestCart.items) {
-            // جلوگیری از اضافه شدن واریانت تکراری
-            if (!userVariantIds.has(gItem.variantId)) {
+            const key = `${gItem.variantId}_${Boolean(gItem.hasSecureAddon)}`;
+            if (!userItemKeys.has(key)) {
               await prisma.cartItem.create({
                 data: {
                   cartId: userCart.id,
@@ -54,14 +52,15 @@ async function resolveCart(req, res) {
                   variantId: gItem.variantId,
                   quantity: 1,
                   unitPriceRial: gItem.unitPriceRial,
+                  hasSecureAddon: gItem.hasSecureAddon || false,
+                  addonPriceRial: gItem.addonPriceRial || 0n,
                 },
               });
-              userVariantIds.add(gItem.variantId);
+              userItemKeys.add(key);
             }
           }
         }
 
-        // تبدیل سبد مهمان و پاکسازی کوکی مهمان
         await prisma.cart.update({
           where: { id: guestCart.id },
           data: { status: "CONVERTED" },
@@ -73,7 +72,6 @@ async function resolveCart(req, res) {
     return userCart;
   }
 
-  // حالت ۲: کاربر مهمان است
   if (guestToken) {
     const existing = await prisma.cart.findFirst({
       where: { guestToken, status: "ACTIVE" },
@@ -99,25 +97,35 @@ async function resolveCart(req, res) {
   return newCart;
 }
 
-/**
- * تبدیل امن دیتای سبد برای جلوگیری از ارور سریالایز BigInt
- */
 function serializeCart(cart) {
   if (!cart || !cart.items) {
     return { id: null, items: [], totalCount: 0, totalPriceToman: 0 };
   }
 
-  const mappedItems = cart.items.map((it) => ({
-    id: it.id,
-    productSlug: it.product?.slug || "",
-    productTitle: it.product?.title || "",
-    productImage: it.product?.mainImage || "",
-    variantId: it.variantId,
-    variantName: it.variant?.name || "",
-    unitPriceRial: it.unitPriceRial.toString(),
-    unitPriceToman: rialToToman(it.unitPriceRial),
-    quantity: 1,
-  }));
+  const mappedItems = cart.items.map((it) => {
+    const basePriceRial =
+      it.variant?.priceRial !== undefined && it.variant?.priceRial !== null
+        ? it.variant.priceRial
+        : it.unitPriceRial;
+
+    const addonRial = it.hasSecureAddon ? (it.addonPriceRial || CLAUDE_SECURE_ADDON_RIAL) : 0n;
+    const finalItemPriceRial = basePriceRial + addonRial;
+
+    return {
+      id: it.id,
+      productSlug: it.product?.slug || "",
+      productTitle: it.product?.title || "",
+      productImage: it.product?.mainImage || "",
+      variantId: it.variantId,
+      variantName: it.variant?.name || "",
+      hasSecureAddon: Boolean(it.hasSecureAddon),
+      addonPriceToman: rialToToman(addonRial),
+      unitPriceRial: finalItemPriceRial.toString(),
+      unitPriceToman: rialToToman(finalItemPriceRial),
+      quantity: 1,
+      isActive: Boolean(it.product?.isActive && it.variant?.isActive),
+    };
+  });
 
   const totalPriceToman = mappedItems.reduce((sum, item) => sum + item.unitPriceToman, 0);
 
@@ -129,7 +137,6 @@ function serializeCart(cart) {
   };
 }
 
-// دریافت اقلام سبد خرید
 router.get("/", optionalAuth, async (req, res) => {
   try {
     const cartStub = await resolveCart(req, res);
@@ -144,6 +151,28 @@ router.get("/", optionalAuth, async (req, res) => {
         },
       },
     });
+
+    if (!cart) {
+      return res.json({ id: null, items: [], totalCount: 0, totalPriceToman: 0 });
+    }
+
+    const syncPromises = [];
+    for (const item of cart.items) {
+      if (item.variant && item.variant.priceRial && item.unitPriceRial !== item.variant.priceRial) {
+        syncPromises.push(
+          prisma.cartItem.update({
+            where: { id: item.id },
+            data: { unitPriceRial: item.variant.priceRial },
+          })
+        );
+        item.unitPriceRial = item.variant.priceRial;
+      }
+    }
+
+    if (syncPromises.length > 0) {
+      await Promise.all(syncPromises);
+    }
+
     return res.json(serializeCart(cart));
   } catch (err) {
     console.error("GET CART ERROR:", err);
@@ -154,15 +183,20 @@ router.get("/", optionalAuth, async (req, res) => {
 const addItemSchema = z.object({
   productId: z.string().uuid("شناسه محصول نامعتبر است."),
   variantId: z.string().uuid("شناسه پلن نامعتبر است."),
+  hasSecureAddon: z.boolean().optional().default(false),
+  addonPriceToman: z.number().optional().default(0),
 });
 
-// افزودن آیتم به سبد خرید
 router.post("/items", optionalAuth, async (req, res) => {
   const parsed = addItemSchema.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({ error: "اطلاعات پلن ارسالی نامعتبر است." });
+    return res.status(400).json({ error: "اطلاعات ارسالی نامعتبر است." });
   }
   const { productId, variantId } = parsed.data;
+  const hasSecureAddon = Boolean(parsed.data.hasSecureAddon);
+  const addonPriceRial = hasSecureAddon
+    ? BigInt(Math.round((parsed.data.addonPriceToman || 1495000) * 10))
+    : 0n;
 
   try {
     const variant = await prisma.productVariant.findUnique({
@@ -178,26 +212,30 @@ router.post("/items", optionalAuth, async (req, res) => {
       return res.status(409).json({ error: "قیمت‌گذاری این پلن هنوز انجام نشده است." });
     }
 
-
     const cart = await resolveCart(req, res);
 
     const existing = await prisma.cartItem.findFirst({
-      where: { cartId: cart.id, variantId },
+      where: { cartId: cart.id, variantId, hasSecureAddon },
     });
 
     if (existing) {
-      return res.status(400).json({ error: "این پلن قبلاً به سبد خرید شما اضافه شده است." });
+      await prisma.cartItem.update({
+        where: { id: existing.id },
+        data: { unitPriceRial: variant.priceRial, addonPriceRial },
+      });
+    } else {
+      await prisma.cartItem.create({
+        data: {
+          cartId: cart.id,
+          productId,
+          variantId,
+          quantity: 1,
+          unitPriceRial: variant.priceRial,
+          hasSecureAddon,
+          addonPriceRial,
+        },
+      });
     }
-
-    await prisma.cartItem.create({
-      data: {
-        cartId: cart.id,
-        productId,
-        variantId,
-        quantity: 1,
-        unitPriceRial: variant.priceRial,
-      },
-    });
 
     const updatedCart = await prisma.cart.findUnique({
       where: { id: cart.id },
@@ -211,7 +249,6 @@ router.post("/items", optionalAuth, async (req, res) => {
   }
 });
 
-// حذف تکی از سبد خرید
 router.delete("/items/:itemId", optionalAuth, async (req, res) => {
   try {
     const cart = await resolveCart(req, res);
@@ -231,7 +268,6 @@ router.delete("/items/:itemId", optionalAuth, async (req, res) => {
   }
 });
 
-// خالی کردن کل سبد خرید
 router.delete("/", optionalAuth, async (req, res) => {
   try {
     const cart = await resolveCart(req, res);

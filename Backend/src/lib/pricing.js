@@ -1,30 +1,19 @@
 // Backend/src/lib/pricing.js
 const prisma = require("./prisma");
 
-/**
- * تبدیل امن ریال به تومان
- */
 function rialToToman(rial) {
   if (rial === null || rial === undefined) return 0;
   const bigRial = typeof rial === "bigint" ? rial : BigInt(Math.trunc(Number(rial)));
   return Number(bigRial / 10n);
 }
 
-/**
- * تبدیل تومان به ریال
- */
 function tomanToRial(toman) {
   if (!toman) return 0n;
   return BigInt(Math.trunc(Number(toman))) * 10n;
 }
 
-/**
- * اعتبارسنجی و محاسبه کد تخفیف
- */
 async function resolveDiscountCode(code, baseAmountRial, tx = prisma) {
-  if (!code || typeof code !== "string") {
-    return null;
-  }
+  if (!code || typeof code !== "string") return null;
 
   const cleanCode = code.trim().toUpperCase();
   const discount = await tx.discountCode.findUnique({
@@ -65,12 +54,10 @@ async function resolveDiscountCode(code, baseAmountRial, tx = prisma) {
     amountRial = (baseAmountRial * percent) / 100n;
   }
 
-  // اعمال سقف تخفیف (در صورت وجود)
   if (discount.maxDiscountRial && amountRial > discount.maxDiscountRial) {
     amountRial = BigInt(discount.maxDiscountRial);
   }
 
-  // تخفیف نباید از کل مبلغ سفارش بیشتر شود
   if (amountRial > baseAmountRial) {
     amountRial = baseAmountRial;
   }
@@ -78,9 +65,6 @@ async function resolveDiscountCode(code, baseAmountRial, tx = prisma) {
   return { discount, amountRial };
 }
 
-/**
- * محاسبه کامل جمع فاکتور، بررسی قیمت‌ها و استعلام موجودی انبار
- */
 async function calculateOrderTotals(items, orderLevelDiscountCode = null, tx = prisma) {
   if (!items || items.length === 0) {
     const err = new Error("سبد خرید شما خالی است.");
@@ -113,15 +97,20 @@ async function calculateOrderTotals(items, orderLevelDiscountCode = null, tx = p
       throw err;
     }
 
-    const itemPrice = BigInt(variant.priceRial);
-    subtotalRial += itemPrice;
+    const baseItemPrice = BigInt(variant.priceRial);
+    const addonRial = item.hasSecureAddon ? (BigInt(item.addonPriceRial) || 14950000n) : 0n;
+    const finalItemPrice = baseItemPrice + addonRial;
+
+    subtotalRial += finalItemPrice;
 
     resolvedItems.push({
       productId: variant.productId,
       variantId: variant.id,
       productTitleSnapshot: variant.product.title,
       variantNameSnapshot: variant.name,
-      unitPriceRial: itemPrice,
+      unitPriceRial: finalItemPrice,
+      hasSecureAddon: Boolean(item.hasSecureAddon),
+      addonPriceRial: addonRial,
       quantity: 1,
     });
   }

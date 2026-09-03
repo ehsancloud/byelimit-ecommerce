@@ -16,6 +16,7 @@ const paymentRoutes   = require("./routes/payment.routes");
 const productRoutes   = require("./routes/product.routes");
 const telegramRoutes  = require("./routes/telegram.routes");
 const flashDealRoutes = require("./routes/flashdeal.routes");
+const reviewRoutes    = require("./routes/review.routes");
 
 const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
 const { generalApiRateLimiter }         = require("./middleware/rateLimit");
@@ -45,17 +46,18 @@ app.use(generalApiRateLimiter);
 
 app.get("/health", (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 
-app.use("/api/auth",       authRoutes);
-app.use("/api/cart",       cartRoutes);
-app.use("/api/orders",     orderRoutes);
-app.use("/api/payment",    paymentRoutes);
-app.use("/api/products",   productRoutes);
-app.use("/api/telegram",   telegramRoutes);
-
-// پشتیبانی از هر دو فرمت آدرس فلاش‌دیلز جهت رفع ارور ۴۰۴
+app.use("/api/auth",        authRoutes);
+app.use("/api/cart",        cartRoutes);
+app.use("/api/orders",      orderRoutes);
+app.use("/api/payment",     paymentRoutes);
+app.use("/api/products",    productRoutes);
+app.use("/api/telegram",    telegramRoutes);
+app.use("/api/reviews",     reviewRoutes);
 app.use("/api/flash-deals", flashDealRoutes);
 app.use("/api/flashdeals",  flashDealRoutes);
 
+const reviewRoutes = require("./routes/review.routes");
+app.use("/api/reviews", reviewRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
@@ -63,9 +65,7 @@ const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`✅ بک‌اند بای‌لیمیت روی پورت ${PORT} فعال شد.`);
 
-  // اجرای کرون جاب نرخ دلار
   require("./jobs/usd-rate-job");
-
   startUnverifiedCron();
 });
 

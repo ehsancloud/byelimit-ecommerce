@@ -7,9 +7,9 @@ import DollarBox from "./DollarBox";
 export default function Navbar() {
   return (
     <nav className="hidden md:flex items-stretch h-full">
-      {/* نمایش نرخ زنده دلار دقیقاً در محل قبلی سربرگ خدمات */}
-      <DollarBox />
+      {/* اول سبد خرید (سمت راست‌تر) و سپس نرخ دلار (سمت چپ‌تر، متصل به پنل کاربری) */}
       <CartIcon variant="desktop" />
+      <DollarBox />
     </nav>
   );
 }

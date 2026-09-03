@@ -1,6 +1,7 @@
 // Frontend/src/app/cart/page.js
 "use client";
 
+import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,19 +12,25 @@ import {
   ArrowRight,
   ShieldCheck,
   Clock,
+  Zap,
 } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 
 export default function CartPage() {
   const router = useRouter();
-  const { items, isHydrated, removeItem, totalPrice, totalCount } = useCart();
+  const { items, isHydrated, removeItem, totalPrice, totalCount, refetchCart } = useCart();
+
+  // همگام‌سازی قطعی قیمت‌ها با سرور به محض ورود به صفحه سبد خرید
+  useEffect(() => {
+    refetchCart();
+  }, [refetchCart]);
 
   const isEmpty = isHydrated && items.length === 0;
 
   return (
     <main className="min-h-screen bg-[#f3f3f3] p-4 sm:p-6 md:p-10 font-[family-name:var(--font-farsi)] dir-rtl text-black select-none">
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between border-b-[3.5px] border-black pb-4 mb-8">
+        <div className="flex items-center justify-between border-b-[3.5px] border-black pb-4 mb-6">
           <div className="flex items-center gap-2">
             <ShoppingCart className="w-6 h-6 stroke-[2.5]" />
             <h1 className="text-xl md:text-2xl font-black">سبد خرید شما</h1>
@@ -40,6 +47,15 @@ export default function CartPage() {
             <ArrowRight className="w-4 h-4 stroke-[3]" />
             <span>ادامه خرید</span>
           </Link>
+        </div>
+
+        {/* نشانگر زنده بودن قیمت‌ها بر اساس دلار */}
+        <div className="bg-[#ccff00] border-[2.5px] border-black p-3 rounded-2xl flex items-center justify-between shadow-[-4px_4px_0_0_rgba(0,0,0,1)] mb-6 text-xs font-black">
+          <div className="flex items-center gap-2">
+            <Zap className="w-4 h-4 fill-black" />
+            <span>قیمت‌های سبد خرید به‌صورت لحظه‌ای با نوسانات نرخ ارز و دلار همگام‌سازی می‌شوند.</span>
+          </div>
+          <span className="hidden sm:inline bg-black text-white px-2 py-0.5 rounded text-[10px]">نرخ زنده</span>
         </div>
 
         {isEmpty ? (
@@ -84,9 +100,9 @@ export default function CartPage() {
                     </p>
 
                     <div className="mt-3">
-                      <span className="font-black text-sm">
+                      <span className="font-black text-sm text-emerald-700">
                         {it.unitPrice.toLocaleString("fa-IR")}{" "}
-                        <span className="text-[10px] font-bold">تومان</span>
+                        <span className="text-[10px] font-bold text-gray-700">تومان</span>
                       </span>
                     </div>
                   </div>
@@ -116,7 +132,7 @@ export default function CartPage() {
                 <div className="flex justify-between items-baseline pt-3 border-t-[2px] border-black font-black text-sm">
                   <span>مبلغ قابل پرداخت:</span>
                   <div className="text-left">
-                    <span className="text-xl">
+                    <span className="text-xl text-emerald-600">
                       {totalPrice.toLocaleString("fa-IR")}
                     </span>
                     <span className="text-xs mr-1">تومان</span>

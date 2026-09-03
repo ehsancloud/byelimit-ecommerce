@@ -18,14 +18,9 @@ const STATUS_LABEL = {
   CANCELLED: "لغوشده",
 };
 
-/**
- * تولید کد رهگیری یکتا با فرمت و طول کاملاً ثابت (BL- به همراه ۸ رقم عددی ثابت)
- * نمونه خروجی: BL-59281043 (دقیقاً ۱۱ کاراکتر)
- */
 async function generateUniqueOrderNumber(tx) {
   const PREFIX = "BL-";
   for (let attempt = 0; attempt < 5; attempt++) {
-    // تولید عدد رندوم امن بین 10,000,000 تا 99,999,999 (دقیقاً ۸ رقم)
     const random8Digit = crypto.randomInt(10000000, 100000000).toString();
     const candidate = `${PREFIX}${random8Digit}`;
 
@@ -34,12 +29,9 @@ async function generateUniqueOrderNumber(tx) {
       select: { id: true },
     });
 
-    if (!exists) {
-      return candidate;
-    }
+    if (!exists) return candidate;
   }
 
-  // در شرایط نادر تلاقی همزمان، ترکیب ۴ رقم پایانی تایم‌استمپ و ۴ رقم رندوم
   const timeSuffix = Date.now().toString().slice(-4);
   const randSuffix = crypto.randomInt(1000, 10000).toString();
   return `${PREFIX}${timeSuffix}${randSuffix}`;
@@ -52,7 +44,6 @@ const createOrderSchema = z.object({
   orderLevelDiscountCode: z.string().max(32).optional().nullable(),
 });
 
-// پیش‌استعلام قیمت و فاکتور سبد خرید
 router.post("/quote", optionalAuth, async (req, res) => {
   const code = typeof req.body?.orderLevelDiscountCode === "string"
     ? req.body.orderLevelDiscountCode.trim().toUpperCase()
@@ -90,7 +81,6 @@ router.post("/quote", optionalAuth, async (req, res) => {
   }
 });
 
-// ثبت یا بازیابی سفارش
 router.post("/", optionalAuth, async (req, res) => {
   const parsed = createOrderSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -165,6 +155,8 @@ router.post("/", optionalAuth, async (req, res) => {
                 productTitleSnapshot: it.productTitleSnapshot,
                 variantNameSnapshot: it.variantNameSnapshot,
                 unitPriceRial: it.unitPriceRial,
+                hasSecureAddon: it.hasSecureAddon,
+                addonPriceRial: it.addonPriceRial,
                 quantity: 1,
               })),
             },
@@ -197,6 +189,8 @@ router.post("/", optionalAuth, async (req, res) => {
                   productTitleSnapshot: it.productTitleSnapshot,
                   variantNameSnapshot: it.variantNameSnapshot,
                   unitPriceRial: it.unitPriceRial,
+                  hasSecureAddon: it.hasSecureAddon,
+                  addonPriceRial: it.addonPriceRial,
                   quantity: 1,
                 })),
               },
@@ -226,6 +220,8 @@ router.post("/", optionalAuth, async (req, res) => {
                     productTitleSnapshot: it.productTitleSnapshot,
                     variantNameSnapshot: it.variantNameSnapshot,
                     unitPriceRial: it.unitPriceRial,
+                    hasSecureAddon: it.hasSecureAddon,
+                    addonPriceRial: it.addonPriceRial,
                     quantity: 1,
                   })),
                 },
@@ -299,7 +295,6 @@ router.post("/", optionalAuth, async (req, res) => {
   }
 });
 
-// دریافت سفارشات کاربر لاگین‌شده
 router.get("/mine", requireAuth, async (req, res) => {
   try {
     const userId = req.user.userId || req.user.id;
@@ -348,6 +343,8 @@ router.get("/mine", requireAuth, async (req, res) => {
           id: item.id,
           productTitle: item.productTitleSnapshot,
           variantName: item.variantNameSnapshot,
+          hasSecureAddon: Boolean(item.hasSecureAddon),
+          addonPriceToman: rialToToman(item.addonPriceRial),
           credentials: isFulfilled ? item.assignedAccount?.credentialsEncrypted || null : null,
           accountStatus: isFulfilled ? item.assignedAccount?.status || null : null,
         })),
@@ -361,7 +358,6 @@ router.get("/mine", requireAuth, async (req, res) => {
   }
 });
 
-// دریافت جزئیات یک سفارش با شماره سفارش
 router.get("/:orderNumber", async (req, res, next) => {
   if (req.params.orderNumber === "mine") return next();
 
@@ -403,6 +399,8 @@ router.get("/:orderNumber", async (req, res, next) => {
         id: it.id,
         productTitle: it.productTitleSnapshot,
         variantName: it.variantNameSnapshot,
+        hasSecureAddon: Boolean(it.hasSecureAddon),
+        addonPriceToman: rialToToman(it.addonPriceRial),
         unitPriceToman: rialToToman(it.unitPriceRial),
         quantity: it.quantity,
       })),

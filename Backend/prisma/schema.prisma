@@ -1,4 +1,4 @@
-// prisma/schema.prisma - v0.97
+// Backend/prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -18,8 +18,9 @@ model User {
   createdAt   DateTime @default(now())
   lastLoginAt DateTime?
 
-  carts  Cart[]
-  orders Order[]
+  carts   Cart[]
+  orders  Order[]
+  reviews Review[]
 
   @@map("users")
 }
@@ -45,33 +46,41 @@ enum OtpPurpose {
   CHECKOUT_VERIFY
 }
 
-// ===================== محصولات =====================
+// ===================== محصولات و سئو =====================
 
 model Product {
-  id               String   @id @default(uuid())
-  slug             String   @unique
-  sku              String   @unique
-  category         String
-  title            String
-  subtitle         String?
-  metaTitle        String
-  metaDescription  String
-  mainImage        String
-  requiresVpn      Boolean  @default(true)
-  vpnNote          String?
-  longDescription  String?
-  ratingAverage    Float?
-  ratingCount      Int      @default(0)
-  monthlySalesCount Int     @default(0)
-  totalSalesCount   Int     @default(0)
-  isActive         Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                String   @id @default(uuid())
+  slug              String   @unique
+  sku               String   @unique
+  category          String
+  title             String
+  subtitle          String?
+  metaTitle         String
+  metaDescription   String
+  mainImage         String
+  requiresVpn       Boolean  @default(true)
+  vpnNote           String?
+  longDescription   String?
+  demoVideoUrl      String?
+
+  /// فیلدهای داینامیک سئو و محتوا - قابل ویرایش از Prisma Studio
+  faqs              Json?    // ساختار: [{ question: "...", answer: "..." }]
+  comparisonTable   Json?    // ساختار: [{ feature: "...", shared: "...", exclusive: "..." }]
+  features          Json?    // لیست ویژگی‌ها: ["...", "..."]
+
+  ratingAverage     Float?
+  ratingCount       Int      @default(0)
+  monthlySalesCount Int      @default(0)
+  totalSalesCount   Int      @default(0)
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   variants   ProductVariant[]
   cartItems  CartItem[]
   orderItems OrderItem[]
   flashDeals FlashDeal[]
+  reviews    Review[]
 
   @@index([category])
   @@map("products")
@@ -87,7 +96,6 @@ model ProductVariant {
   durationDays        Int?
   priceRial           BigInt?
   originalPriceRial   BigInt?
-  /// قیمت دلاری پایه برای فرمول محاسبه (مثلاً 20.0 برای Claude Pro)
   costUsd             Decimal? @db.Decimal(10, 2)
   sourcingRegion      String?
   deliveryTimeMinutes Int      @default(0)
@@ -106,25 +114,15 @@ model ProductVariant {
   @@map("product_variants")
 }
 
-/// تنظیمات قیمت‌گذاری هر واریانت - از Prisma Studio قابل مدیریت است
-/// useUsdFormula=true → قیمت از فرمول دلاری محاسبه می‌شود
-/// useUsdFormula=false → از fixedPriceRial استفاده می‌شود
 model ProductPriceConfig {
   id             String     @id @default(uuid())
   variantId      String     @unique
   variant        ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
-  /// آیا قیمت بر اساس دلار محاسبه شود؟
   useUsdFormula  Boolean    @default(true)
-
-  /// قیمت ثابت (ریال) - فقط وقتی useUsdFormula=false
   fixedPriceRial BigInt?
-
-  /// نوع سود: PERCENT یا FIXED_RIAL
   profitType     ProfitType @default(PERCENT)
-  /// درصد سود (مثلاً 10 = ده درصد)
   profitPercent  Float?     @default(10)
-  /// سود ثابت به ریال
   profitFixedRial BigInt?
 
   updatedAt      DateTime   @updatedAt
@@ -161,6 +159,51 @@ enum AccountStatus {
   REVOKED
 }
 
+// ===================== نظرات کاربران =====================
+
+model Review {
+  id         String       @id @default(uuid())
+  productId  String
+  product    Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?        @relation(fields: [userId], references: [id])
+  authorName String       @default("کاربر بای لیمیت")
+  rating     Int          @default(5)
+  comment    String
+  status     ReviewStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@index([productId, status])
+  @@map("reviews")
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ===================== مقالات وبلاگ سئو =====================
+
+model BlogPost {
+  id              String   @id @default(uuid())
+  slug            String   @unique
+  title           String
+  excerpt         String?
+  content         String
+  coverImage      String?
+  metaTitle       String?
+  metaDescription String?
+  published       Boolean  @default(false)
+  publishedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([slug])
+  @@map("blog_posts")
+}
+
 // ===================== سبد خرید =====================
 
 model Cart {
@@ -186,16 +229,21 @@ enum CartStatus {
 }
 
 model CartItem {
-  id            String   @id @default(uuid())
-  cartId        String
-  cart          Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  productId     String
-  product       Product  @relation(fields: [productId], references: [id])
-  variantId     String
-  variant       ProductVariant @relation(fields: [variantId], references: [id])
-  quantity      Int      @default(1)
-  unitPriceRial BigInt
-  createdAt     DateTime @default(now())
+  id             String   @id @default(uuid())
+  cartId         String
+  cart           Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id])
+  variantId      String
+  variant        ProductVariant @relation(fields: [variantId], references: [id])
+  quantity       Int      @default(1)
+  unitPriceRial  BigInt
+
+  /// پشتیبانی از سرویس ویژه پرداخت بین‌المللی
+  hasSecureAddon Boolean  @default(false)
+  addonPriceRial BigInt   @default(0)
+
+  createdAt      DateTime @default(now())
 
   @@index([cartId])
   @@map("cart_items")
@@ -281,6 +329,11 @@ model OrderItem {
   variantNameSnapshot  String
   unitPriceRial        BigInt
   quantity             Int      @default(1)
+
+  /// ثبت دائمی وضعیت سرویس پرداخت بین‌المللی برای ادمین
+  hasSecureAddon       Boolean  @default(false)
+  addonPriceRial       BigInt   @default(0)
+
   assignedAccountId    String?  @unique
   assignedAccount      AccountInventory? @relation(fields: [assignedAccountId], references: [id])
   createdAt            DateTime @default(now())
@@ -289,15 +342,13 @@ model OrderItem {
   @@map("order_items")
 }
 
-// ===================== پرداخت (زرین‌پال + زیبال) =====================
+// ===================== پرداخت (زیبال) =====================
 
 model Payment {
   id               String        @id @default(uuid())
   orderId          String
   order            Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  /// درگاه: ZARINPAL یا ZIBAL
-  gateway          PaymentGateway @default(ZARINPAL)
-  /// شناسه یکتای تراکنش (authority زرین‌پال یا trackId زیبال)
+  gateway          PaymentGateway @default(ZIBAL)
   authority        String        @unique
   refId            String?
   amountRial       BigInt
@@ -329,14 +380,10 @@ enum PaymentStatus {
 
 // ===================== نرخ ارز (USDT) =====================
 
-/// نرخ تتر - هر ۱۵ دقیقه از AbanTether دریافت و ثبت می‌شود
 model UsdRate {
   id           String   @id @default(uuid())
-  /// قیمت خرید واقعی از API
   buyPrice     Float
-  /// قیمت نمایشی (کمی پایین‌تر و تمیزتر)
   displayPrice Float
-  /// نرخ گرد شده + ۲٪ برای محاسبه قیمت تومانی
   roundedRate  Float
   fetchedAt    DateTime @default(now())
 
@@ -379,7 +426,6 @@ model TelegramNotification {
 
 // ===================== Flash Deals =====================
 
-/// پیشنهادات ویژه - از Prisma Studio قابل مدیریت است
 model FlashDeal {
   id        String    @id @default(uuid())
   productId String
