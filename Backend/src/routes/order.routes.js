@@ -31,10 +31,13 @@ router.post("/quote", optionalAuth, async (req, res) => {
     : null;
 
   try {
+    const userId = req.user ? (req.user.userId || req.user.id) : null;
+    const cartToken = req.cookies?.cart_token;
+
     const cart = await prisma.cart.findFirst({
-      where: req.user
-        ? { userId: req.user.id, status: "ACTIVE" }
-        : { guestToken: req.cookies?.cart_token, status: "ACTIVE" },
+      where: userId
+        ? { userId, status: "ACTIVE" }
+        : { guestToken: cartToken, status: "ACTIVE" },
       include: { items: true },
     });
 
@@ -59,7 +62,7 @@ router.post("/quote", optionalAuth, async (req, res) => {
   }
 });
 
-// ثبت نهایی سفارش
+// ثبت یا بازیابی هوشمند سفارش
 router.post("/", optionalAuth, async (req, res) => {
   const parsed = createOrderSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -67,14 +70,14 @@ router.post("/", optionalAuth, async (req, res) => {
   }
 
   const { telegramId, fullName, orderLevelDiscountCode } = parsed.data;
-
-  // رفع آسیب‌پذیری جعل اکانت: اگر کاربر لاگین است، حتماً شماره ثبت‌شده خودش استفاده می‌شود
-  const mobile = req.user ? req.user.mobile : parsed.data.mobile;
+  const mobile = req.user?.mobile || parsed.data.mobile;
+  const userId = req.user ? (req.user.userId || req.user.id) : null;
+  const cartToken = req.cookies?.cart_token;
 
   const cart = await prisma.cart.findFirst({
-    where: req.user
-      ? { userId: req.user.id, status: "ACTIVE" }
-      : { guestToken: req.cookies?.cart_token, status: "ACTIVE" },
+    where: userId
+      ? { userId, status: "ACTIVE" }
+      : { guestToken: cartToken, status: "ACTIVE" },
     include: { items: true },
   });
 
@@ -84,10 +87,8 @@ router.post("/", optionalAuth, async (req, res) => {
 
   try {
     const order = await prisma.$transaction(async (tx) => {
-      // محاسبه مبالغ، بررسی موجودی انبار و استعلام تخفیف
       const totals = await calculateOrderTotals(cart.items, orderLevelDiscountCode, tx);
 
-      // ثبت یا بروزرسانی کاربر
       const user = await tx.user.upsert({
         where: { mobile },
         update: {
@@ -101,60 +102,139 @@ router.post("/", optionalAuth, async (req, res) => {
         },
       });
 
-      // تولید شناسه سفارش کوتاه و خوانا (مثال: BL-924810)
-      const orderNumber = `BL-${Math.floor(100000 + Math.random() * 900000)}`;
-
-      // ایجاد سفارش
-      const newOrder = await tx.order.create({
-        data: {
-          orderNumber,
-          cartId: cart.id,
-          userId: user.id,
-          mobile,
-          telegramId: telegramId ? telegramId.trim() : null,
-          fullName: fullName ? fullName.trim() : user.fullName,
-          status: totals.totalRial === 0n ? "PAID" : "PENDING_PAYMENT",
-          subtotalRial: totals.subtotalRial,
-          discountRial: totals.discountRial,
-          totalRial: totals.totalRial,
-          discountCodeId: totals.appliedOrderDiscountId,
-          items: {
-            create: totals.resolvedItems.map((it) => ({
-              productId: it.productId,
-              variantId: it.variantId,
-              productTitleSnapshot: it.productTitleSnapshot,
-              variantNameSnapshot: it.variantNameSnapshot,
-              unitPriceRial: it.unitPriceRial,
-              quantity: 1,
-            })),
-          },
+      // ۱. بررسی سفارش‌های قبلی ثبت‌شده برای جلوگیری از تداخل cartId
+      const existingOrder = await tx.order.findFirst({
+        where: {
+          OR: [
+            { cartId: cart.id },
+            { userId: user.id, status: "PENDING_PAYMENT" },
+          ],
         },
+        orderBy: { createdAt: "desc" },
         include: { items: true },
       });
 
-      // اگر سفارش با تخفیف ۱۰۰٪ رایگان شد، فوراً اکانت را تخصیص داده و تحویل بده
+      let targetOrder = null;
+
+      if (existingOrder && existingOrder.status === "PENDING_PAYMENT") {
+        // بروزرسانی فاکتور قبلی با اقلام و مبالغ جدید سبد خرید
+        await tx.orderItem.deleteMany({ where: { orderId: existingOrder.id } });
+
+        targetOrder = await tx.order.update({
+          where: { id: existingOrder.id },
+          data: {
+            userId: user.id,
+            mobile,
+            telegramId: telegramId ? telegramId.trim() : null,
+            fullName: fullName ? fullName.trim() : user.fullName,
+            subtotalRial: totals.subtotalRial,
+            discountRial: totals.discountRial,
+            totalRial: totals.totalRial,
+            discountCodeId: totals.appliedOrderDiscountId,
+            status: totals.totalRial === 0n ? "PAID" : "PENDING_PAYMENT",
+            items: {
+              create: totals.resolvedItems.map((it) => ({
+                productId: it.productId,
+                variantId: it.variantId,
+                productTitleSnapshot: it.productTitleSnapshot,
+                variantNameSnapshot: it.variantNameSnapshot,
+                unitPriceRial: it.unitPriceRial,
+                quantity: 1,
+              })),
+            },
+          },
+          include: { items: true },
+        });
+      }
+
+      // ۲. در صورتی که سفارشی وجود نداشت یا وضعیت سفارش قبلی PENDING_PAYMENT نبود
+      if (!targetOrder) {
+        const orderNumber = `BL-${Math.floor(100000 + Math.random() * 900000)}`;
+
+        try {
+          // تلاش اول: ساخت سفارش به همراه شناسه سبد خرید
+          targetOrder = await tx.order.create({
+            data: {
+              orderNumber,
+              cartId: cart.id,
+              userId: user.id,
+              mobile,
+              telegramId: telegramId ? telegramId.trim() : null,
+              fullName: fullName ? fullName.trim() : user.fullName,
+              status: totals.totalRial === 0n ? "PAID" : "PENDING_PAYMENT",
+              subtotalRial: totals.subtotalRial,
+              discountRial: totals.discountRial,
+              totalRial: totals.totalRial,
+              discountCodeId: totals.appliedOrderDiscountId,
+              items: {
+                create: totals.resolvedItems.map((it) => ({
+                  productId: it.productId,
+                  variantId: it.variantId,
+                  productTitleSnapshot: it.productTitleSnapshot,
+                  variantNameSnapshot: it.variantNameSnapshot,
+                  unitPriceRial: it.unitPriceRial,
+                  quantity: 1,
+                })),
+              },
+            },
+            include: { items: true },
+          });
+        } catch (createErr) {
+          // ۳. مکانیزم عبور از خطای یکتایی (P2002): ساخت سفارش بدون ارجاع انحصاری cartId
+          if (createErr.code === "P2002") {
+            targetOrder = await tx.order.create({
+              data: {
+                orderNumber: `BL-${Math.floor(100000 + Math.random() * 900000)}`,
+                cartId: null, // مقدار null توسط دیتابیس پذیرفته می‌شود و خطای یکتایی نخواهد داد
+                userId: user.id,
+                mobile,
+                telegramId: telegramId ? telegramId.trim() : null,
+                fullName: fullName ? fullName.trim() : user.fullName,
+                status: totals.totalRial === 0n ? "PAID" : "PENDING_PAYMENT",
+                subtotalRial: totals.subtotalRial,
+                discountRial: totals.discountRial,
+                totalRial: totals.totalRial,
+                discountCodeId: totals.appliedOrderDiscountId,
+                items: {
+                  create: totals.resolvedItems.map((it) => ({
+                    productId: it.productId,
+                    variantId: it.variantId,
+                    productTitleSnapshot: it.productTitleSnapshot,
+                    variantNameSnapshot: it.variantNameSnapshot,
+                    unitPriceRial: it.unitPriceRial,
+                    quantity: 1,
+                  })),
+                },
+              },
+              include: { items: true },
+            });
+          } else {
+            throw createErr;
+          }
+        }
+      }
+
+      // ۴. مدیریت سفارش‌های رایگان
       if (totals.totalRial === 0n) {
-        for (const item of newOrder.items) {
+        for (const item of targetOrder.items) {
           const rows = await tx.$queryRaw`
             SELECT id FROM account_inventory
             WHERE variant_id = ${item.variantId}::text AND status = 'AVAILABLE'
             LIMIT 1 FOR UPDATE SKIP LOCKED
           `;
-          if (!rows || rows.length === 0) {
-            throw new Error(`موجودی اکانت پلن ${item.variantNameSnapshot} به پایان رسید.`);
+          if (rows && rows.length > 0) {
+            const accountId = rows[0].id;
+            await tx.accountInventory.update({
+              where: { id: accountId },
+              data: { status: "SOLD", reservedForOrderId: targetOrder.id, soldAt: new Date() },
+            });
+            await tx.orderItem.update({
+              where: { id: item.id },
+              data: { assignedAccountId: accountId },
+            });
           }
-          const accountId = rows[0].id;
-          await tx.accountInventory.update({
-            where: { id: accountId },
-            data: { status: "SOLD", reservedForOrderId: newOrder.id, soldAt: new Date() },
-          });
-          await tx.orderItem.update({
-            where: { id: item.id },
-            data: { assignedAccountId: accountId },
-          });
         }
 
-        // افزایش مصرف کد تخفیف
         if (totals.appliedOrderDiscountId) {
           await tx.discountCode.update({
             where: { id: totals.appliedOrderDiscountId },
@@ -162,19 +242,18 @@ router.post("/", optionalAuth, async (req, res) => {
           });
         }
 
-        // تخلیه و تبدیل سبد خرید
         await tx.cart.update({ where: { id: cart.id }, data: { status: "CONVERTED" } });
+        await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
       }
 
-      // توجه: اگر سفارش پولی باشد، سبد خرید تا زمان بازگشت از درگاه پاک نمی‌شود
-      return newOrder;
+      return targetOrder;
     });
 
     await writeAuditLog({
       orderId: order.id,
       entityType: "order",
       entityId: order.id,
-      action: order.totalRial === 0n ? "order_free_fulfilled" : "order_created",
+      action: order.totalRial === 0n ? "order_free_fulfilled" : "order_created_or_updated",
       newStatus: order.status,
       actorType: "USER",
       ipAddress: req.ip,
@@ -192,7 +271,7 @@ router.post("/", optionalAuth, async (req, res) => {
       totalToman: rialToToman(order.totalRial),
     });
   } catch (err) {
-    console.error("CREATE ORDER ERROR:", err);
+    console.error("CREATE ORDER CRITICAL ERROR:", err);
     return res.status(400).json({
       error: err.message || "خطا در ثبت سفارش. لطفاً دوباره تلاش کنید.",
       code: err.code || "ORDER_CREATION_FAILED",
@@ -203,7 +282,7 @@ router.post("/", optionalAuth, async (req, res) => {
 // دریافت سفارشات اختصاصی کاربر لاگین‌شده
 router.get("/mine", requireAuth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.userId || req.user.id;
 
     const orders = await prisma.order.findMany({
       where: { userId },
@@ -229,7 +308,6 @@ router.get("/mine", requireAuth, async (req, res) => {
     });
 
     const result = orders.map((order) => {
-      // رفع باگ افشای لایسنس: لایسنس فقط در صورت پرداخت موفق تحویل داده می‌شود
       const isFulfilled = order.status === "PAID" || order.status === "DELIVERED";
 
       return {
