@@ -1,8 +1,8 @@
-// src/components/layout/header/DollarBox.jsx
+// Frontend/src/components/layout/header/DollarBox.jsx
 "use client";
 
 import { useState, useEffect } from "react";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, RefreshCw } from "lucide-react";
 import { apiFetch } from "../../../lib/apiClient";
 
 export default function DollarBox() {
@@ -12,25 +12,39 @@ export default function DollarBox() {
   const fetchRate = async () => {
     try {
       const data = await apiFetch("/api/payment/usd-rate", { silent404: true });
-      if (data?.displayPrice) setDisplayPrice(Math.round(data.displayPrice));
-    } catch { /* silent */ }
-    finally { setLoading(false); }
+      if (data?.displayPrice) {
+        setDisplayPrice(Math.round(data.displayPrice));
+      }
+    } catch {
+      /* سایلنت */
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchRate();
-    const timer = setInterval(fetchRate, 15 * 60 * 1000);
+    const timer = setInterval(fetchRate, 15 * 60 * 1000); // هر ۱۵ دقیقه
     return () => clearInterval(timer);
   }, []);
 
-  if (loading || !displayPrice) return null;
-
   return (
-    <div className="flex items-center gap-1.5 bg-[#fff9c4] border-[2px] border-black rounded-lg px-2.5 py-1 text-[11px] font-black shadow-[-2px_2px_0_0_rgba(0,0,0,1)] shrink-0" title="نرخ لحظه‌ای دلار / تتر">
-      <TrendingUp className="w-3.5 h-3.5 text-emerald-700" />
-      <span className="text-gray-600">دلار:</span>
-      <span className="text-black dir-ltr">{displayPrice.toLocaleString("fa-IR")}</span>
-      <span className="text-gray-500">ت</span>
+    <div
+      className="flex items-center gap-2 px-4 h-full border-l-[3.5px] border-black bg-[#fff9c4] hover:bg-[#fff59d] transition-colors shrink-0 cursor-default select-none"
+      title="نرخ لحظه‌ای دلار / تتر (بروزرسانی خودکار هر ۱۵ دقیقه)"
+    >
+      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+      <div className="flex items-center gap-1.5 font-black text-sm">
+        <span className="text-gray-700">نرخ دلار:</span>
+        {loading && !displayPrice ? (
+          <span className="text-gray-400 text-xs">در حال دریافت...</span>
+        ) : (
+          <span className="text-black dir-ltr tracking-tight">
+            {(displayPrice || 0).toLocaleString("fa-IR")}
+          </span>
+        )}
+        <span className="text-[11px] text-gray-500">تومان</span>
+      </div>
     </div>
   );
 }

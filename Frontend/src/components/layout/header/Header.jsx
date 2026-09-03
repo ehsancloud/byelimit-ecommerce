@@ -1,4 +1,4 @@
-// src/components/layout/header/Header.jsx
+// Frontend/src/components/layout/header/Header.jsx
 "use client";
 import React from "react";
 
@@ -14,7 +14,6 @@ import {
   Sparkles,
   Crown,
   Server,
-  Zap,
   Headphones,
   FileText,
   Code2,
@@ -22,7 +21,6 @@ import {
   Video,
   Music,
   GraduationCap,
-  LayoutDashboard,
 } from "lucide-react";
 
 import SearchBar from "./SearchBar";
@@ -30,41 +28,15 @@ import CategoryDropdown from "./CategoryDropdown";
 import Navbar from "./Navbar";
 import UserMenu from "./UserMenu";
 import CartIcon from "../../cart/CartIcon";
-import DollarBox from "./DollarBox";
 import { useAuth } from "../../../context/AuthContext";
-
-
-// نرخ دلار در منوی موبایل - کامپوننت کوچک inline
-function MobileDollarRow() {
-  const [price, setPrice] = React.useState(null);
-  React.useEffect(() => {
-    const load = async () => {
-      try {
-        const r = await fetch("/api/payment/usd-rate");
-        const d = await r.json();
-        if (d?.displayPrice) setPrice(Math.round(d.displayPrice));
-      } catch {}
-    };
-    load();
-    const t = setInterval(load, 15 * 60 * 1000);
-    return () => clearInterval(t);
-  }, []);
-  if (!price) return null;
-  return (
-    <div className="bg-[#fff9c4] border-[2.5px] border-black p-3 rounded-xl flex items-center justify-between shadow-[-3px_3px_0_0_rgba(0,0,0,1)]">
-      <span className="font-black text-sm">نرخ لحظه‌ای دلار / تتر</span>
-      <span className="font-black text-sm dir-ltr">{price.toLocaleString("fa-IR")} تومان</span>
-    </div>
-  );
-}
 
 export default function Header() {
   const [activeMenu, setActiveMenu] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // استیت‌های موبایل
+  // استیت‌های منوی موبایل
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileAccordion, setMobileAccordion] = useState(null); // 'products' | 'vps' | null
+  const [mobileAccordion, setMobileAccordion] = useState(null);
   const { user } = useAuth();
   const isLoggedIn = !!user;
   const userName = user?.fullName || user?.mobile || "";
@@ -133,16 +105,18 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* سرچ بار و منوهای دسکتاپ */}
+          {/* نوار میانی دسکتاپ: سرچ‌بار + مگامنو + نوبار (حاوی باکس دلار و سبد) */}
           <div className="hidden md:flex items-center flex-1 justify-between">
-            <div className="flex items-center gap-2 flex-1"><SearchBar isScrolled={isScrolled} /><DollarBox /></div>
+            <div className="flex items-center gap-2 flex-1 px-3">
+              <SearchBar isScrolled={isScrolled} />
+            </div>
             <div className="flex items-stretch h-full">
               <CategoryDropdown
                 activeMenu={activeMenu}
                 setActiveMenu={setActiveMenu}
                 isScrolled={isScrolled}
               />
-              <Navbar activeMenu={activeMenu} setActiveMenu={setActiveMenu} />
+              <Navbar />
             </div>
           </div>
 
@@ -151,7 +125,7 @@ export default function Header() {
             <UserMenu />
           </div>
 
-          {/* هدر موبایل (تمیز و بدون دکمه اضافه) */}
+          {/* هدر موبایل */}
           <div className="flex md:hidden items-center justify-between w-full px-3 overflow-visible h-full relative">
             <button
               onClick={() => setMobileMenuOpen(true)}
@@ -195,11 +169,10 @@ export default function Header() {
         </div>
       </div>
 
-      {/* کشو و سایدبار منوی موبایل همراه با انیمیشن نرم Framer Motion */}
+      {/* کشوی منوی موبایل */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-50 md:hidden">
-            {/* بک‌دراپ تاریک با انیمیشن Fade */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -209,7 +182,6 @@ export default function Header() {
               className="absolute inset-0 bg-black/60 backdrop-blur-xs"
             />
 
-            {/* کشوی اصلی با انیمیشن نرم Slide-In از راست */}
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
@@ -218,7 +190,6 @@ export default function Header() {
               className="absolute top-0 right-0 h-full w-[88%] max-w-[340px] bg-[#f3f3f3] border-l-[4px] border-black p-5 flex flex-col justify-between overflow-y-auto shadow-[-8px_0_0_0_rgba(0,0,0,1)]"
             >
               <div className="flex flex-col gap-4">
-                {/* هدر کشو */}
                 <div className="flex items-center justify-between border-b-[3px] border-black pb-3">
                   <span className="font-black text-xl">منوی اصلی</span>
                   <button
@@ -229,19 +200,17 @@ export default function Header() {
                   </button>
                 </div>
 
-                {/* سرچ بار زنده بین محصولات در منوی موبایل */}
                 <div className="w-full">
                   <SearchBar isScrolled={false} onNavigate={closeMobileMenu} />
                 </div>
 
-                {/* لیست آکاردئونی مگامنو موبایل */}
                 <div className="flex flex-col gap-3 mt-1">
-                  {/* محصولات هوش مصنوعی */}
+                  {/* ابزارهای هوش مصنوعی */}
                   <div className="bg-white border-[2.5px] border-black rounded-xl overflow-hidden shadow-[-3px_3px_0_0_rgba(0,0,0,1)]">
                     <button
                       onClick={() =>
                         setMobileAccordion(
-                          mobileAccordion === "products" ? null : "products",
+                          mobileAccordion === "products" ? null : "products"
                         )
                       }
                       className="w-full p-3 font-black text-sm flex items-center justify-between bg-[#ccff00] cursor-pointer"
@@ -273,16 +242,14 @@ export default function Header() {
                             <FileText className="w-4 h-4 text-purple-600" />
                             <span>تولید محتوا و متن</span>
                           </Link>
-
                           <Link
                             href="/products/category/code"
                             onClick={closeMobileMenu}
                             className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
                           >
                             <Code2 className="w-4 h-4 text-emerald-600" />
-                            <span>برنامه نویسی و توسعه نرم افزار</span>
+                            <span>برنامه نویسی و توسعه</span>
                           </Link>
-
                           <Link
                             href="/products/category/image"
                             onClick={closeMobileMenu}
@@ -291,7 +258,6 @@ export default function Header() {
                             <ImageIcon className="w-4 h-4 text-amber-600" />
                             <span>ساخت و ادیت عکس</span>
                           </Link>
-
                           <Link
                             href="/products/category/video"
                             onClick={closeMobileMenu}
@@ -300,7 +266,6 @@ export default function Header() {
                             <Video className="w-4 h-4 text-rose-600" />
                             <span>ساخت و ادیت ویدیو</span>
                           </Link>
-
                           <Link
                             href="/products/category/audio"
                             onClick={closeMobileMenu}
@@ -309,7 +274,6 @@ export default function Header() {
                             <Music className="w-4 h-4 text-cyan-600" />
                             <span>ساخت صدا و موسیقی</span>
                           </Link>
-
                           <Link
                             href="/products/category/research"
                             onClick={closeMobileMenu}
@@ -323,23 +287,50 @@ export default function Header() {
                     </AnimatePresence>
                   </div>
 
-                  {/* اشتراک‌ها و اکانت‌های پرمیوم - هم‌ساختار با مگامنوی دسکتاپ */}
+                  {/* اکانت‌های پرمیوم */}
                   <div className="bg-white border-[2.5px] border-black rounded-xl overflow-hidden shadow-[-3px_3px_0_0_rgba(0,0,0,1)]">
                     <button
-                      onClick={() => setMobileAccordion(mobileAccordion === "premium" ? null : "premium")}
+                      onClick={() =>
+                        setMobileAccordion(
+                          mobileAccordion === "premium" ? null : "premium"
+                        )
+                      }
                       className="w-full p-3 font-black text-sm flex items-center justify-between bg-[#ffd166] cursor-pointer"
                     >
-                      <div className="flex items-center gap-2"><Crown className="w-4 h-4" /><span>اشتراک‌ها و اکانت‌های پرمیوم</span></div>
-                      <ChevronDown className={`w-4 h-4 stroke-[3] transition-transform ${mobileAccordion === "premium" ? "rotate-180" : ""}`} />
+                      <div className="flex items-center gap-2">
+                        <Crown className="w-4 h-4" />
+                        <span>اشتراک‌ها و اکانت‌های پرمیوم</span>
+                      </div>
+                      <ChevronDown
+                        className={`w-4 h-4 stroke-[3] transition-transform ${
+                          mobileAccordion === "premium" ? "rotate-180" : ""
+                        }`}
+                      />
                     </button>
                     <AnimatePresence>
                       {mobileAccordion === "premium" && (
-                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="p-2 grid grid-cols-2 gap-1 bg-white border-t-[2px] border-black overflow-hidden">
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="p-2 grid grid-cols-2 gap-1 bg-white border-t-[2px] border-black overflow-hidden"
+                        >
                           {[
-                            ["film-music", "فیلم و موسیقی"], ["gaming", "گیمینگ و بازی"], ["design-graphics", "طراحی و گرافیک"],
-                            ["seo-marketing", "سئو و مارکتینگ"], ["education-utility", "آموزش و کاربردی"], ["telegram", "تلگرام"],
+                            ["film-music", "فیلم و موسیقی"],
+                            ["gaming", "گیمینگ و بازی"],
+                            ["design-graphics", "طراحی و گرافیک"],
+                            ["seo-marketing", "سئو و مارکتینگ"],
+                            ["education-utility", "آموزش و کاربردی"],
+                            ["telegram", "تلگرام"],
                           ].map(([category, label]) => (
-                            <Link key={category} href={`/products/category/${category}`} onClick={closeMobileMenu} className="p-2 text-xs font-black rounded-lg hover:bg-gray-100">{label}</Link>
+                            <Link
+                              key={category}
+                              href={`/products/category/${category}`}
+                              onClick={closeMobileMenu}
+                              className="p-2 text-xs font-black rounded-lg hover:bg-gray-100"
+                            >
+                              {label}
+                            </Link>
                           ))}
                         </motion.div>
                       )}
@@ -351,7 +342,7 @@ export default function Header() {
                     <button
                       onClick={() =>
                         setMobileAccordion(
-                          mobileAccordion === "vps" ? null : "vps",
+                          mobileAccordion === "vps" ? null : "vps"
                         )
                       }
                       className="w-full p-3 font-black text-sm flex items-center justify-between bg-[#12e2a3] cursor-pointer"
@@ -389,7 +380,11 @@ export default function Header() {
                           >
                             <span>🇺🇸 سرور مجازی آمریکا</span>
                           </Link>
-                          <Link href="/products/vps-finland" onClick={closeMobileMenu} className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2">
+                          <Link
+                            href="/products/vps-finland"
+                            onClick={closeMobileMenu}
+                            className="p-2 text-xs font-black rounded-lg hover:bg-gray-100 flex items-center gap-2"
+                          >
                             <span>🇫🇮 سرور مجازی فنلاند</span>
                           </Link>
                         </motion.div>
@@ -397,8 +392,7 @@ export default function Header() {
                     </AnimatePresence>
                   </div>
 
-                  {/* خدمات و تماس */}
-
+                  {/* تماس با ما */}
                   <Link
                     href="/contact"
                     onClick={closeMobileMenu}
@@ -410,7 +404,7 @@ export default function Header() {
                 </div>
               </div>
 
-              {/* بخش اختصاصی حساب کاربری / ورود در انتهای منوی همبرگری */}
+              {/* بخش ورود / پروفایل موبایل */}
               <div className="pt-4 border-t-[2.5px] border-black mt-4">
                 {isLoggedIn ? (
                   <Link
