@@ -56,8 +56,6 @@ app.use("/api/reviews",     reviewRoutes);
 app.use("/api/flash-deals", flashDealRoutes);
 app.use("/api/flashdeals",  flashDealRoutes);
 
-const reviewRoutes = require("./routes/review.routes");
-app.use("/api/reviews", reviewRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
