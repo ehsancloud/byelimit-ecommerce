@@ -10,6 +10,26 @@ const router = express.Router();
 
 const FRONTEND_URL = (process.env.FRONTEND_URL?.split(",")[0]?.trim() || "https://byelimit.ir").replace(/\/$/, "");
 
+// ───────────── API دریافت نرخ لحظه‌ای دلار برای هدر فرانت‌اند ─────────────
+router.get("/usd-rate", async (req, res) => {
+  try {
+    const rate = await prisma.usdRate.findFirst({
+      orderBy: { fetchedAt: "desc" },
+    });
+
+    if (!rate || !rate.displayPrice) {
+      return res.json({ displayPrice: null, fetchedAt: null });
+    }
+
+    return res.json({
+      displayPrice: rate.displayPrice,
+      fetchedAt: rate.fetchedAt,
+    });
+  } catch (err) {
+    return res.json({ displayPrice: null, fetchedAt: null });
+  }
+});
+
 // ───────────── درخواست پرداخت ─────────────
 router.post("/request", paymentRateLimiter, async (req, res) => {
   try {
@@ -123,7 +143,6 @@ router.get("/callback/zibal", async (req, res) => {
       );
     }
 
-    // لغو پرداخت توسط کاربر در درگاه زیبال
     if (String(success) !== "1") {
       await prisma.payment.update({
         where: { id: payment.id },
@@ -132,7 +151,6 @@ router.get("/callback/zibal", async (req, res) => {
       return res.redirect(`${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}&reason=cancelled`);
     }
 
-    // تایید تراکنش در زیبال
     const verifyResult = await zibal.verifyPayment(trackId);
 
     if (!verifyResult.success) {
@@ -143,9 +161,7 @@ router.get("/callback/zibal", async (req, res) => {
       return res.redirect(`${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}&reason=verify_failed`);
     }
 
-    // بررسی تطابق مبلغ
     if (verifyResult.amount && verifyResult.amount !== payment.amountRial) {
-      console.error(`[SECURITY ALERT] عدم تطابق مبلغ! پرداختی: ${verifyResult.amount} | فاکتور: ${payment.amountRial}`);
       await prisma.payment.update({
         where: { id: payment.id },
         data: { status: "FAILED", gatewayErrorCode: "AMOUNT_MISMATCH" },
@@ -153,7 +169,6 @@ router.get("/callback/zibal", async (req, res) => {
       return res.redirect(`${FRONTEND_URL}/checkout/failed?orderId=${order.orderNumber}&reason=amount_mismatch`);
     }
 
-    // تحویل اکانت و ثبت قطعی پرداخت در دیتابیس
     await fulfillOrderSafe({ order, payment, verifyResult, req });
 
     return res.redirect(
@@ -165,11 +180,10 @@ router.get("/callback/zibal", async (req, res) => {
   }
 });
 
-// ───────────── تحویل امن سفارش و ثبت در دیتابیس ─────────────
+// ───────────── تحویل امن سفارش ─────────────
 async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
   try {
     await prisma.$transaction(async (tx) => {
-      // ۱. تایید وضعیت پرداخت
       await tx.payment.update({
         where: { id: payment.id },
         data: {
@@ -180,7 +194,6 @@ async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
         },
       });
 
-      // ۲. تخصیص اکانت‌های موجود بدون استفاده از raw query خطاساز
       for (const item of order.items) {
         if (item.assignedAccountId) continue;
 
@@ -208,13 +221,11 @@ async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
         }
       }
 
-      // ۳. تایید وضعیت سفارش به PAID
       await tx.order.update({
         where: { id: order.id },
         data: { status: "PAID" },
       });
 
-      // ۴. اعمال مصرف کد تخفیف
       if (order.discountCodeId) {
         await tx.discountCode.update({
           where: { id: order.discountCodeId },
@@ -222,13 +233,11 @@ async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
         });
       }
 
-      // ۵. تبدیل و تخلیه سبد خرید
       if (order.cartId) {
         await tx.cart.update({ where: { id: order.cartId }, data: { status: "CONVERTED" } });
         await tx.cartItem.deleteMany({ where: { cartId: order.cartId } });
       }
 
-      // ۶. ثبت نوتیفیکیشن
       try {
         await tx.telegramNotification.create({
           data: {

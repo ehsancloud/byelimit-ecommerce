@@ -1,5 +1,4 @@
 // Backend/src/jobs/usd-rate-job.js
-// دریافت خودکار نرخ تتر هر ۱۵ دقیقه و محاسبه قیمت‌ها بر اساس فرمول اختصاصی
 "use strict";
 
 const prisma = require("../lib/prisma");
@@ -9,19 +8,19 @@ const NOBITEX_FALLBACK_API = "https://api.nobitex.ir/market/stats?srcCurrency=us
 const INTERVAL_MS = 15 * 60 * 1000; // هر ۱۵ دقیقه
 
 // ───────────────────────────────────────────
-// توابع فرمول اختصاصی
+// توابع فرمول اختصاصی محاسبه قیمت
 // ───────────────────────────────────────────
 
 /**
- * ۱. قیمت دیسپلی (نمایشی): کمی پایین‌تر از قیمت واقعی و رند شده
- * مثلاً ۲۱۸,۳۵۰ تومان → ۲۱۷,۱۰۰ تومان
+ * ۱. قیمت نمایشی (دیسپلی): تمیز و کمی کمتر برای حس منصفانه بودن به خریدار
+ * مثلاً اگر ۲۱۸,۳۵۰ تومان باشد → ۲۱۷,۱۰۰ تومان
  */
 function calcDisplayPrice(rawBuy) {
   return Math.floor((rawBuy * 0.994) / 100) * 100;
 }
 
 /**
- * ۲. قیمت محاسباتی: گرد شده به بالا با تقریب ۲ درصد
+ * ۲. قیمت محاسباتی پایه: ۲٪ بالاتر و گرد شده به سمت بالا به نزدیک‌ترین ۱,۰۰۰ تومان
  * مثلاً ۲۱۸,۳۰۰ × ۱.۰۲ = ۲۲۲,۶۶۶ → ۲۲۳,۰۰۰ تومان
  */
 function calcRoundedRate(rawBuy) {
@@ -30,8 +29,8 @@ function calcRoundedRate(rawBuy) {
 }
 
 /**
- * ۳. قیمت دلاری جدید = دلار پایه محصول + 0.6
- * قیمت ضرب‌شده = (dollarUsd + 0.6) × roundedRate
+ * ۳. قیمت دلاری جدید = قیمت دلاری محصول + 0.6
+ * قیمت ریالی پایه = (dollarUsd + 0.6) × roundedRate
  */
 function calcBaseToman(dollarUsd, roundedRate) {
   const adjustedUsd = dollarUsd + 0.6;
@@ -39,16 +38,17 @@ function calcBaseToman(dollarUsd, roundedRate) {
 }
 
 /**
- * ۴. مالیات ۵٪ + کارمزد ۱٪ (سقف ۳۰,۰۰۰ تومان) = قیمت تمام شده برای ما
+ * ۴. مالیات ۵٪ + کارمزد ۱٪ (تا سقف ۳۰,۰۰۰ تومان)
+ * قیمت تمام شده برای ما = قیمت پایه + ۵٪ مالیات + کارمزد
  */
 function applyTaxAndFee(baseToman) {
-  const withTax = baseToman * 1.05; // به علاوه ۵ درصد مالیات
-  const fee = Math.min(withTax * 0.01, 30000); // ۱ درصد تا سقف ۳۰ هزار تومان
+  const withTax = baseToman * 1.05;
+  const fee = Math.min(withTax * 0.01, 30000);
   return withTax + fee;
 }
 
 /**
- * ۵. اعمال حاشیه سود اختصاصی از جدول ProductPriceConfig
+ * ۵. اعمال حاشیه سود از جدول ProductPriceConfig
  */
 function applyProfit(costToman, config) {
   if (!config) {
@@ -69,14 +69,14 @@ function applyProfit(costToman, config) {
 }
 
 /**
- * ۶. تمیز و رند کردن قیمت نهایی به نزدیک‌ترین ۱۰۰۰ تومان
+ * ۶. گرد کردن قیمت نهایی به نزدیک‌ترین ۱,۰۰۰ تومان
  */
 function roundFinalToman(toman) {
   return Math.round(toman / 1000) * 1000;
 }
 
 // ───────────────────────────────────────────
-// متدهای ارتباطی و دریافت نرخ تتر
+// متدهای دریافت نرخ آنلاین تتر
 // ───────────────────────────────────────────
 
 function parseAbantetherResponse(data) {
@@ -99,7 +99,7 @@ async function fetchUsdtRate() {
     "Accept": "application/json",
   };
 
-  // تلاش اول: آبان‌تتر
+  // ۱. استعلام از آبان‌تتر
   try {
     const res = await fetch(ABANTETHER_API, {
       headers,
@@ -111,10 +111,10 @@ async function fetchUsdtRate() {
       if (price && price > 10000) return price;
     }
   } catch (err) {
-    console.warn("[usd-rate-job] خطا در اتصال به آبان‌تتر، سوئیچ به سرور پشتیبان...");
+    console.warn("[usd-rate-job] وب‌سرویس آبان‌تتر پاسخ نداد، استفاده از سرور پشتیبان...");
   }
 
-  // تلاش دوم (پشتیبان): نوبیتکس
+  // ۲. سرور پشتیبان نوبیتکس در صورت در دسترس نبودن آبان‌تتر
   try {
     const res = await fetch(NOBITEX_FALLBACK_API, {
       headers,
@@ -124,11 +124,11 @@ async function fetchUsdtRate() {
       const data = await res.json();
       const latestRial = parseFloat(data?.stats?.["usdt-rls"]?.latest || 0);
       if (latestRial && latestRial > 100000) {
-        return Math.round(latestRial / 10); // تبدیل ریال به تومان
+        return Math.round(latestRial / 10);
       }
     }
   } catch (err) {
-    console.error("[usd-rate-job] خطا در وب‌سرویس پشتیبان:", err.message);
+    console.error("[usd-rate-job] خطای وب‌سرویس پشتیبان:", err.message);
   }
 
   return 0;
@@ -141,14 +141,14 @@ async function fetchAndUpdatePrices() {
   try {
     const rawBuy = await fetchUsdtRate();
     if (!rawBuy || rawBuy < 10000) {
-      console.warn("[usd-rate-job] نرخ معتبری دریافت نشد. آخرین نرخ دیتابیس حفظ می‌شود.");
+      console.warn("[usd-rate-job] نرخ جدید دریافت نشد؛ آخرین نرخ دیتابیس معتبر است.");
       return;
     }
 
     const displayPrice = calcDisplayPrice(rawBuy);
     const roundedRate = calcRoundedRate(rawBuy);
 
-    // ثبت در جدول تاریخچه نرخ دلار
+    // ثبت در تاریخچه نرخ ارز
     await prisma.usdRate.create({
       data: {
         buyPrice: rawBuy,
@@ -157,7 +157,7 @@ async function fetchAndUpdatePrices() {
       },
     });
 
-    // بازیابی تمام واریانت‌های فعال
+    // بروزرسانی تمام واریانت‌های دارای فرمول دلاری
     const variants = await prisma.productVariant.findMany({
       where: { isActive: true },
       include: { priceConfig: true },
@@ -168,7 +168,7 @@ async function fetchAndUpdatePrices() {
     for (const variant of variants) {
       let cfg = variant.priceConfig;
 
-      // اگر کانفیگ نداشت، خودکار یک رکورد برای مدیریت در پریسمای استودیو بساز
+      // ایجاد خودکار رکورد تنظیمات قیمت در صورت نبود
       if (!cfg) {
         cfg = await prisma.productPriceConfig.create({
           data: {
@@ -180,7 +180,7 @@ async function fetchAndUpdatePrices() {
         });
       }
 
-      // اگر تیک فرمول برداشته شده، قیمت ثابت درج می‌شود
+      // در صورت غیرفعال بودن فرمول دلاری، قیمت ثابت ثبت می‌شود
       if (!cfg.useUsdFormula) {
         if (cfg.fixedPriceRial) {
           await prisma.productVariant.update({
@@ -192,7 +192,7 @@ async function fetchAndUpdatePrices() {
         continue;
       }
 
-      // محاسبه با فرمول دلاری
+      // محاسبه نهایی قیمت ریالی با فرمول
       const dollarUsd = Number(variant.costUsd || 0);
       if (!dollarUsd) continue;
 
@@ -209,14 +209,17 @@ async function fetchAndUpdatePrices() {
       updatedCount++;
     }
 
-    console.log(`[usd-rate-job] ✅ نرخ لحظه‌ای: ${rawBuy.toLocaleString("fa-IR")} ت | نمایش: ${displayPrice.toLocaleString("fa-IR")} ت | نرخ محاسباتی: ${roundedRate.toLocaleString("fa-IR")} ت | بروزرسانی ${updatedCount} محصول`);
+    console.log(`[usd-rate-job] ✅ تتر لحظه‌ای: ${rawBuy.toLocaleString("fa-IR")} ت | نمایش: ${displayPrice.toLocaleString("fa-IR")} ت | نرخ محاسباتی: ${roundedRate.toLocaleString("fa-IR")} ت | بروزرسانی ${updatedCount} پلن`);
   } catch (err) {
-    console.error("[usd-rate-job] ❌ خطا در اجرای کرون جاب:", err.message);
+    console.error("[usd-rate-job] ❌ خطا در کرون جاب:", err.message);
   }
 }
 
-// اجرای اولیه هنگام روشن شدن سرور و سپس تکرار هر ۱۵ دقیقه
+// اجرای اول هنگام لود فایل و تکرار هر ۱۵ دقیقه
 fetchAndUpdatePrices();
 const timer = setInterval(fetchAndUpdatePrices, INTERVAL_MS);
 
-module.exports = { fetchAndUpdatePrices, stop: () => clearInterval(timer) };D
+module.exports = {
+  fetchAndUpdatePrices,
+  stop: () => clearInterval(timer),
+};
