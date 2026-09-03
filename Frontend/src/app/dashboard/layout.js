@@ -2,43 +2,43 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ShoppingBag, User, LogOut, LayoutDashboard, Home } from "lucide-react";
-import { apiFetch } from "../../lib/apiClient";
+import { useAuth } from "../../context/AuthContext";
 
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [user, setUser] = useState(null);
+  const router   = useRouter();
+  const { user, loading, logout } = useAuth();
 
+  // محافظت از مسیر - redirect اگر لاگین نیست
   useEffect(() => {
-    apiFetch("/api/auth/me", { silent404: true })
-      .then((data) => {
-        if (data?.user) {
-          setUser(data.user);
-        } else {
-          // اگر لاگین نیست، به صفحه ورود هدایت شود
-          router.replace("/auth");
-        }
-      })
-      .catch(() => router.replace("/auth"));
-  }, [router]);
+    if (!loading && !user) {
+      router.replace("/auth");
+    }
+  }, [user, loading, router]);
 
   const handleLogout = async () => {
-    try {
-      await apiFetch("/api/auth/logout", { method: "POST" });
-      localStorage.removeItem("byelimit_user");
-      localStorage.removeItem("byelimit_token");
-    } catch {}
+    await logout();
     router.replace("/auth");
   };
 
-  // ✅ FIX: تیکت‌های پشتیبانی از منو حذف شد
   const menuItems = [
     { name: "پیشخوان",          href: "/dashboard",         icon: LayoutDashboard },
     { name: "سفارش‌ها و کدها", href: "/dashboard/orders",  icon: ShoppingBag     },
     { name: "پروفایل من",       href: "/dashboard/profile", icon: User            },
   ];
+
+  // در حال بارگذاری - صبر کن قبل از نمایش
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f3f3f3]">
+        <div className="w-8 h-8 border-4 border-black border-t-[#12e2a3] rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) return null; // redirect در useEffect اجرا می‌شود
 
   return (
     <div className="min-h-screen bg-[#f3f3f3] font-[family-name:var(--font-farsi)] dir-rtl text-black select-none pb-12">
@@ -63,10 +63,8 @@ export default function DashboardLayout({ children }) {
                 </Link>
               );
             })}
-            {/* دکمه خروج در موبایل */}
             <button onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-[2px] border-transparent font-black text-xs whitespace-nowrap shrink-0 text-rose-600 hover:bg-rose-50 transition-all"
-            >
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border-[2px] border-transparent font-black text-xs whitespace-nowrap shrink-0 text-rose-600 hover:bg-rose-50 transition-all cursor-pointer">
               <LogOut className="w-4 h-4 stroke-[2.5]" />
               <span>خروج</span>
             </button>
@@ -77,7 +75,6 @@ export default function DashboardLayout({ children }) {
 
           {/* سایدبار دسکتاپ */}
           <aside className="hidden lg:flex lg:col-span-3 bg-white border-[3.5px] border-black rounded-[24px] p-5 shadow-[-8px_8px_0_0_rgba(0,0,0,1)] flex-col gap-6 sticky top-20">
-            {/* مشخصات کاربر */}
             <div className="flex items-center gap-3 border-b-[2.5px] border-black pb-4">
               <div className="w-12 h-12 bg-[#ccff00] border-[2px] border-black rounded-xl flex items-center justify-center font-black text-base shadow-[-2px_2px_0_0_rgba(0,0,0,1)] shrink-0">
                 👤
@@ -92,7 +89,6 @@ export default function DashboardLayout({ children }) {
               </div>
             </div>
 
-            {/* منوی ناوبری */}
             <nav className="flex flex-col gap-2">
               {menuItems.map((item) => {
                 const Icon = item.icon;
@@ -112,24 +108,20 @@ export default function DashboardLayout({ children }) {
               })}
             </nav>
 
-            {/* دکمه‌های پایین سایدبار */}
             <div className="flex flex-col gap-2 pt-2 border-t-[2px] border-black">
               <Link href="/"
-                className="flex items-center gap-2 p-2.5 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-100 transition-colors"
-              >
+                className="flex items-center gap-2 p-2.5 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-100 transition-colors">
                 <Home className="w-4 h-4" />
                 <span>بازگشت به سایت</span>
               </Link>
               <button onClick={handleLogout}
-                className="flex items-center gap-2 p-2.5 rounded-lg text-sm font-bold text-rose-600 hover:bg-rose-50 transition-colors text-right w-full"
-              >
+                className="flex items-center gap-2 p-2.5 rounded-lg text-sm font-bold text-rose-600 hover:bg-rose-50 transition-colors text-right w-full cursor-pointer">
                 <LogOut className="w-4 h-4" />
                 <span>خروج از حساب</span>
               </button>
             </div>
           </aside>
 
-          {/* محتوای اصلی */}
           <main className="lg:col-span-9">{children}</main>
         </div>
       </div>

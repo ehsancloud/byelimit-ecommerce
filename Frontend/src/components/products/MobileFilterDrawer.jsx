@@ -1,3 +1,4 @@
+"use client";
 import { useEffect } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import Filters from "./Filters";

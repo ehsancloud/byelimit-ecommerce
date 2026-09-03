@@ -4,7 +4,13 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { apiFetch } from "../lib/apiClient";
 
-const CartContext = createContext(null);
+const DEFAULT_CART_CTX = {
+  items: [], itemCount: 0, totalRial: 0n, loading: true,
+  addItem: async () => {}, removeItem: async () => {},
+  updateQuantity: async () => {}, clearCart: async () => {},
+  refreshCart: async () => {},
+};
+const CartContext = createContext(DEFAULT_CART_CTX);
 
 function mapServerCart(serverCart) {
   if (!serverCart) return [];

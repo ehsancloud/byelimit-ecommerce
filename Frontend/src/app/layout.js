@@ -4,6 +4,7 @@ import Footer from "../components/layout/footer/Footer";
 import FloatingSupport from "../components/layout/FloatingSupport";
 import Breadcrumb from "../components/common/Breadcrumb";
 import { CartProvider } from "../context/CartContext";
+import { AuthProvider } from "../context/AuthContext";
 import "./globals.css";
 
 const fontFarsi = localFont({
@@ -19,30 +20,29 @@ export const metadata = {
   title: "بای لیمیت | فروشگاه اکانت‌های هوش مصنوعی",
   description:
     "خرید اکانت‌های اختصاصی و قانونی هوش مصنوعی (ChatGPT، Claude، Midjourney و...) با تحویل سریع و ضمانت ۱۰۰٪.",
-  // ✅ FIX: جلوگیری از نمایش نوتیف Google Translate در تمام صفحات
   other: { google: "notranslate" },
 };
 
 export default function RootLayout({ children }) {
   return (
-    // ✅ translate="no" روی <html> - جلوگیری از زوم Google Translate
     <html lang="fa" dir="rtl" className={fontFarsi.variable} translate="no">
       <head>
-        {/* ✅ meta برای مرورگرهایی که از translate="no" پشتیبانی نمی‌کنند */}
         <meta name="google" content="notranslate" />
         <meta httpEquiv="Content-Language" content="fa" />
       </head>
       <body className="font-[family-name:var(--font-farsi)] antialiased bg-[#f3f3f3] text-black">
-        <CartProvider>
-          <Header />
-          {/* ✅ بردکرامب سراسری - روی همه صفحات (جز صفحه اصلی) نمایش داده می‌شود */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 font-[family-name:var(--font-farsi)]">
-            <Breadcrumb />
-          </div>
-          {children}
-          <Footer />
-          <FloatingSupport />
-        </CartProvider>
+        {/* AuthProvider باید بیرونی‌ترین provider باشد تا useAuth در همه صفحات کار کند */}
+        <AuthProvider>
+          <CartProvider>
+            <Header />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 font-[family-name:var(--font-farsi)]">
+              <Breadcrumb />
+            </div>
+            {children}
+            <Footer />
+            <FloatingSupport />
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );
