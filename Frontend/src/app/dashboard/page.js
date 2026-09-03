@@ -1,3 +1,4 @@
+// Frontend/src/app/dashboard/page.js
 "use client";
 
 import { useEffect, useState } from "react";
@@ -24,8 +25,9 @@ export default function DashboardHomePage() {
   const [copiedId, setCopiedId] = useState(null);
 
   useEffect(() => {
-    apiFetch("/api/orders/mine").catch(() => [])
+    apiFetch("/api/orders/mine")
       .then((data) => setOrders(Array.isArray(data) ? data : []))
+      .catch(() => setOrders([]))
       .finally(() => setLoading(false));
   }, []);
 
@@ -35,7 +37,6 @@ export default function DashboardHomePage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // فقط سفارشات نهایی (پرداخت‌شده یا تحویل‌شده)
   const finalOrders = orders.filter((o) => o.status === "PAID" || o.status === "DELIVERED");
   const lastFinalOrder = finalOrders[0];
 
@@ -49,7 +50,7 @@ export default function DashboardHomePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* خوش‌آمدگویی */}
+      {/* پیام خوش‌آمدگویی */}
       <div className="bg-[#ccff00] border-[3.5px] border-black rounded-[24px] p-6 shadow-[-8px_8px_0_0_rgba(0,0,0,1)] flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <span className="bg-white border border-black px-2.5 py-0.5 rounded text-xs font-black mb-1 inline-block">پنل کاربری خریدار</span>
@@ -65,7 +66,7 @@ export default function DashboardHomePage() {
         </Link>
       </div>
 
-      {/* آمار - فقط سفارشات نهایی */}
+      {/* آمار سفارشات نهایی */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-white border-[2.5px] border-black p-5 rounded-2xl shadow-[-4px_4px_0_0_rgba(0,0,0,1)] flex items-center justify-between">
           <div>
@@ -105,7 +106,7 @@ export default function DashboardHomePage() {
                   <h3 key={i} className="font-black text-sm md:text-base">{item.productTitle}</h3>
                 ))}
                 <p className="text-xs font-bold text-gray-500 mt-1 dir-ltr text-right">
-                  {lastFinalOrder.orderNumber.slice(0, 8).toUpperCase()} • {new Date(lastFinalOrder.createdAt).toLocaleDateString("fa-IR")}
+                  {lastFinalOrder.orderNumber.toUpperCase()} • {new Date(lastFinalOrder.createdAt).toLocaleDateString("fa-IR")}
                 </p>
               </div>
               <span className={`text-[10px] font-black px-3 py-1 border-[2px] rounded-lg shrink-0 ${STATUS_COLOR[lastFinalOrder.status] || "bg-gray-100 border-black"}`}>
@@ -122,7 +123,7 @@ export default function DashboardHomePage() {
                       <pre className="dir-ltr text-right font-mono text-xs font-black whitespace-pre-wrap">{item.credentials}</pre>
                     </div>
                     <button onClick={() => handleCopy(item.credentials, `${lastFinalOrder.id}-${i}`)}
-                      className="p-1.5 bg-white border-[1.5px] border-black rounded-lg hover:bg-gray-100 shrink-0">
+                      className="p-1.5 bg-white border-[1.5px] border-black rounded-lg hover:bg-gray-100 shrink-0 cursor-pointer">
                       {copiedId === `${lastFinalOrder.id}-${i}` ? <Check className="w-4 h-4 text-emerald-600 stroke-[2.5]" /> : <Copy className="w-4 h-4 stroke-[2.5]" />}
                     </button>
                   </div>

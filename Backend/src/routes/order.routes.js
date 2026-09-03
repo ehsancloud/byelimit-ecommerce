@@ -62,7 +62,7 @@ router.post("/quote", optionalAuth, async (req, res) => {
   }
 });
 
-// ثبت یا بازیابی سفارش
+// ثبت یا بازیابی هوشمند سفارش
 router.post("/", optionalAuth, async (req, res) => {
   const parsed = createOrderSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -209,7 +209,6 @@ router.post("/", optionalAuth, async (req, res) => {
         }
       }
 
-      // تحویل سفارش رایگان
       if (totals.totalRial === 0n) {
         for (const item of targetOrder.items) {
           const availableAccount = await tx.accountInventory.findFirst({
@@ -271,63 +270,20 @@ router.post("/", optionalAuth, async (req, res) => {
   }
 });
 
-// ✅ اندپوینت فچ جزئیات سفارش برای صفحه موفقیت پرداخت و پیگیری
-router.get("/:orderNumber", async (req, res) => {
-  try {
-    const { orderNumber } = req.params;
-    const { mobile } = req.query;
-
-    const order = await prisma.order.findFirst({
-      where: {
-        orderNumber,
-        ...(mobile ? { mobile: String(mobile).trim() } : {}),
-      },
-      include: {
-        items: true,
-        payments: {
-          where: { status: "VERIFIED" },
-          select: { refId: true, verifiedAt: true, cardPanMasked: true },
-          take: 1,
-        },
-      },
-    });
-
-    if (!order) {
-      return res.status(404).json({ error: "سفارش مورد نظر یافت نشد." });
-    }
-
-    return res.json({
-      id: order.id,
-      orderNumber: order.orderNumber,
-      status: order.status,
-      statusLabel: STATUS_LABEL[order.status] || order.status,
-      mobile: order.mobile,
-      fullName: order.fullName,
-      totalRial: order.totalRial.toString(),
-      totalToman: rialToToman(order.totalRial),
-      createdAt: order.createdAt,
-      payment: order.payments[0] || null,
-      items: order.items.map((it) => ({
-        id: it.id,
-        productTitle: it.productTitleSnapshot,
-        variantName: it.variantNameSnapshot,
-        unitPriceToman: rialToToman(it.unitPriceRial),
-        quantity: it.quantity,
-      })),
-    });
-  } catch (err) {
-    console.error("GET ORDER BY NUMBER ERROR:", err);
-    return res.status(500).json({ error: "خطا در بازیابی مشخصات سفارش." });
-  }
-});
-
-// دریافت سفارشات کاربر لاگین‌شده برای داشبورد
+// ───────────── دریافت سفارشات کاربر لاگین‌شده (الزاماً قبل از :orderNumber) ─────────────
 router.get("/mine", requireAuth, async (req, res) => {
   try {
     const userId = req.user.userId || req.user.id;
+    const userMobile = req.user.mobile;
 
+    // تطبیق هوشمند با شناسه کاربر یا شماره موبایل کاربر جهت اطمینان از نمایش همه خریدهای او
     const orders = await prisma.order.findMany({
-      where: { userId },
+      where: {
+        OR: [
+          { userId },
+          ...(userMobile ? [{ mobile: userMobile }] : []),
+        ],
+      },
       include: {
         items: {
           include: {
@@ -374,6 +330,59 @@ router.get("/mine", requireAuth, async (req, res) => {
   } catch (err) {
     console.error("GET MY ORDERS ERROR:", err);
     return res.status(500).json({ error: "خطا در دریافت لیست سفارشات." });
+  }
+});
+
+// ───────────── دریافت جزئیات یک سفارش با شماره سفارش ─────────────
+router.get("/:orderNumber", async (req, res, next) => {
+  // اگر به هر دلیلی درخواست /mine به اینجا رسید، به روت بعدی هدایت کن
+  if (req.params.orderNumber === "mine") return next();
+
+  try {
+    const { orderNumber } = req.params;
+    const { mobile } = req.query;
+
+    const order = await prisma.order.findFirst({
+      where: {
+        orderNumber,
+        ...(mobile ? { mobile: String(mobile).trim() } : {}),
+      },
+      include: {
+        items: true,
+        payments: {
+          where: { status: "VERIFIED" },
+          select: { refId: true, verifiedAt: true, cardPanMasked: true },
+          take: 1,
+        },
+      },
+    });
+
+    if (!order) {
+      return res.status(404).json({ error: "سفارش مورد نظر یافت نشد." });
+    }
+
+    return res.json({
+      id: order.id,
+      orderNumber: order.orderNumber,
+      status: order.status,
+      statusLabel: STATUS_LABEL[order.status] || order.status,
+      mobile: order.mobile,
+      fullName: order.fullName,
+      totalRial: order.totalRial.toString(),
+      totalToman: rialToToman(order.totalRial),
+      createdAt: order.createdAt,
+      payment: order.payments[0] || null,
+      items: order.items.map((it) => ({
+        id: it.id,
+        productTitle: it.productTitleSnapshot,
+        variantName: it.variantNameSnapshot,
+        unitPriceToman: rialToToman(it.unitPriceRial),
+        quantity: it.quantity,
+      })),
+    });
+  } catch (err) {
+    console.error("GET ORDER BY NUMBER ERROR:", err);
+    return res.status(500).json({ error: "خطا در بازیابی مشخصات سفارش." });
   }
 });
 

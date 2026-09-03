@@ -1,3 +1,4 @@
+// Frontend/src/app/dashboard/orders/page.js
 "use client";
 
 import { useState, useEffect } from "react";
@@ -14,7 +15,6 @@ const STATUS_LABEL = {
   DELIVERED: "📦 تحویل‌شده",
 };
 
-// ✅ FIX: فقط سفارشات تکمیل‌شده (PAID / DELIVERED) نمایش داده می‌شوند
 const COMPLETED_STATUSES = ["PAID", "DELIVERED"];
 
 export default function DashboardOrdersPage() {
@@ -82,7 +82,7 @@ export default function DashboardOrdersPage() {
               {/* هدر کارت */}
               <div className="flex flex-wrap items-center justify-between border-b-[2.5px] border-black pb-3 gap-2">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-black text-sm dir-ltr">{order.orderNumber.slice(0,8).toUpperCase()}</span>
+                  <span className="font-black text-sm dir-ltr">{order.orderNumber.toUpperCase()}</span>
                   <span className="text-gray-400">•</span>
                   <span className="text-xs font-bold text-gray-600">{new Date(order.createdAt).toLocaleDateString("fa-IR")}</span>
                   <span className="text-gray-400">•</span>
@@ -109,7 +109,7 @@ export default function DashboardOrdersPage() {
                           اطلاعات ورود به اکانت
                         </span>
                         <button onClick={() => handleCopy(item.credentials, `${order.id}-${idx}`)}
-                          className="flex items-center gap-1 text-[10px] font-black bg-white border-[1.5px] border-black px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors"
+                          className="flex items-center gap-1 text-[10px] font-black bg-white border-[1.5px] border-black px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
                         >
                           {copiedId === `${order.id}-${idx}`
                             ? <><Check className="w-3 h-3 text-emerald-600" /><span>کپی شد!</span></>
@@ -124,7 +124,7 @@ export default function DashboardOrdersPage() {
                   ) : (
                     <div className="bg-yellow-50 border-[2px] border-yellow-400 p-3 rounded-xl text-xs font-bold text-yellow-700 flex items-center gap-2">
                       <span>⏳</span>
-                      <span>اکانت در حال تخصیص است. اگر بیشتر از ۳۰ دقیقه گذشته، از طریق <a href="https://t.me/byelimit_support" className="underline">پشتیبانی تلگرام</a> پیگیری کنید.</span>
+                      <span>اکانت در حال تحویل و هماهنگی است. می‌توانید مستقیماً به <a href="https://t.me/byelimit_support" target="_blank" rel="noopener noreferrer" className="underline font-black">پشتیبانی تلگرام</a> پیام دهید.</span>
                     </div>
                   )}
                 </div>
@@ -133,7 +133,7 @@ export default function DashboardOrdersPage() {
               {order.payment?.refId && (
                 <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 border-t-[1.5px] border-gray-200 pt-3">
                   <ExternalLink className="w-3.5 h-3.5" />
-                  <span>شماره پیگیری: </span>
+                  <span>کد رهگیری تراکنش: </span>
                   <span className="dir-ltr font-mono font-black text-gray-700">{order.payment.refId}</span>
                 </div>
               )}
