@@ -1,4 +1,4 @@
-// src/app/auth/page.js
+// Frontend/src/app/auth/page.js
 "use client";
 
 import { Suspense, useState, useEffect } from "react";
@@ -13,9 +13,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { apiFetch } from "../../lib/apiClient";
+import { useAuth } from "../../context/AuthContext";
 
-// Next.js نیازمند این است که هر کامپوننتی که از useSearchParams استفاده می‌کند
-// داخل یک Suspense boundary باشد - این باگ build از قبل در پروژه وجود داشت.
 export default function AuthPage() {
   return (
     <Suspense fallback={null}>
@@ -28,17 +27,18 @@ function AuthPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/dashboard";
+  const { login } = useAuth();
 
-  // استیت‌های ورود (مرحله ۱: دریافت شماره / مرحله ۲: دریافت کد OTP)
+  // مرحله ۱: شماره موبایل | مرحله ۲: کد OTP پنج رقمی
   const [step, setStep] = useState(1);
   const [mobile, setMobile] = useState("");
   const [mobileError, setMobileError] = useState("");
-  const [otpCode, setOtpCode] = useState(["", "", "", ""]);
+  const [otpCode, setOtpCode] = useState(["", "", "", "", ""]);
   const [otpError, setOtpError] = useState("");
-  const [timer, setTimer] = useState(120); // تایمر ۲ دقیقه‌ای
+  const [timer, setTimer] = useState(120);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // تایمر معکوس برای ارسال مجدد کد
+  // شمارش معکوس ارسال مجدد پیامک
   useEffect(() => {
     let interval = null;
     if (step === 2 && timer > 0) {
@@ -51,12 +51,17 @@ function AuthPageInner() {
     return () => clearInterval(interval);
   }, [step, timer]);
 
-  // ارسال شماره موبایل و درخواست کد OTP
+  // درخواست ارسال کد OTP
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setMobileError("");
-    const mobileRegex = /^09\d{9}$/;
-    if (!mobileRegex.test(mobile)) {
+
+    // تبدیل ارقام فارسی و عربی به انگلیسی
+    let cleanMobile = mobile.trim()
+      .replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+      .replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+
+    if (!/^09\d{9}$/.test(cleanMobile)) {
       setMobileError("لطفاً شماره موبایل معتبر ۱۱ رقمی (مانند 09123456789) وارد کنید.");
       return;
     }
@@ -65,36 +70,42 @@ function AuthPageInner() {
     try {
       await apiFetch("/api/auth/send-otp", {
         method: "POST",
-        body: JSON.stringify({ mobile }),
+        body: JSON.stringify({ mobile: cleanMobile }),
       });
+      setMobile(cleanMobile);
       setStep(2);
       setTimer(120);
+      setOtpCode(["", "", "", "", ""]);
     } catch (err) {
-      setMobileError(err.message || "ارسال کد ناموفق بود. دوباره تلاش کنید.");
+      setMobileError(err.message || "ارسال کد ناموفق بود. لطفاً دوباره تلاش کنید.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // تغییر هوشمند اینپوت‌های کد OTP از چپ به راست
+  // مدیریت تغییر اینپوت‌ها از چپ به راست (۵ کادر)
   const handleOtpChange = (e, index) => {
-    const value = e.target.value;
-    if (isNaN(value)) return;
+    let value = e.target.value;
+    // تبدیل ارقام فارسی یا عربی
+    value = value
+      .replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+      .replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+
+    if (value && isNaN(value)) return;
 
     const newOtp = [...otpCode];
-    // نگه‌داشتن آخرین رقم واردشده
     newOtp[index] = value.substring(value.length - 1);
     setOtpCode(newOtp);
     setOtpError("");
 
-    // حرکت به خانه بعدی (سمت راست‌تر در ظاهر LTR)
-    if (value && index < 3) {
+    // انتقال خودکار فوکوس به خانه بعدی (تا ۴ خانه اول)
+    if (value && index < 4) {
       const nextInput = document.getElementById(`otp-input-${index + 1}`);
       if (nextInput) nextInput.focus();
     }
   };
 
-  // مدیریت کلید Backspace برای برگشت به خانه قبلی
+  // مدیریت کلید Backspace برای برگشت به کادر قبلی
   const handleOtpKeyDown = (e, index) => {
     if (e.key === "Backspace" && !otpCode[index] && index > 0) {
       const prevInput = document.getElementById(`otp-input-${index - 1}`);
@@ -104,42 +115,47 @@ function AuthPageInner() {
     }
   };
 
-  // پشتیبانی از Paste کپی‌کردن کامل کد ۴ رقمی
+  // پشتیبانی از Paste مستقیم کد ۵ رقمی
   const handleOtpPaste = (e) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData("text").trim();
-    if (/^\d{4}$/.test(pastedData)) {
+    let pastedData = e.clipboardData.getData("text").trim();
+    pastedData = pastedData
+      .replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+      .replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+
+    if (/^\d{5}$/.test(pastedData)) {
       const digits = pastedData.split("");
       setOtpCode(digits);
-      const lastInput = document.getElementById("otp-input-3");
+      const lastInput = document.getElementById("otp-input-4");
       if (lastInput) lastInput.focus();
     }
   };
 
-  // تایید کد OTP و ورود به حساب
+  // تایید کد و ورود
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     setOtpError("");
     const fullCode = otpCode.join("");
-    if (fullCode.length < 4) {
-      setOtpError("لطفاً کد تایید ۴ رقمی را کامل وارد کنید.");
+
+    if (fullCode.length < 5) {
+      setOtpError("لطفاً کد تایید ۵ رقمی را به صورت کامل وارد کنید.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // بک‌اند خودش کوکی auth_token را به‌صورت httpOnly ست می‌کند (از طریق
-      // Set-Cookie روی پاسخ) - فرانت‌اند دیگر نیازی به دستکاری document.cookie ندارد.
       const result = await apiFetch("/api/auth/verify-otp", {
         method: "POST",
         body: JSON.stringify({ mobile, code: fullCode }),
       });
-      if (result.user?.fullName) {
-        window.localStorage.setItem("byelimit_user_name", result.user.fullName);
+
+      if (result.user) {
+        login(result.user, result.token);
       }
+
       router.push(redirectTo);
     } catch (err) {
-      setOtpError(err.message || "کد تایید نادرست یا منقضی است.");
+      setOtpError(err.message || "کد تایید نادرست یا منقضی شده است.");
     } finally {
       setIsSubmitting(false);
     }
@@ -149,7 +165,7 @@ function AuthPageInner() {
     <main className="min-h-screen bg-[#f3f3f3] p-4 sm:p-6 md:p-10 font-[family-name:var(--font-farsi)] dir-rtl text-black select-none flex items-center justify-center">
       <div className="w-full max-w-md bg-white border-[3.5px] border-black rounded-[24px] p-6 md:p-8 shadow-[-10px_10px_0_0_rgba(0,0,0,1)]">
 
-        {/* هدر مودال ورود */}
+        {/* هدر */}
         <div className="flex items-center justify-between border-b-[3px] border-black pb-4 mb-6">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-[#ccff00] border-[2px] border-black rounded-lg flex items-center justify-center shadow-[-2px_2px_0_0_rgba(0,0,0,1)] font-black text-xs">
@@ -167,7 +183,7 @@ function AuthPageInner() {
         </div>
 
         {step === 1 ? (
-          /* ================= مرحله ۱: ورود شماره موبایل ================= */
+          /* مرحله ۱: شماره موبایل */
           <form onSubmit={handleSendOtp} className="flex flex-col gap-5">
             <div>
               <h1 className="text-xl font-black mb-1">شماره موبایل خود را وارد کنید</h1>
@@ -212,12 +228,12 @@ function AuthPageInner() {
             <div className="bg-[#fff9c4] border-[2px] border-black p-3 rounded-xl flex items-start gap-2 text-[11px] font-bold text-gray-700">
               <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <span>
-                اگر با این شماره قبلاً خریدی انجام داده‌اید، به صورت اتوماتیک تمام فاکتورهای شما به این حساب متصل می‌شوند.
+                اگر با این شماره قبلاً خریدی انجام داده‌اید، سفارش‌ها به طور خودکار به این حساب متصل می‌شوند.
               </span>
             </div>
           </form>
         ) : (
-          /* ================= مرحله ۲: ورود کد OTP ================= */
+          /* مرحله ۲: ۵ کادر کد تایید */
           <form onSubmit={handleVerifyOtp} className="flex flex-col gap-5">
             <div>
               <div className="flex items-center justify-between">
@@ -225,20 +241,20 @@ function AuthPageInner() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="text-xs font-black text-purple-600 hover:underline"
+                  className="text-xs font-black text-purple-600 hover:underline cursor-pointer"
                 >
                   تغییر شماره
                 </button>
               </div>
               <p className="text-xs font-bold text-gray-600">
-                کد ۴ رقمی ارسال‌شده به شماره <span className="font-black text-black dir-ltr">{mobile}</span> را وارد کنید:
+                کد ۵ رقمی پیامک‌شده به شماره <span className="font-black text-black dir-ltr">{mobile}</span> را وارد فرمایید:
               </p>
             </div>
 
-            {/* کانتینر صریح LTR با استایل مستقیم برای تضمین چیدمان از چپ به راست */}
+            {/* چیدمان افقی ۵ خانه کد از چپ به راست */}
             <div
               style={{ direction: "ltr" }}
-              className="flex items-center justify-center gap-3 my-2"
+              className="flex items-center justify-center gap-2 sm:gap-2.5 my-2"
             >
               {otpCode.map((digit, index) => (
                 <input
@@ -253,7 +269,7 @@ function AuthPageInner() {
                   onPaste={handleOtpPaste}
                   onFocus={(e) => e.target.select()}
                   style={{ direction: "ltr" }}
-                  className="w-12 h-14 bg-[#f8f9fa] border-[2.5px] border-black rounded-xl text-center text-xl font-black outline-none focus:bg-white focus:shadow-[-3px_3px_0_0_rgba(0,0,0,1)] transition-all"
+                  className="w-11 sm:w-12 h-14 bg-[#f8f9fa] border-[2.5px] border-black rounded-xl text-center text-xl font-black outline-none focus:bg-white focus:shadow-[-3px_3px_0_0_rgba(0,0,0,1)] transition-all"
                 />
               ))}
             </div>
@@ -269,7 +285,7 @@ function AuthPageInner() {
             <div className="flex items-center justify-between text-xs font-bold text-gray-600">
               <span>ارسال مجدد کد:</span>
               {timer > 0 ? (
-                <span className="font-black text-black">{Math.floor(timer / 60)}:{timer % 60 < 10 ? `0${timer % 60}` : timer % 60}</span>
+                <span className="font-black text-black dir-ltr">{Math.floor(timer / 60)}:{timer % 60 < 10 ? `0${timer % 60}` : timer % 60}</span>
               ) : (
                 <button
                   type="button"

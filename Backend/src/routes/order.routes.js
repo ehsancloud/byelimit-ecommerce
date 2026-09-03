@@ -1,5 +1,6 @@
 // Backend/src/routes/order.routes.js
 const express = require("express");
+const crypto = require("crypto");
 const { z } = require("zod");
 const prisma = require("../lib/prisma");
 const { optionalAuth, requireAuth } = require("../middleware/auth");
@@ -16,6 +17,33 @@ const STATUS_LABEL = {
   REFUNDED: "مسترد شده",
   CANCELLED: "لغوشده",
 };
+
+/**
+ * تولید کد رهگیری یکتا با فرمت و طول کاملاً ثابت (BL- به همراه ۸ رقم عددی ثابت)
+ * نمونه خروجی: BL-59281043 (دقیقاً ۱۱ کاراکتر)
+ */
+async function generateUniqueOrderNumber(tx) {
+  const PREFIX = "BL-";
+  for (let attempt = 0; attempt < 5; attempt++) {
+    // تولید عدد رندوم امن بین 10,000,000 تا 99,999,999 (دقیقاً ۸ رقم)
+    const random8Digit = crypto.randomInt(10000000, 100000000).toString();
+    const candidate = `${PREFIX}${random8Digit}`;
+
+    const exists = await tx.order.findUnique({
+      where: { orderNumber: candidate },
+      select: { id: true },
+    });
+
+    if (!exists) {
+      return candidate;
+    }
+  }
+
+  // در شرایط نادر تلاقی همزمان، ترکیب ۴ رقم پایانی تایم‌استمپ و ۴ رقم رندوم
+  const timeSuffix = Date.now().toString().slice(-4);
+  const randSuffix = crypto.randomInt(1000, 10000).toString();
+  return `${PREFIX}${timeSuffix}${randSuffix}`;
+}
 
 const createOrderSchema = z.object({
   mobile: z.string().regex(/^09\d{9}$/, "شماره موبایل باید ۱۱ رقم و با 09 آغاز شود."),
@@ -62,7 +90,7 @@ router.post("/quote", optionalAuth, async (req, res) => {
   }
 });
 
-// ثبت یا بازیابی هوشمند سفارش
+// ثبت یا بازیابی سفارش
 router.post("/", optionalAuth, async (req, res) => {
   const parsed = createOrderSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -146,7 +174,7 @@ router.post("/", optionalAuth, async (req, res) => {
       }
 
       if (!targetOrder) {
-        const orderNumber = `BL-${Math.floor(100000 + Math.random() * 900000)}`;
+        const orderNumber = await generateUniqueOrderNumber(tx);
 
         try {
           targetOrder = await tx.order.create({
@@ -177,9 +205,10 @@ router.post("/", optionalAuth, async (req, res) => {
           });
         } catch (createErr) {
           if (createErr.code === "P2002") {
+            const fallbackOrderNumber = await generateUniqueOrderNumber(tx);
             targetOrder = await tx.order.create({
               data: {
-                orderNumber: `BL-${Math.floor(100000 + Math.random() * 900000)}`,
+                orderNumber: fallbackOrderNumber,
                 cartId: null,
                 userId: user.id,
                 mobile,
@@ -270,13 +299,12 @@ router.post("/", optionalAuth, async (req, res) => {
   }
 });
 
-// ───────────── دریافت سفارشات کاربر لاگین‌شده (الزاماً قبل از :orderNumber) ─────────────
+// دریافت سفارشات کاربر لاگین‌شده
 router.get("/mine", requireAuth, async (req, res) => {
   try {
     const userId = req.user.userId || req.user.id;
     const userMobile = req.user.mobile;
 
-    // تطبیق هوشمند با شناسه کاربر یا شماره موبایل کاربر جهت اطمینان از نمایش همه خریدهای او
     const orders = await prisma.order.findMany({
       where: {
         OR: [
@@ -333,9 +361,8 @@ router.get("/mine", requireAuth, async (req, res) => {
   }
 });
 
-// ───────────── دریافت جزئیات یک سفارش با شماره سفارش ─────────────
+// دریافت جزئیات یک سفارش با شماره سفارش
 router.get("/:orderNumber", async (req, res, next) => {
-  // اگر به هر دلیلی درخواست /mine به اینجا رسید، به روت بعدی هدایت کن
   if (req.params.orderNumber === "mine") return next();
 
   try {
