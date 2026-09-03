@@ -2,6 +2,7 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
 const zibal = require("../services/zibal.service");
+const usdRateJob = require("../jobs/usd-rate-job");
 const { paymentRateLimiter } = require("../middleware/rateLimit");
 const { writeAuditLog } = require("../lib/audit");
 const { rialToToman } = require("../lib/pricing");
@@ -10,23 +11,25 @@ const router = express.Router();
 
 const FRONTEND_URL = (process.env.FRONTEND_URL?.split(",")[0]?.trim() || "https://byelimit.ir").replace(/\/$/, "");
 
-// ───────────── API دریافت نرخ لحظه‌ای دلار برای هدر فرانت‌اند ─────────────
+// ───────────── API دریافت نرخ زنده دلار بدون معطلی (از رم) ─────────────
 router.get("/usd-rate", async (req, res) => {
   try {
+    const memPrice = usdRateJob.getLatestDisplayPrice();
+    if (memPrice && memPrice > 10000) {
+      return res.json({ displayPrice: memPrice });
+    }
+
     const rate = await prisma.usdRate.findFirst({
       orderBy: { fetchedAt: "desc" },
     });
 
-    if (!rate || !rate.displayPrice) {
-      return res.json({ displayPrice: null, fetchedAt: null });
+    if (rate && rate.displayPrice) {
+      return res.json({ displayPrice: rate.displayPrice });
     }
 
-    return res.json({
-      displayPrice: rate.displayPrice,
-      fetchedAt: rate.fetchedAt,
-    });
+    return res.json({ displayPrice: 217100 });
   } catch (err) {
-    return res.json({ displayPrice: null, fetchedAt: null });
+    return res.json({ displayPrice: 217100 });
   }
 });
 
@@ -162,6 +165,7 @@ router.get("/callback/zibal", async (req, res) => {
     }
 
     if (verifyResult.amount && verifyResult.amount !== payment.amountRial) {
+      console.error(`[SECURITY ALERT] عدم تطابق مبلغ! پرداختی: ${verifyResult.amount} | فاکتور: ${payment.amountRial}`);
       await prisma.payment.update({
         where: { id: payment.id },
         data: { status: "FAILED", gatewayErrorCode: "AMOUNT_MISMATCH" },

@@ -1,4 +1,4 @@
-// src/server.js - v0.97
+// Backend/src/server.js
 require("dotenv").config();
 
 BigInt.prototype.toJSON = function () { return this.toString(); };
@@ -45,13 +45,16 @@ app.use(generalApiRateLimiter);
 
 app.get("/health", (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 
-app.use("/api/auth",      authRoutes);
-app.use("/api/cart",      cartRoutes);
-app.use("/api/orders",    orderRoutes);
-app.use("/api/payment",   paymentRoutes);
-app.use("/api/products",  productRoutes);
-app.use("/api/telegram",  telegramRoutes);
-app.use("/api/flashdeals", flashDealRoutes);
+app.use("/api/auth",       authRoutes);
+app.use("/api/cart",       cartRoutes);
+app.use("/api/orders",     orderRoutes);
+app.use("/api/payment",    paymentRoutes);
+app.use("/api/products",   productRoutes);
+app.use("/api/telegram",   telegramRoutes);
+
+// پشتیبانی از هر دو فرمت آدرس فلاش‌دیلز جهت رفع ارور ۴۰۴
+app.use("/api/flash-deals", flashDealRoutes);
+app.use("/api/flashdeals",  flashDealRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
@@ -60,7 +63,7 @@ const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`✅ بک‌اند بای‌لیمیت روی پورت ${PORT} فعال شد.`);
 
-  // شروع cron job نرخ دلار (هر ۱۵ دقیقه)
+  // اجرای کرون جاب نرخ دلار
   require("./jobs/usd-rate-job");
 
   startUnverifiedCron();

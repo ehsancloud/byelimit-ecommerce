@@ -5,20 +5,25 @@ import { useState, useEffect } from "react";
 import { apiFetch } from "../../../lib/apiClient";
 
 export default function DollarBox() {
-  const [displayPrice, setDisplayPrice] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [displayPrice, setDisplayPrice] = useState(() => {
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("byelimit_usd_rate");
+      if (cached && Number(cached) > 10000) return Number(cached);
+    }
+    return 217100; // پیش‌فرض اولیه تا زمان دریافت اولین پاسخ
+  });
 
   const fetchRate = async () => {
     try {
       const data = await apiFetch("/api/payment/usd-rate", { silent404: true });
       if (data?.displayPrice && Number(data.displayPrice) > 10000) {
-        setDisplayPrice(Math.round(Number(data.displayPrice)));
+        const val = Math.round(Number(data.displayPrice));
+        setDisplayPrice(val);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("byelimit_usd_rate", String(val));
+        }
       }
-    } catch {
-      /* سایلنت */
-    } finally {
-      setLoading(false);
-    }
+    } catch {}
   };
 
   useEffect(() => {
@@ -35,16 +40,10 @@ export default function DollarBox() {
       <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
       <div className="flex items-center gap-1.5 font-black text-sm">
         <span className="text-gray-700">نرخ دلار:</span>
-        {loading || !displayPrice ? (
-          <span className="text-gray-400 text-xs font-bold animate-pulse">در حال استعلام...</span>
-        ) : (
-          <>
-            <span className="text-black dir-ltr tracking-tight font-black">
-              {displayPrice.toLocaleString("fa-IR")}
-            </span>
-            <span className="text-[11px] font-bold text-gray-600">تومان</span>
-          </>
-        )}
+        <span className="text-black dir-ltr tracking-tight font-black">
+          {displayPrice.toLocaleString("fa-IR")}
+        </span>
+        <span className="text-[11px] font-bold text-gray-600">تومان</span>
       </div>
     </div>
   );

@@ -5,22 +5,26 @@ const prisma = require("../lib/prisma");
 
 const ABANTETHER_API = "https://api.abantether.com/api/v1/manager/otc/ticker";
 const NOBITEX_FALLBACK_API = "https://api.nobitex.ir/market/stats?srcCurrency=usdt&dstCurrency=rls";
-const INTERVAL_MS = 15 * 60 * 1000; // هر ۱۵ دقیقه
+const INTERVAL_MS = 15 * 60 * 1000; // هر ۱۵ دقیقه یک‌بار
+
+// کش رم جهت پاسخ‌دهی زیر ۱ میلی‌ثانیه به فرانت‌اند بدون نیاز به لودینگ
+let cachedDisplayPrice = null;
+let cachedRoundedRate = null;
 
 // ───────────────────────────────────────────
-// توابع فرمول اختصاصی محاسبه قیمت
+// فرمول محاسباتی اختصاصی بای لیمیت
 // ───────────────────────────────────────────
 
 /**
- * ۱. قیمت نمایشی (دیسپلی): تمیز و کمی کمتر برای حس منصفانه بودن به خریدار
- * مثلاً اگر ۲۱۸,۳۵۰ تومان باشد → ۲۱۷,۱۰۰ تومان
+ * ۱. قیمت نمایشی در باکس هدر: کمی پایین‌تر و تمیز شده
+ * مثلاً ۲۱۸,۳۵۰ تومان → ۲۱۷,۱۰۰ تومان
  */
 function calcDisplayPrice(rawBuy) {
-  return Math.floor((rawBuy * 0.994) / 100) * 100;
+  return Math.round((rawBuy * 0.9942) / 100) * 100;
 }
 
 /**
- * ۲. قیمت محاسباتی پایه: ۲٪ بالاتر و گرد شده به سمت بالا به نزدیک‌ترین ۱,۰۰۰ تومان
+ * ۲. قیمت محاسباتی: ۲٪ بالاتر و گرد شده به سمت بالا به نزدیک‌ترین ۱,۰۰۰ تومان
  * مثلاً ۲۱۸,۳۰۰ × ۱.۰۲ = ۲۲۲,۶۶۶ → ۲۲۳,۰۰۰ تومان
  */
 function calcRoundedRate(rawBuy) {
@@ -29,8 +33,8 @@ function calcRoundedRate(rawBuy) {
 }
 
 /**
- * ۳. قیمت دلاری جدید = قیمت دلاری محصول + 0.6
- * قیمت ریالی پایه = (dollarUsd + 0.6) × roundedRate
+ * ۳. قیمت دلاری جدید = قیمت دلاری + 0.6
+ * قیمت پایه = (dollarUsd + 0.6) × roundedRate
  */
 function calcBaseToman(dollarUsd, roundedRate) {
   const adjustedUsd = dollarUsd + 0.6;
@@ -48,7 +52,7 @@ function applyTaxAndFee(baseToman) {
 }
 
 /**
- * ۵. اعمال حاشیه سود از جدول ProductPriceConfig
+ * ۵. اعمال حاشیه سود اختصاصی از جدول ProductPriceConfig
  */
 function applyProfit(costToman, config) {
   if (!config) {
@@ -76,22 +80,8 @@ function roundFinalToman(toman) {
 }
 
 // ───────────────────────────────────────────
-// متدهای دریافت نرخ آنلاین تتر
+// دریافت نرخ تتر از وب‌سرویس آبان‌تتر
 // ───────────────────────────────────────────
-
-function parseAbantetherResponse(data) {
-  if (!data) return 0;
-  if (data.USDT?.buy_price) return parseFloat(data.USDT.buy_price);
-  if (data.USDT?.price) return parseFloat(data.USDT.price);
-  if (data.data?.USDT?.buy_price) return parseFloat(data.data.USDT.buy_price);
-  if (data.data?.USDT?.price) return parseFloat(data.data.USDT.price);
-  if (Array.isArray(data)) {
-    const item = data.find((x) => x.symbol === "USDT" || x.pair === "USDT_IRT");
-    if (item?.buy_price) return parseFloat(item.buy_price);
-  }
-  if (data.buy_price) return parseFloat(data.buy_price);
-  return 0;
-}
 
 async function fetchUsdtRate() {
   const headers = {
@@ -99,27 +89,34 @@ async function fetchUsdtRate() {
     "Accept": "application/json",
   };
 
-  // ۱. استعلام از آبان‌تتر
+  // ۱. وب‌سرویس رسمی آبان‌تتر
   try {
     const res = await fetch(ABANTETHER_API, {
       headers,
       signal: AbortSignal.timeout(8000),
     });
+
     if (res.ok) {
       const data = await res.json();
-      const price = parseAbantetherResponse(data);
-      if (price && price > 10000) return price;
+      const usdtData = data?.USDTIRT || data?.data?.USDTIRT || data?.USDT || data?.data?.USDT;
+      const rawPrice = parseFloat(usdtData?.buy_price || data?.buy_price || 0);
+
+      if (rawPrice && rawPrice > 10000) {
+        // اگر عدد به ریال بود، به تومان تبدیل کن
+        return rawPrice > 1000000 ? Math.round(rawPrice / 10) : Math.round(rawPrice);
+      }
     }
   } catch (err) {
-    console.warn("[usd-rate-job] وب‌سرویس آبان‌تتر پاسخ نداد، استفاده از سرور پشتیبان...");
+    console.warn("[usd-rate-job] وب‌سرویس آبان‌تتر در دسترس نیست، استفاده از نوبیتکس...");
   }
 
-  // ۲. سرور پشتیبان نوبیتکس در صورت در دسترس نبودن آبان‌تتر
+  // ۲. سرور پشتیبان نوبیتکس در صورت تایم‌اوت آبان‌تتر
   try {
     const res = await fetch(NOBITEX_FALLBACK_API, {
       headers,
       signal: AbortSignal.timeout(8000),
     });
+
     if (res.ok) {
       const data = await res.json();
       const latestRial = parseFloat(data?.stats?.["usdt-rls"]?.latest || 0);
@@ -135,20 +132,33 @@ async function fetchUsdtRate() {
 }
 
 // ───────────────────────────────────────────
-// حلقه اصلی بروزرسانی نرخ و دیتابیس
+// چرخه اصلی بروزرسانی نرخ و دیتابیس
 // ───────────────────────────────────────────
+
 async function fetchAndUpdatePrices() {
   try {
-    const rawBuy = await fetchUsdtRate();
+    let rawBuy = await fetchUsdtRate();
+
+    // در صورت قطعی هر دو وب‌سرویس، از آخرین نرخ ثبت‌شده در دیتابیس استفاده کن
     if (!rawBuy || rawBuy < 10000) {
-      console.warn("[usd-rate-job] نرخ جدید دریافت نشد؛ آخرین نرخ دیتابیس معتبر است.");
-      return;
+      const lastDbRate = await prisma.usdRate.findFirst({
+        orderBy: { fetchedAt: "desc" },
+      });
+      if (lastDbRate) {
+        rawBuy = lastDbRate.buyPrice;
+      } else {
+        rawBuy = 218300; // نرخ پایه مطمئن
+      }
     }
 
     const displayPrice = calcDisplayPrice(rawBuy);
     const roundedRate = calcRoundedRate(rawBuy);
 
-    // ثبت در تاریخچه نرخ ارز
+    // ذخیره در رم برای پاسخ‌دهی فوق‌سریع
+    cachedDisplayPrice = displayPrice;
+    cachedRoundedRate = roundedRate;
+
+    // ثبت در تاریخچه نرخ‌های دیتابیس
     await prisma.usdRate.create({
       data: {
         buyPrice: rawBuy,
@@ -157,7 +167,7 @@ async function fetchAndUpdatePrices() {
       },
     });
 
-    // بروزرسانی تمام واریانت‌های دارای فرمول دلاری
+    // بروزرسانی تمام واریانت‌های فعال
     const variants = await prisma.productVariant.findMany({
       where: { isActive: true },
       include: { priceConfig: true },
@@ -168,7 +178,7 @@ async function fetchAndUpdatePrices() {
     for (const variant of variants) {
       let cfg = variant.priceConfig;
 
-      // ایجاد خودکار رکورد تنظیمات قیمت در صورت نبود
+      // ساخت خودکار کانفیگ قیمت در صورت عدم وجود برای مدیریت از پریسمای استودیو
       if (!cfg) {
         cfg = await prisma.productPriceConfig.create({
           data: {
@@ -180,7 +190,7 @@ async function fetchAndUpdatePrices() {
         });
       }
 
-      // در صورت غیرفعال بودن فرمول دلاری، قیمت ثابت ثبت می‌شود
+      // در صورت غیرفعال بودن تیک فرمول دلاری، قیمت ثابت درج می‌شود
       if (!cfg.useUsdFormula) {
         if (cfg.fixedPriceRial) {
           await prisma.productVariant.update({
@@ -192,7 +202,7 @@ async function fetchAndUpdatePrices() {
         continue;
       }
 
-      // محاسبه نهایی قیمت ریالی با فرمول
+      // محاسبه قیمت نهایی با فرمول دلاری
       const dollarUsd = Number(variant.costUsd || 0);
       if (!dollarUsd) continue;
 
@@ -209,17 +219,32 @@ async function fetchAndUpdatePrices() {
       updatedCount++;
     }
 
-    console.log(`[usd-rate-job] ✅ تتر لحظه‌ای: ${rawBuy.toLocaleString("fa-IR")} ت | نمایش: ${displayPrice.toLocaleString("fa-IR")} ت | نرخ محاسباتی: ${roundedRate.toLocaleString("fa-IR")} ت | بروزرسانی ${updatedCount} پلن`);
+    console.log(`[usd-rate-job] ✅ تتر لحظه‌ای: ${rawBuy.toLocaleString("fa-IR")} ت | نمایش هدر: ${displayPrice.toLocaleString("fa-IR")} ت | محاسباتی: ${roundedRate.toLocaleString("fa-IR")} ت | ${updatedCount} محصول بروز شد`);
   } catch (err) {
-    console.error("[usd-rate-job] ❌ خطا در کرون جاب:", err.message);
+    console.error("[usd-rate-job] ❌ خطا در اجرای جاب قیمت:", err.message);
   }
 }
 
-// اجرای اول هنگام لود فایل و تکرار هر ۱۵ دقیقه
-fetchAndUpdatePrices();
+// پیش‌بارگذاری سریع از دیتابیس در لحظه استارت سرور
+async function initMemoryCache() {
+  try {
+    const lastDbRate = await prisma.usdRate.findFirst({
+      orderBy: { fetchedAt: "desc" },
+    });
+    if (lastDbRate) {
+      cachedDisplayPrice = lastDbRate.displayPrice;
+      cachedRoundedRate = lastDbRate.roundedRate;
+    }
+  } catch {}
+  fetchAndUpdatePrices();
+}
+
+initMemoryCache();
 const timer = setInterval(fetchAndUpdatePrices, INTERVAL_MS);
 
 module.exports = {
   fetchAndUpdatePrices,
+  getLatestDisplayPrice: () => cachedDisplayPrice,
+  getLatestRoundedRate: () => cachedRoundedRate,
   stop: () => clearInterval(timer),
 };
