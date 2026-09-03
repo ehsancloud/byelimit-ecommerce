@@ -1,3 +1,4 @@
+// Frontend/src/app/checkout/page.js
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -9,6 +10,7 @@ import {
   Lock, Clock, AlertCircle, CheckCircle2, ShoppingCart, Loader2,
 } from "lucide-react";
 import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
 import { apiFetch } from "../../lib/apiClient";
 
 const STEPS = [
@@ -41,22 +43,34 @@ function StepIndicator({ currentKey }) {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, totalPrice: cartTotalPrice, isHydrated } = useCart();
+  const { user } = useAuth();
+  const { items, totalPrice: cartTotalPrice, isHydrated, clearCart } = useCart();
 
   const [formData, setFormData] = useState({ fullName: "", mobile: "", telegramId: "" });
   const [mobileError, setMobileError] = useState("");
   const [step, setStep] = useState("info");
 
-  // ✅ FIX: نگه‌داری orderId پس از ساخت سفارش برای retry پرداخت
   const [pendingOrderId, setPendingOrderId] = useState(null);
   const [selectedGateway, setSelectedGateway] = useState("ZIBAL");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  const [discountCode, setDiscountCode]               = useState("");
+  const [discountCode, setDiscountCode] = useState("");
   const [appliedOrderDiscount, setAppliedOrderDiscount] = useState(0);
-  const [discountError, setDiscountError]             = useState("");
-  const [discountSuccess, setDiscountSuccess]         = useState("");
+  const [discountError, setDiscountError] = useState("");
+  const [discountSuccess, setDiscountSuccess] = useState("");
+
+  // مقداردهی خودکار مشخصات از حساب کاربری
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        mobile: user.mobile || prev.mobile,
+        fullName: user.fullName || prev.fullName,
+        telegramId: user.telegramId || prev.telegramId,
+      }));
+    }
+  }, [user]);
 
   const totalPrice = useMemo(() => {
     const final = cartTotalPrice - appliedOrderDiscount;
@@ -71,12 +85,14 @@ export default function CheckoutPage() {
 
   const handleApplyDiscount = async (e) => {
     e.preventDefault();
+    if (!discountCode.trim()) return;
+
     setDiscountError("");
     setDiscountSuccess("");
     try {
       const quote = await apiFetch("/api/orders/quote", {
         method: "POST",
-        body: JSON.stringify({ orderLevelDiscountCode: discountCode }),
+        body: JSON.stringify({ orderLevelDiscountCode: discountCode.trim().toUpperCase() }),
       });
       setDiscountCode(quote.appliedCode || discountCode.trim().toUpperCase());
       setAppliedOrderDiscount(quote.discountToman);
@@ -102,8 +118,10 @@ export default function CheckoutPage() {
 
     try {
       let orderId = pendingOrderId;
+      let isFreeOrder = false;
+      let finalOrderNumber = "";
 
-      // ✅ FIX: اگر سفارش قبلاً ساخته شده (retry)، مرحله ساخت سفارش را رد کن
+      // ساخت سفارش در صورت عدم وجود شناسه قبلی
       if (!orderId) {
         const orderResult = await apiFetch("/api/orders", {
           method: "POST",
@@ -114,26 +132,36 @@ export default function CheckoutPage() {
             orderLevelDiscountCode: appliedOrderDiscount > 0 ? discountCode : null,
           }),
         });
+
         orderId = orderResult.orderId;
-        setPendingOrderId(orderId); // ذخیره برای retry
+        finalOrderNumber = orderResult.orderNumber;
+        isFreeOrder = Boolean(orderResult.isFree);
+        setPendingOrderId(orderId);
       }
 
+      // اگر فاکتور ۱۰۰٪ رایگان باشد، بدون مراجعه به درگاه نهایی می‌شود
+      if (isFreeOrder || totalPrice === 0) {
+        await clearCart();
+        router.replace(`/checkout/success?orderId=${finalOrderNumber || orderId}&mobile=${encodeURIComponent(formData.mobile)}`);
+        return;
+      }
+
+      // ارسال به درگاه پرداخت زیبال
       const paymentResult = await apiFetch("/api/payment/request", {
         method: "POST",
         body: JSON.stringify({ orderId, gateway: selectedGateway }),
       });
 
-      // ✅ FIX: بررسی اینکه startPayUrl واقعاً آمده - باگ قبلی: undefined بود و هیچ اتفاقی نمی‌افتاد
       if (!paymentResult?.startPayUrl) {
-        throw new Error("آدرس درگاه پرداخت دریافت نشد. لطفاً چند لحظه صبر کرده و دوباره تلاش کنید.");
+        throw new Error("آدرس درگاه پرداخت دریافت نشد. لطفاً چند لحظه دیگر تلاش کنید.");
       }
 
-      // هدایت به درگاه زرین‌پال
+      // انتقال به درگاه پرداخت رسمی زیبال
       window.location.href = paymentResult.startPayUrl;
 
     } catch (err) {
-      setSubmitError(err.message || "خطا در اتصال به درگاه. لطفاً دوباره تلاش کنید.");
-      setIsSubmitting(false); // ✅ دکمه را فعال کن تا کاربر بتواند retry کند
+      setSubmitError(err.message || "خطا در اتصال به درگاه پرداخت.");
+      setIsSubmitting(false);
     }
   };
 
@@ -167,11 +195,10 @@ export default function CheckoutPage() {
           <div className="lg:col-span-7 flex flex-col gap-6">
 
             {step === "info" ? (
-              /* ─── مرحله ۱: فرم اطلاعات ─── */
               <div className="bg-white border-[3.5px] border-black rounded-[24px] p-6 md:p-8 shadow-[-8px_8px_0_0_rgba(0,0,0,1)]">
                 <div className="border-b-[3px] border-black pb-4 mb-6">
                   <h1 className="text-xl md:text-2xl font-black">اطلاعات خریدار</h1>
-                  <p className="text-xs font-bold text-gray-600 mt-1">جهت صدور پیش‌فاکتور و تحویل سریع، مشخصات زیر را وارد کنید.</p>
+                  <p className="text-xs font-bold text-gray-600 mt-1">جهت صدور پیش‌فاکتور و تحویل اکانت، مشخصات را تکمیل نمایید.</p>
                 </div>
 
                 <form onSubmit={handleContinueToInvoice} className="flex flex-col gap-5">
@@ -182,8 +209,9 @@ export default function CheckoutPage() {
                     </label>
                     <input type="tel" required dir="ltr" placeholder="09123456789"
                       value={formData.mobile}
+                      disabled={Boolean(user?.mobile)}
                       onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                      className={`w-full bg-[#f8f9fa] border-[2.5px] rounded-xl p-3.5 text-sm font-black outline-none focus:bg-white focus:shadow-[-3px_3px_0_0_rgba(0,0,0,1)] transition-all text-right ${mobileError ? "border-rose-500" : "border-black"}`}
+                      className={`w-full bg-[#f8f9fa] border-[2.5px] rounded-xl p-3.5 text-sm font-black outline-none focus:bg-white focus:shadow-[-3px_3px_0_0_rgba(0,0,0,1)] transition-all text-right disabled:opacity-75 ${mobileError ? "border-rose-500" : "border-black"}`}
                     />
                     {mobileError && (
                       <p className="text-[11px] font-bold text-rose-600 flex items-center gap-1">
@@ -195,7 +223,7 @@ export default function CheckoutPage() {
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-black text-black flex items-center gap-1.5">
                       <Send className="w-4 h-4 text-blue-500 stroke-[2.5]" />
-                      <span>آیدی یا شماره تلگرام (جهت پیگیری سریع‌تر)</span>
+                      <span>آیدی یا شماره تلگرام (اختیاری - جهت تحویل سریع‌تر)</span>
                     </label>
                     <input type="text" dir="ltr" placeholder="@username یا 0912..."
                       value={formData.telegramId}
@@ -209,7 +237,7 @@ export default function CheckoutPage() {
                       <User className="w-4 h-4 text-purple-600 stroke-[2.5]" />
                       <span>نام و نام خانوادگی (اختیاری)</span>
                     </label>
-                    <input type="text" placeholder="مثال: محمد حسام"
+                    <input type="text" placeholder="مثال: احسان کاظمی"
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                       className="w-full bg-[#f8f9fa] border-[2.5px] border-black rounded-xl p-3.5 text-sm font-bold outline-none focus:bg-white focus:shadow-[-3px_3px_0_0_rgba(0,0,0,1)] transition-all"
@@ -219,41 +247,40 @@ export default function CheckoutPage() {
                   <button type="submit"
                     className="mt-3 w-full bg-[#ccff00] hover:bg-[#b5e600] border-[3px] border-black rounded-xl py-4 font-black text-base shadow-[-4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-[-2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <span>تایید اطلاعات و مشاهده پیش‌فاکتور</span>
+                    <span>تایید مشخصات و مشاهده پیش‌فاکتور</span>
                     <ArrowRight className="w-5 h-5 rotate-180 stroke-[3]" />
                   </button>
                 </form>
               </div>
             ) : (
-              /* ─── مرحله ۲: پیش‌فاکتور و پرداخت ─── */
               <div className="bg-white border-[3.5px] border-black rounded-[24px] p-6 md:p-8 shadow-[-8px_8px_0_0_rgba(0,0,0,1)] flex flex-col gap-6">
                 <div className="flex items-center justify-between border-b-[3px] border-black pb-4">
                   <div>
-                    <span className="inline-block bg-[#12e2a3] border-[1.5px] border-black px-2.5 py-0.5 rounded text-[11px] font-black mb-1">پیش‌فاکتور آماده است</span>
+                    <span className="inline-block bg-[#12e2a3] border-[1.5px] border-black px-2.5 py-0.5 rounded text-[11px] font-black mb-1">پیش‌فاکتور آماده پرداخت</span>
                     <h2 className="text-xl font-black">پیش‌فاکتور خرید</h2>
                   </div>
                   {!pendingOrderId && (
                     <button onClick={() => setStep("info")}
                       className="text-xs font-black text-gray-600 hover:underline bg-gray-100 border border-black px-2.5 py-1 rounded-lg cursor-pointer"
-                    >ویرایش مشخصات</button>
+                    >ویرایش اطلاعات</button>
                   )}
                 </div>
 
                 <div className="bg-[#f8f9fa] border-[2.5px] border-black p-4 rounded-xl flex flex-col gap-2 text-xs font-bold">
                   <div className="flex justify-between">
                     <span className="text-gray-500">شماره موبایل خریدار:</span>
-                    <span className="font-black text-black">{formData.mobile}</span>
+                    <span className="font-black text-black dir-ltr">{formData.mobile}</span>
                   </div>
                   {formData.telegramId && (
                     <div className="flex justify-between">
                       <span className="text-gray-500">آیدی تلگرام:</span>
-                      <span className="font-black text-black">{formData.telegramId}</span>
+                      <span className="font-black text-black dir-ltr">{formData.telegramId}</span>
                     </div>
                   )}
                   {pendingOrderId && (
                     <div className="flex justify-between">
-                      <span className="text-gray-500">شماره سفارش:</span>
-                      <span className="font-black text-black dir-ltr">{pendingOrderId.slice(0,8).toUpperCase()}</span>
+                      <span className="text-gray-500">شناسه پیگیری سفارش:</span>
+                      <span className="font-black text-black dir-ltr">{pendingOrderId.slice(0, 8).toUpperCase()}</span>
                     </div>
                   )}
                 </div>
@@ -265,7 +292,7 @@ export default function CheckoutPage() {
                       <span>کد تخفیف دارید؟</span>
                     </label>
                     <div className="flex gap-2">
-                      <input type="text" dir="ltr" placeholder="مثال: SAVE50"
+                      <input type="text" dir="ltr" placeholder="مثال: BYELIMIT"
                         value={discountCode}
                         onChange={(e) => setDiscountCode(e.target.value)}
                         disabled={appliedOrderDiscount > 0}
@@ -273,7 +300,7 @@ export default function CheckoutPage() {
                       />
                       <button type="submit" disabled={appliedOrderDiscount > 0}
                         className="bg-[#12e2a3] border-[2.5px] border-black px-4 py-2.5 rounded-xl font-black text-xs shadow-[-2px_2px_0_0_rgba(0,0,0,1)] transition-all cursor-pointer disabled:opacity-60"
-                      >اعمال</button>
+                      >اعمال کد</button>
                     </div>
                     {discountError && <p className="text-[11px] font-bold text-rose-600 flex items-center gap-1 mt-1"><AlertCircle className="w-3.5 h-3.5" />{discountError}</p>}
                     {discountSuccess && <p className="text-[11px] font-bold text-emerald-700 flex items-center gap-1 mt-1"><CheckCircle2 className="w-3.5 h-3.5" />{discountSuccess}</p>}
@@ -282,30 +309,30 @@ export default function CheckoutPage() {
 
                 {/* انتخاب درگاه پرداخت */}
                 <div className="flex flex-col gap-2">
-                  <span className="text-xs font-black text-gray-700">انتخاب درگاه پرداخت:</span>
+                  <span className="text-xs font-black text-gray-700">انتخاب درگاه پرداخت آنلاین:</span>
                   <div className="grid grid-cols-2 gap-2">
                     <button type="button" onClick={() => setSelectedGateway("ZIBAL")}
                       className={`border-[2.5px] border-black rounded-xl p-3 flex flex-col items-center gap-1.5 transition-all cursor-pointer ${selectedGateway === "ZIBAL" ? "bg-[#ccff00] shadow-[-3px_3px_0_0_rgba(0,0,0,1)]" : "bg-white hover:bg-gray-50"}`}>
-                      <span className="text-2xl">🏦</span>
-                      <span className="font-black text-xs">زیبال</span>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-300 rounded px-1.5">فعال</span>
+                      <span className="text-2xl">⚡</span>
+                      <span className="font-black text-xs">درگاه زیبال</span>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-300 rounded px-1.5">مستقیم و سریع</span>
                     </button>
                     <div className="border-[2px] border-gray-300 rounded-xl p-3 flex flex-col items-center gap-1.5 opacity-40 cursor-not-allowed bg-gray-50">
                       <span className="text-2xl">💳</span>
-                      <span className="font-black text-xs text-gray-500">زرین‌پال</span>
-                      <span className="text-[10px] font-bold text-gray-400 bg-gray-100 border border-gray-200 rounded px-1.5">به‌زودی</span>
+                      <span className="font-black text-xs text-gray-500">کارت به کارت</span>
+                      <span className="text-[10px] font-bold text-gray-400 bg-gray-100 border border-gray-200 rounded px-1.5">غیرفعال</span>
                     </div>
                   </div>
                 </div>
 
-                {/* ✅ دکمه پرداخت */}
+                {/* دکمه پرداخت نهایی */}
                 <button type="button" onClick={handleGoToGateway} disabled={isSubmitting}
                   className="w-full bg-[#ccff00] hover:bg-[#b5e600] border-[3px] border-black rounded-xl py-4 font-black text-base shadow-[-4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-[-2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer mt-2 disabled:opacity-70"
                 >
                   {isSubmitting ? (
-                    <><Loader2 className="w-5 h-5 animate-spin" /><span>در حال اتصال به درگاه...</span></>
+                    <><Loader2 className="w-5 h-5 animate-spin" /><span>در حال انتقال به درگاه پرداخت زیبال...</span></>
                   ) : (
-                    <><CreditCard className="w-5 h-5 stroke-[2.5]" /><span>{pendingOrderId ? "تلاش مجدد برای پرداخت" : "پرداخت نهایی"}</span></>
+                    <><CreditCard className="w-5 h-5 stroke-[2.5]" /><span>{totalPrice === 0 ? "تکمیل و ثبت رایگان سفارش" : pendingOrderId ? "تلاش مجدد برای پرداخت" : "پرداخت و اتصال به درگاه"}</span></>
                   )}
                 </button>
 
@@ -317,58 +344,62 @@ export default function CheckoutPage() {
                 )}
 
                 <div className="flex items-center gap-2 text-[11px] font-bold text-gray-500 justify-center">
-                  <Lock className="w-3.5 h-3.5" />
-                  <span>پرداخت امن از طریق درگاه رسمی زیبال</span>
+                  <Lock className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>تراکنش در بستر امن شبکه شاپرک با درگاه پرداخت رسمی زیبال</span>
                 </div>
               </div>
             )}
           </div>
 
-          {/* ─── خلاصه سفارش (ستون راست) ─── */}
+          {/* خلاصه سفارش (ستون سمت چپ) */}
           <div className="lg:col-span-5 flex flex-col gap-6">
             <div className="bg-white border-[3.5px] border-black rounded-[24px] p-6 shadow-[-8px_8px_0_0_rgba(0,0,0,1)] flex flex-col gap-4">
-              <h3 className="font-black text-base border-b-[2.5px] border-black pb-3">خلاصه سفارش شما</h3>
+              <h3 className="font-black text-base border-b-[2.5px] border-black pb-3">اقلام سفارش شما</h3>
               <div className="flex flex-col gap-3">
                 {items.map((item) => (
                   <div key={item.variantId} className="flex items-center justify-between gap-3 text-xs font-bold">
                     <div className="flex items-center gap-2 min-w-0">
-                      {item.imageSrc && (
+                      {item.productImage && (
                         <div className="w-10 h-10 relative border-[1.5px] border-black rounded-lg overflow-hidden shrink-0 bg-gray-100">
-                          <Image src={item.imageSrc} alt={item.title} fill className="object-cover" />
+                          <Image src={item.productImage} alt={item.productTitle} fill className="object-cover" />
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="font-black truncate">{item.title}</p>
+                        <p className="font-black truncate">{item.productTitle}</p>
                         <p className="text-gray-500 truncate">{item.variantName}</p>
                       </div>
                     </div>
-                    <span className="font-black shrink-0">{Number(item.price).toLocaleString("fa-IR")} ت</span>
+                    {/* اصلاح باگ فاحش: استفاده از unitPrice به جای item.price */}
+                    <span className="font-black shrink-0">
+                      {(item.unitPrice || 0).toLocaleString("fa-IR")} تومان
+                    </span>
                   </div>
                 ))}
               </div>
+
               <div className="border-t-[2px] border-black pt-3 flex flex-col gap-2 text-xs font-bold">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">جمع کل:</span>
+                  <span className="text-gray-600">مجموع اقلام:</span>
                   <span className="font-black">{cartTotalPrice.toLocaleString("fa-IR")} تومان</span>
                 </div>
                 {appliedOrderDiscount > 0 && (
                   <div className="flex justify-between text-emerald-700">
-                    <span>تخفیف کد:</span>
+                    <span>تخفیف اعمال‌شده:</span>
                     <span className="font-black">- {appliedOrderDiscount.toLocaleString("fa-IR")} تومان</span>
                   </div>
                 )}
                 <div className="flex justify-between text-base font-black border-t-[2px] border-black pt-2 mt-1">
                   <span>مبلغ قابل پرداخت:</span>
-                  <span className="text-xl">{totalPrice.toLocaleString("fa-IR")} تومان</span>
+                  <span className="text-xl text-emerald-600">{totalPrice.toLocaleString("fa-IR")} تومان</span>
                 </div>
               </div>
             </div>
 
             <div className="bg-[#12e2a3] border-[2.5px] border-black rounded-[16px] p-4 shadow-[-4px_4px_0_0_rgba(0,0,0,1)] flex flex-col gap-2.5 text-xs font-bold">
               {[
-                [ShieldCheck, "ضمانت ۱۰۰٪ بازگشت وجه"],
-                [Clock,       "تحویل سریع در ساعات کاری"],
-                [Lock,        "پرداخت امن از طریق زرین‌پال"],
+                [ShieldCheck, "ضمانت سلامت و اصالت اکانت"],
+                [Clock,       "تحویل سریع در پنل کاربری"],
+                [Lock,        "تراکنش امن بانکی تحت نظارت شاپرک با زیبال"],
               ].map(([Icon, text]) => (
                 <div key={text} className="flex items-center gap-2">
                   <Icon className="w-4 h-4 stroke-[2.5] shrink-0" />

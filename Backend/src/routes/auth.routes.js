@@ -1,20 +1,20 @@
-// src/routes/auth.routes.js
+// Backend/src/routes/auth.routes.js
 const express = require("express");
-const jwt = require("jsonwebtoken");
 const prisma = require("../lib/prisma");
-const { sendOtp, verifyOtp, normalizeMobile } = require("../services/otp.service");
-const authMiddleware = require("../middlewares/auth.middleware");
+const { sendOtp, verifyOtp, normalizeMobile, isValidIranianMobile } = require("../services/otp.service");
+const { requireAuth, issueAuthCookie } = require("../middleware/auth");
 
 const router = express.Router();
-const THIRTY_THREE_DAYS_MS = 33 * 24 * 60 * 60 * 1000;
 
 router.post("/send-otp", async (req, res, next) => {
   try {
     const mobile = normalizeMobile(req.body.mobile);
-    if (!mobile) return res.status(400).json({ error: "شماره موبایل الزامی است." });
+    if (!mobile || !isValidIranianMobile(mobile)) {
+      return res.status(400).json({ error: "شماره موبایل نامعتبر است. فرمت صحیح: 09123456789", code: "INVALID_MOBILE" });
+    }
 
     await sendOtp(mobile, "LOGIN", req.ip);
-    res.json({ success: true, message: "کد تایید ارسال شد." });
+    return res.json({ success: true, message: "کد تایید با موفقیت ارسال شد." });
   } catch (err) {
     if (err && err.code === "OTP_RATE_LIMITED") {
       return res.status(429).json({ error: err.message, code: err.code });
@@ -30,34 +30,38 @@ router.post("/verify-otp", async (req, res, next) => {
   try {
     const mobile = normalizeMobile(req.body.mobile);
     const { code } = req.body;
-    if (!mobile || !code) return res.status(400).json({ error: "موبایل و کد الزامی هستند." });
+
+    if (!mobile || !code) {
+      return res.status(400).json({ error: "شماره موبایل و کد تایید الزامی هستند.", code: "REQUIRED_FIELDS_MISSING" });
+    }
 
     await verifyOtp(mobile, String(code).trim(), "LOGIN");
 
     let user = await prisma.user.findUnique({ where: { mobile } });
     if (!user) {
       user = await prisma.user.create({
-        data: { mobile },
+        data: {
+          mobile,
+          lastLoginAt: new Date(),
+        },
+      });
+    } else {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastLoginAt: new Date() },
       });
     }
 
-    const token = jwt.sign(
-      { userId: user.id, mobile: user.mobile },
-      process.env.JWT_SECRET || "dev-secret-change-me",
-      { expiresIn: "33d" }
-    );
+    const token = issueAuthCookie(res, user);
 
-    res.cookie("auth_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: THIRTY_THREE_DAYS_MS,
-      path: "/",
-    });
-
-    res.json({
+    return res.json({
       success: true,
-      user: { id: user.id, mobile: user.mobile, fullName: user.fullName },
+      user: {
+        id: user.id,
+        userId: user.id,
+        mobile: user.mobile,
+        fullName: user.fullName,
+      },
       token,
     });
   } catch (err) {
@@ -69,11 +73,10 @@ router.post("/verify-otp", async (req, res, next) => {
   }
 });
 
-// ✅ FIX: اطلاعات کامل کاربر (شامل fullName و telegramId) از دیتابیس برگشت داده می‌شود
-router.get("/me", authMiddleware, async (req, res) => {
+router.get("/me", requireAuth, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: req.user.userId || req.user.id },
+      where: { id: req.user.id },
       select: {
         id: true,
         mobile: true,
@@ -82,38 +85,46 @@ router.get("/me", authMiddleware, async (req, res) => {
         createdAt: true,
       },
     });
-    if (!user) return res.status(401).json({ error: "کاربر یافت نشد." });
-    res.json({ user: { ...user, userId: user.id } });
+
+    if (!user) {
+      return res.status(401).json({ error: "حساب کاربری یافت نشد.", code: "USER_NOT_FOUND" });
+    }
+
+    return res.json({ user: { ...user, userId: user.id } });
   } catch (err) {
-    res.status(500).json({ error: "خطا در دریافت اطلاعات کاربر." });
+    return res.status(500).json({ error: "خطا در دریافت اطلاعات کاربری." });
   }
 });
 
-// ✅ NEW: بروزرسانی پروفایل کاربر از پنل کاربری
-router.patch("/profile", authMiddleware, async (req, res) => {
+router.patch("/profile", requireAuth, async (req, res) => {
   try {
     const { fullName, telegramId } = req.body || {};
-    const userId = req.user.userId || req.user.id;
+    const userId = req.user.id;
 
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
-        fullName: fullName !== undefined ? (fullName || null) : undefined,
-        telegramId: telegramId !== undefined ? (telegramId || null) : undefined,
+        fullName: fullName !== undefined ? (String(fullName).trim() || null) : undefined,
+        telegramId: telegramId !== undefined ? (String(telegramId).trim() || null) : undefined,
       },
-      select: { id: true, mobile: true, fullName: true, telegramId: true },
+      select: {
+        id: true,
+        mobile: true,
+        fullName: true,
+        telegramId: true,
+      },
     });
 
-    res.json({ success: true, user: { ...user, userId: user.id } });
+    return res.json({ success: true, user: { ...user, userId: user.id } });
   } catch (err) {
-    res.status(500).json({ error: "خطا در بروزرسانی پروفایل." });
+    return res.status(500).json({ error: "خطا در بروزرسانی پروفایل." });
   }
 });
 
 router.post("/logout", (req, res) => {
   res.clearCookie("auth_token", { path: "/" });
   res.clearCookie("token", { path: "/" });
-  res.json({ success: true, message: "خروج موفق" });
+  return res.json({ success: true, message: "خروج موفقیت‌آمیز بود." });
 });
 
 module.exports = router;
