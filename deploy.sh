@@ -1,70 +1,62 @@
 #!/usr/bin/env bash
 # ══════════════════════════════════════════════════════════
-# deploy.sh — بای لیمیت (نسخه ارتقایافته و پایدار)
-# دیپلوی ایمن: بدون قطعی، همگام‌سازی خودکار دیتابیس و بیلد کامل
+# deploy.sh — بای لیمیت (نسخه ضد گلوله و بدون خطای دیتابیس)
 # ══════════════════════════════════════════════════════════
 set -Eeuo pipefail
-trap 'echo "❌ دیپلوی در خط $LINENO با خطا متوقف شد." >&2' ERR
+trap 'echo "❌ دیپلوی در خط $LINENO متوقف شد." >&2' ERR
 
 PROJECT_DIR="${PROJECT_DIR:-/var/www/byelimit}"
 BACKEND_DIR="$PROJECT_DIR/Backend"
 FRONTEND_DIR="$PROJECT_DIR/Frontend"
 SYSTEM_ENV_FILE="${SYSTEM_ENV_FILE:-/etc/byelimit/.env}"
 
-echo "=========================================="
-echo "🚀 آغاز فرآیند دیپلوی بای لیمیت..."
-echo "=========================================="
-
-# ── بررسی و اتصال امن فایل .env ─────────────────────────
+# ── ۱. بررسی و اتصال .env ──────────────────────────────────
 if [[ ! -f "$BACKEND_DIR/.env" ]]; then
   if [[ -f "$SYSTEM_ENV_FILE" ]]; then
     ln -sf "$SYSTEM_ENV_FILE" "$BACKEND_DIR/.env"
     echo "🔗 .env symlink ایجاد شد از $SYSTEM_ENV_FILE"
   else
-    echo "❌ $BACKEND_DIR/.env یا $SYSTEM_ENV_FILE یافت نشد." >&2
+    echo "❌ فایل .env در بک‌اند یا $SYSTEM_ENV_FILE یافت نشد." >&2
     exit 1
   fi
 fi
 
-# ── [1] دریافت آخرین تغییرات از گیت‌هاب ────────────────────
-echo "📥 [1/6] دریافت آخرین تغییرات از گیت‌هاب..."
+# ── ۲. دریافت آخرین تغییرات از گیت‌هاب ────────────────────
+echo "🚀 [1/6] دریافت آخرین تغییرات از گیت‌هاب..."
 cd "$PROJECT_DIR"
 git fetch origin main
 git pull --ff-only origin main
 
-# ── [2] بک‌اند: وابستگی‌ها و همگام‌سازی دیتابیس ──────────
-echo "📦 [2/6] بروزرسانی پکیج‌ها و اسلایدهای دیتابیس..."
+# ── ۳. همگام‌سازی تضمینی دیتابیس و پریسما ─────────────────
+echo "📦 [2/6] نصب پکیج‌ها و همگام‌سازی قطعی دیتابیس..."
 cd "$BACKEND_DIR"
-npm ci --prefer-offline 2>/dev/null || npm install
 
-# تولید کلاینت پریسما
+# توقف موقت استودیو برای جلوگیری از خطای قفل شدن فایل باینری پریسما
+pm2 stop byelimit-studio 2>/dev/null || true
+
+# نصب پکیج‌ها با احتساب devDependencies جهت دسترسی به CLI پریسما
+npm install --prefer-offline
+
+# همگام‌سازی ساختار دیتابیس مستقیماً از روی schema.prisma
+npx prisma db push --skip-generate
+
+# تولید مجدد کلاینت پریسما متناسب با آخرین تغییرات دیتابیس
 npx prisma generate
 
-# همگام‌سازی هوشمند دیتابیس بدون ریسک توقف
-if [ -d "prisma/migrations" ] && [ "$(ls -A prisma/migrations 2>/dev/null)" ]; then
-  echo "🗄️ اعمال مایگریشن‌های رسمی..."
-  npx prisma migrate deploy || npx prisma db push --skip-generate
-else
-  echo "🗄️ اعمال مستقیم اسکیما روی دیتابیس (db push)..."
-  npx prisma db push --skip-generate
-fi
-
-# ── [3] اجرای seed محصولات و کانفیگ‌ها (upsert ایمن) ─────
-echo "🌱 [3/6] بررسی و همگام‌سازی محصولات (seed)..."
+# ── ۴. بارگذاری اطلاعات اولیه (Seed) ─────────────────────
+echo "🌱 [3/6] بررسی و اجرای seed..."
 if [[ -f "prisma/seed.js" ]]; then
-  node prisma/seed.js || echo "⚠️ اجرای seed با اخطار مواجه شد اما ادامه می‌یابد."
-  echo "✅ محصولات بروز شدند."
+  node prisma/seed.js || echo "⚠️ اجرای seed رد شد."
 fi
 
-# ── [4] فرانت‌اند: پاکسازی کش و بیلد ───────────────────────
-echo "⚛️  [4/6] بیلد نسخه جدید فرانت‌اند (Next.js)..."
+# ── ۵. فرانت‌اند: بیلد پروژه ────────────────────────────
+echo "⚛️  [4/6] بیلد نسخه جدید فرانت‌اند..."
 cd "$FRONTEND_DIR"
-npm ci --prefer-offline 2>/dev/null || npm install
-# بیلد تمیز و سریع
+npm install --prefer-offline
 npm run build
 
-# ── [5] ری‌لود صفر ثانیه (Zero-downtime) با PM2 ───────────
-echo "🔄 [5/6] بارگذاری مجدد پروسه‌ها در PM2..."
+# ── ۶. بارگذاری مجدد پروسه‌های PM2 ───────────────────────
+echo "🔄 [5/6] ری‌استارت پروسه‌ها در PM2..."
 cd "$PROJECT_DIR"
 if [[ -f "ecosystem.config.js" ]]; then
   pm2 startOrReload ecosystem.config.js --update-env
@@ -73,18 +65,15 @@ else
 fi
 pm2 save
 
-# ── [6] تست سلامت سلامت سرویس (Health Check) ─────────────
-echo "🏥 [6/6] بررسی سلامت بک‌اند..."
+# ── ۷. تست سلامت بک‌اند ─────────────────────────────────
+echo "🏥 [6/6] بررسی سلامت سرویس..."
 sleep 3
 if curl -fsS http://127.0.0.1:4000/health > /dev/null; then
-  echo "✅ سرویس بک‌اند با موفقیت فعال و پاسخگو است."
+  echo "✅ بک‌اند فعال و پاسخگو است."
 else
-  echo "⚠️ پاسخ هلت‌چک دریافت نشد. وضعیت را بررسی کنید: pm2 logs byelimit-backend"
+  echo "⚠️ بک‌اند در دسترس نیست؛ لاگ‌ها را بررسی کنید: pm2 logs byelimit-backend"
 fi
 
-echo ""
-echo "════════════════════════════════════════════"
-echo "🎉 دیپلوی نسخه جدید با موفقیت به پایان رسید!"
-echo "   لاگ بک‌اند:  pm2 logs byelimit-backend"
-echo "   لاگ فرانت:   pm2 logs byelimit-frontend"
-echo "════════════════════════════════════════════"
+echo "════════════════════════════════════════"
+echo "🎉 دیپلوی با موفقیت و پایداری کامل انجام شد!"
+echo "════════════════════════════════════════"

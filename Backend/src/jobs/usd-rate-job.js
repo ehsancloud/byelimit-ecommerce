@@ -3,75 +3,46 @@
 
 const prisma = require("../lib/prisma");
 
-const ABANTETHER_API = "https://api.abantether.com/api/v1/manager/otc/ticker";
-const NOBITEX_FALLBACK_API = "https://api.nobitex.ir/market/stats?srcCurrency=usdt&dstCurrency=rls";
-const INTERVAL_MS = 15 * 60 * 1000; // بروزرسانی هر ۱۵ دقیقه
+const INTERVAL_MS = 15 * 60 * 1000; // هر ۱۵ دقیقه
 
 let cachedDisplayPrice = null;
 let cachedRoundedRate = null;
 
 // ───────────────────────────────────────────
-// فرمول محاسباتی اختصاصی بای لیمیت
+// توابع فرمول قیمت‌گذاری بای‌لیمیت
 // ───────────────────────────────────────────
 
-/**
- * ۱. نرخ نمایشی در هدر: کمی پایین‌تر و تمیز شده
- */
 function calcDisplayPrice(rawBuy) {
   return Math.round((rawBuy * 0.9942) / 100) * 100;
 }
 
-/**
- * ۲. نرخ محاسباتی: ۲٪ بالاتر و گرد شده به سمت بالا به نزدیک‌ترین ۱,۰۰۰ تومان
- */
 function calcRoundedRate(rawBuy) {
   const withMarkup = rawBuy * 1.02;
   return Math.ceil(withMarkup / 1000) * 1000;
 }
 
-/**
- * ۳. قیمت دلاری جدید = دلار محصول + 0.6
- * قیمت اولیه = (dollarUsd + 0.6) × roundedRate
- */
 function calcBaseToman(dollarUsd, roundedRate) {
-  const adjustedUsd = dollarUsd + 0.6;
-  return adjustedUsd * roundedRate;
+  return (dollarUsd + 0.6) * roundedRate;
 }
 
-/**
- * ۴. مالیات ۵٪ + کارمزد ۱٪ (سقف ۳۰,۰۰۰ تومان)
- */
 function applyTaxAndFee(baseToman) {
   const withTax = baseToman * 1.05;
   const fee = Math.min(withTax * 0.01, 30000);
   return withTax + fee;
 }
 
-/**
- * ۵. اعمال سود از جدول ProductPriceConfig
- */
 function applyProfit(costToman, config) {
-  if (!config) {
-    return costToman * 1.10; // سود پیش‌فرض ۱۰٪
-  }
-
+  if (!config) return costToman * 1.10;
   if (config.profitType === "PERCENT") {
     const percent = typeof config.profitPercent === "number" ? config.profitPercent : 10;
     return costToman * (1 + percent / 100);
   }
-
   if (config.profitType === "FIXED_RIAL" && config.profitFixedRial) {
-    const fixedToman = Number(config.profitFixedRial) / 10;
-    return costToman + fixedToman;
+    return costToman + Number(config.profitFixedRial) / 10;
   }
-
   return costToman;
 }
 
-/**
- * ۶. گرد کردن روان‌شناختی: پایان ارقام نهایی به ۵ یا ۹ (۵,۰۰۰ یا ۹,۰۰۰ تومان)
- * مثلاً 5,412,000 -> 5,415,000 | 5,416,000 -> 5,419,000
- */
 function roundToBeauty(toman) {
   const floored = Math.floor(toman / 10000) * 10000;
   const candidates = [
@@ -85,67 +56,84 @@ function roundToBeauty(toman) {
 }
 
 // ───────────────────────────────────────────
-// دریافت نرخ تتر از آبان‌تتر
+// زنجیره استعلام ۴ گانه صرافی‌های داخلی
 // ───────────────────────────────────────────
 
+const REQUEST_HEADERS = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "Accept": "application/json, text/plain, */*",
+};
+
 async function fetchUsdtRate() {
-  const headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "application/json",
-  };
-
+  // منبع ۱: آبان‌تتر
   try {
-    const res = await fetch(ABANTETHER_API, {
-      headers,
-      signal: AbortSignal.timeout(8000),
+    const res = await fetch("https://api.abantether.com/api/v1/manager/otc/ticker", {
+      headers: REQUEST_HEADERS,
+      signal: AbortSignal.timeout(6000),
     });
-
     if (res.ok) {
       const data = await res.json();
-      const usdtData = data?.USDTIRT || data?.data?.USDTIRT || data?.USDT || data?.data?.USDT;
-      const rawPrice = parseFloat(usdtData?.buy_price || data?.buy_price || 0);
-
-      if (rawPrice && rawPrice > 10000) {
-        return rawPrice > 1000000 ? Math.round(rawPrice / 10) : Math.round(rawPrice);
+      const usdt = data?.USDTIRT || data?.data?.USDTIRT || data?.USDT || data?.data?.USDT;
+      const price = parseFloat(usdt?.buy_price || data?.buy_price || 0);
+      if (price > 10000) {
+        return price > 1000000 ? Math.round(price / 10) : Math.round(price);
       }
     }
-  } catch (err) {
-    console.warn("[usd-rate-job] وب‌سرویس آبان‌تتر پاسخ نداد، استفاده از نوبیتکس...");
-  }
+  } catch {}
 
+  // منبع ۲: والکس (بدون مسدودی روی سرورهای خارجی)
   try {
-    const res = await fetch(NOBITEX_FALLBACK_API, {
-      headers,
-      signal: AbortSignal.timeout(8000),
+    const res = await fetch("https://api.wallex.ir/v1/markets", {
+      headers: REQUEST_HEADERS,
+      signal: AbortSignal.timeout(6000),
     });
-
     if (res.ok) {
       const data = await res.json();
-      const latestRial = parseFloat(data?.stats?.["usdt-rls"]?.latest || 0);
-      if (latestRial && latestRial > 100000) {
-        return Math.round(latestRial / 10);
-      }
+      const price = parseFloat(data?.result?.symbols?.USDTTMN?.stats?.lastPrice || 0);
+      if (price > 10000) return Math.round(price);
     }
-  } catch (err) {
-    console.error("[usd-rate-job] خطای وب‌سرویس پشتیبان:", err.message);
-  }
+  } catch {}
+
+  // منبع ۳: نوبیتکس
+  try {
+    const res = await fetch("https://api.nobitex.ir/v2/orderbook/USDTIRT", {
+      headers: REQUEST_HEADERS,
+      signal: AbortSignal.timeout(6000),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const priceRial = parseFloat(data?.lastTradePrice || 0);
+      if (priceRial > 100000) return Math.round(priceRial / 10);
+    }
+  } catch {}
+
+  // منبع ۴: تترلند
+  try {
+    const res = await fetch("https://api.tetherland.com/currencies", {
+      headers: REQUEST_HEADERS,
+      signal: AbortSignal.timeout(6000),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const price = parseFloat(data?.data?.currencies?.USDT?.price || 0);
+      if (price > 10000) return Math.round(price);
+    }
+  } catch {}
 
   return 0;
 }
 
 // ───────────────────────────────────────────
-// حلقه اصلی اجرای محاسبات و بروزرسانی دیتابیس
+// چرخه بروزرسانی
 // ───────────────────────────────────────────
 
 async function fetchAndUpdatePrices() {
   try {
-    let rawBuy = await fetchUsdtRate();
+    const rawBuy = await fetchUsdtRate();
 
     if (!rawBuy || rawBuy < 10000) {
-      const lastDbRate = await prisma.usdRate.findFirst({
-        orderBy: { fetchedAt: "desc" },
-      });
-      rawBuy = lastDbRate ? lastDbRate.buyPrice : 221000;
+      console.warn("[usd-rate-job] ⚠️ وب‌سرویس‌ها موقتاً پاسخ ندادند؛ آخرین نرخ معتبر حفظ شد.");
+      return;
     }
 
     const displayPrice = calcDisplayPrice(rawBuy);
@@ -154,13 +142,23 @@ async function fetchAndUpdatePrices() {
     cachedDisplayPrice = displayPrice;
     cachedRoundedRate = roundedRate;
 
-    await prisma.usdRate.create({
-      data: {
-        buyPrice: rawBuy,
-        displayPrice,
-        roundedRate,
-      },
+    const lastDbRate = await prisma.usdRate.findFirst({
+      orderBy: { fetchedAt: "desc" },
     });
+
+    // ثبت در دیتابیس تنها در صورت تغییر نرخ یا گذشت بیش از ۴ ساعت
+    const isPriceChanged = !lastDbRate || lastDbRate.buyPrice !== rawBuy;
+    const isStale = lastDbRate && (Date.now() - new Date(lastDbRate.fetchedAt).getTime() > 4 * 3600 * 1000);
+
+    if (isPriceChanged || isStale) {
+      await prisma.usdRate.create({
+        data: {
+          buyPrice: rawBuy,
+          displayPrice,
+          roundedRate,
+        },
+      });
+    }
 
     const variants = await prisma.productVariant.findMany({
       where: { isActive: true },
@@ -171,7 +169,6 @@ async function fetchAndUpdatePrices() {
 
     for (const variant of variants) {
       let cfg = variant.priceConfig;
-
       if (!cfg) {
         cfg = await prisma.productPriceConfig.create({
           data: {
@@ -183,7 +180,6 @@ async function fetchAndUpdatePrices() {
         });
       }
 
-      // اگر فرمول غیرفعال بود، قیمت دستی درج می‌شود
       if (!cfg.useUsdFormula) {
         if (cfg.fixedPriceRial) {
           await prisma.productVariant.update({
@@ -201,7 +197,7 @@ async function fetchAndUpdatePrices() {
       const baseToman = calcBaseToman(dollarUsd, roundedRate);
       const costToman = applyTaxAndFee(baseToman);
       const withProfitToman = applyProfit(costToman, cfg);
-      const finalToman = roundToBeauty(withProfitToman); // رندینگ انتهایی به ۵ یا ۹
+      const finalToman = roundToBeauty(withProfitToman);
       const finalRial = BigInt(Math.round(finalToman * 10));
 
       await prisma.productVariant.update({
@@ -211,9 +207,9 @@ async function fetchAndUpdatePrices() {
       updatedCount++;
     }
 
-    console.log(`[usd-rate-job] ✅ تتر: ${rawBuy.toLocaleString("fa-IR")} ت | نمایش هدر: ${displayPrice.toLocaleString("fa-IR")} ت | محاسباتی: ${roundedRate.toLocaleString("fa-IR")} ت | رندینگ ۵ و ۹ روی ${updatedCount} محصول`);
+    console.log(`[usd-rate-job] ✅ تتر لحظه‌ای: ${rawBuy.toLocaleString("fa-IR")} ت | نمایش هدر: ${displayPrice.toLocaleString("fa-IR")} ت | بروزرسانی ${updatedCount} پلن`);
   } catch (err) {
-    console.error("[usd-rate-job] ❌ خطا:", err.message);
+    console.error("[usd-rate-job] ❌ خطا در جاب نرخ دلار:", err.message);
   }
 }
 

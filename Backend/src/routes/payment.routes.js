@@ -11,7 +11,7 @@ const router = express.Router();
 
 const FRONTEND_URL = (process.env.FRONTEND_URL?.split(",")[0]?.trim() || "https://byelimit.ir").replace(/\/$/, "");
 
-// ───────────── API دریافت نرخ زنده دلار بدون معطلی (از رم) ─────────────
+// ───────────── API دریافت نرخ لحظه‌ای دلار برای هدر فرانت‌اند ─────────────
 router.get("/usd-rate", async (req, res) => {
   try {
     const memPrice = usdRateJob.getLatestDisplayPrice();
@@ -27,13 +27,13 @@ router.get("/usd-rate", async (req, res) => {
       return res.json({ displayPrice: rate.displayPrice });
     }
 
-    return res.json({ displayPrice: 217100 });
+    return res.json({ displayPrice: 217000 });
   } catch (err) {
-    return res.json({ displayPrice: 217100 });
+    return res.json({ displayPrice: 217000 });
   }
 });
 
-// ───────────── درخواست پرداخت ─────────────
+// ───────────── درخواست پرداخت به درگاه زیبال ─────────────
 router.post("/request", paymentRateLimiter, async (req, res) => {
   try {
     const { orderId } = req.body || {};
@@ -184,7 +184,7 @@ router.get("/callback/zibal", async (req, res) => {
   }
 });
 
-// ───────────── تحویل امن سفارش ─────────────
+// ───────────── تحویل امن سفارش و پاکسازی کامل سبد خرید ─────────────
 async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
   try {
     await prisma.$transaction(async (tx) => {
@@ -237,9 +237,22 @@ async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
         });
       }
 
+      // ۱. حذف اقلام سبد خرید متصل به شناسه کاربر (در صورت لاگین بودن)
+      if (order.userId) {
+        const userCarts = await tx.cart.findMany({
+          where: { userId: order.userId, status: "ACTIVE" },
+          select: { id: true },
+        });
+        for (const uc of userCarts) {
+          await tx.cartItem.deleteMany({ where: { cartId: uc.id } });
+          await tx.cart.update({ where: { id: uc.id }, data: { status: "CONVERTED" } }).catch(() => {});
+        }
+      }
+
+      // ۲. حذف اقلام سبد خریدی که فاکتور مستقیماً از روی آن ایجاد شده است
       if (order.cartId) {
-        await tx.cart.update({ where: { id: order.cartId }, data: { status: "CONVERTED" } });
         await tx.cartItem.deleteMany({ where: { cartId: order.cartId } });
+        await tx.cart.update({ where: { id: order.cartId }, data: { status: "CONVERTED" } }).catch(() => {});
       }
 
       try {

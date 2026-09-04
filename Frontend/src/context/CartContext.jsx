@@ -2,6 +2,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import { usePathname } from "next/navigation";
 import { apiFetch } from "../lib/apiClient";
 import { useAuth } from "./AuthContext";
 
@@ -40,6 +41,7 @@ function mapServerCart(serverCart) {
 }
 
 export function CartProvider({ children }) {
+  const pathname = usePathname();
   const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [isHydrated, setIsHydrated] = useState(false);
@@ -57,6 +59,14 @@ export function CartProvider({ children }) {
   useEffect(() => {
     refetchCart().finally(() => setIsHydrated(true));
   }, [refetchCart, user?.id]);
+
+  // تخلیه خودکار حافظه سبد در فرانت‌اند هنگام تکمیل پرداخت
+  useEffect(() => {
+    if (pathname && pathname.includes("/checkout/success")) {
+      setItems([]);
+      refetchCart();
+    }
+  }, [pathname, refetchCart]);
 
   const addItem = useCallback(async (product, variant, options = {}) => {
     try {
@@ -106,7 +116,6 @@ export function CartProvider({ children }) {
   }, []);
 
   const totalCount = items.length;
-
   const totalPrice = useMemo(
     () => items.reduce((sum, it) => sum + it.unitPrice, 0),
     [items]

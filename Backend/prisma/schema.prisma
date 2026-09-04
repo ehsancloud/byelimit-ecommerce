@@ -278,9 +278,10 @@ enum DiscountType {
 
 // ===================== سفارش =====================
 
+// بخش Order در schema.prisma را به این شکل ویرایش کنید:
 model Order {
   id             String      @id @default(uuid())
-  orderNumber    String      @unique @default(uuid())
+  orderNumber    String      @unique
   cartId         String?     @unique
   cart           Cart?       @relation(fields: [cartId], references: [id])
   userId         String?

@@ -18,11 +18,12 @@ const STATUS_LABEL = {
   CANCELLED: "لغوشده",
 };
 
+// تولید کد رهگیری یکتای ۶ رقمی (مانند BL-489422)
 async function generateUniqueOrderNumber(tx) {
   const PREFIX = "BL-";
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const random8Digit = crypto.randomInt(10000000, 100000000).toString();
-    const candidate = `${PREFIX}${random8Digit}`;
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const random6Digit = crypto.randomInt(100000, 1000000).toString();
+    const candidate = `${PREFIX}${random6Digit}`;
 
     const exists = await tx.order.findUnique({
       where: { orderNumber: candidate },
@@ -31,10 +32,7 @@ async function generateUniqueOrderNumber(tx) {
 
     if (!exists) return candidate;
   }
-
-  const timeSuffix = Date.now().toString().slice(-4);
-  const randSuffix = crypto.randomInt(1000, 10000).toString();
-  return `${PREFIX}${timeSuffix}${randSuffix}`;
+  return `${PREFIX}${Date.now().toString().slice(-6)}`;
 }
 
 const createOrderSchema = z.object({
@@ -128,7 +126,6 @@ router.post("/", optionalAuth, async (req, res) => {
           ],
         },
         orderBy: { createdAt: "desc" },
-        include: { items: true },
       });
 
       let targetOrder = null;
@@ -136,9 +133,17 @@ router.post("/", optionalAuth, async (req, res) => {
       if (existingOrder && existingOrder.status === "PENDING_PAYMENT") {
         await tx.orderItem.deleteMany({ where: { orderId: existingOrder.id } });
 
+        // تبدیل کدهای ۳۶ رقمی به کد استاندارد BL-XXXXXX
+        let safeOrderNum = existingOrder.orderNumber;
+        if (!safeOrderNum || !safeOrderNum.startsWith("BL-") || safeOrderNum.length > 12) {
+          safeOrderNum = await generateUniqueOrderNumber(tx);
+        }
+
         targetOrder = await tx.order.update({
           where: { id: existingOrder.id },
           data: {
+            orderNumber: safeOrderNum,
+            cartId: cart.id,
             userId: user.id,
             mobile,
             telegramId: telegramId ? telegramId.trim() : null,
@@ -167,73 +172,37 @@ router.post("/", optionalAuth, async (req, res) => {
 
       if (!targetOrder) {
         const orderNumber = await generateUniqueOrderNumber(tx);
-
-        try {
-          targetOrder = await tx.order.create({
-            data: {
-              orderNumber,
-              cartId: cart.id,
-              userId: user.id,
-              mobile,
-              telegramId: telegramId ? telegramId.trim() : null,
-              fullName: fullName ? fullName.trim() : user.fullName,
-              status: totals.totalRial === 0n ? "PAID" : "PENDING_PAYMENT",
-              subtotalRial: totals.subtotalRial,
-              discountRial: totals.discountRial,
-              totalRial: totals.totalRial,
-              discountCodeId: totals.appliedOrderDiscountId,
-              items: {
-                create: totals.resolvedItems.map((it) => ({
-                  productId: it.productId,
-                  variantId: it.variantId,
-                  productTitleSnapshot: it.productTitleSnapshot,
-                  variantNameSnapshot: it.variantNameSnapshot,
-                  unitPriceRial: it.unitPriceRial,
-                  hasSecureAddon: it.hasSecureAddon,
-                  addonPriceRial: it.addonPriceRial,
-                  quantity: 1,
-                })),
-              },
+        targetOrder = await tx.order.create({
+          data: {
+            orderNumber,
+            cartId: cart.id,
+            userId: user.id,
+            mobile,
+            telegramId: telegramId ? telegramId.trim() : null,
+            fullName: fullName ? fullName.trim() : user.fullName,
+            status: totals.totalRial === 0n ? "PAID" : "PENDING_PAYMENT",
+            subtotalRial: totals.subtotalRial,
+            discountRial: totals.discountRial,
+            totalRial: totals.totalRial,
+            discountCodeId: totals.appliedOrderDiscountId,
+            items: {
+              create: totals.resolvedItems.map((it) => ({
+                productId: it.productId,
+                variantId: it.variantId,
+                productTitleSnapshot: it.productTitleSnapshot,
+                variantNameSnapshot: it.variantNameSnapshot,
+                unitPriceRial: it.unitPriceRial,
+                hasSecureAddon: it.hasSecureAddon,
+                addonPriceRial: it.addonPriceRial,
+                quantity: 1,
+              })),
             },
-            include: { items: true },
-          });
-        } catch (createErr) {
-          if (createErr.code === "P2002") {
-            const fallbackOrderNumber = await generateUniqueOrderNumber(tx);
-            targetOrder = await tx.order.create({
-              data: {
-                orderNumber: fallbackOrderNumber,
-                cartId: null,
-                userId: user.id,
-                mobile,
-                telegramId: telegramId ? telegramId.trim() : null,
-                fullName: fullName ? fullName.trim() : user.fullName,
-                status: totals.totalRial === 0n ? "PAID" : "PENDING_PAYMENT",
-                subtotalRial: totals.subtotalRial,
-                discountRial: totals.discountRial,
-                totalRial: totals.totalRial,
-                discountCodeId: totals.appliedOrderDiscountId,
-                items: {
-                  create: totals.resolvedItems.map((it) => ({
-                    productId: it.productId,
-                    variantId: it.variantId,
-                    productTitleSnapshot: it.productTitleSnapshot,
-                    variantNameSnapshot: it.variantNameSnapshot,
-                    unitPriceRial: it.unitPriceRial,
-                    hasSecureAddon: it.hasSecureAddon,
-                    addonPriceRial: it.addonPriceRial,
-                    quantity: 1,
-                  })),
-                },
-              },
-              include: { items: true },
-            });
-          } else {
-            throw createErr;
-          }
-        }
+          },
+          include: { items: true },
+        });
       }
 
+      // در صورت رایگان بودن سفارش با کد تخفیف ۱۰۰٪، سبد خرید بلافاصله خالی می‌شود
       if (totals.totalRial === 0n) {
         for (const item of targetOrder.items) {
           const availableAccount = await tx.accountInventory.findFirst({
@@ -258,8 +227,16 @@ router.post("/", optionalAuth, async (req, res) => {
           });
         }
 
-        await tx.cart.update({ where: { id: cart.id }, data: { status: "CONVERTED" } });
+        if (user.id) {
+          const userCarts = await tx.cart.findMany({ where: { userId: user.id, status: "ACTIVE" } });
+          for (const uc of userCarts) {
+            await tx.cartItem.deleteMany({ where: { cartId: uc.id } });
+            await tx.cart.update({ where: { id: uc.id }, data: { status: "CONVERTED" } });
+          }
+        }
+
         await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
+        await tx.cart.update({ where: { id: cart.id }, data: { status: "CONVERTED" } });
       }
 
       return targetOrder;
@@ -275,6 +252,7 @@ router.post("/", optionalAuth, async (req, res) => {
       ipAddress: req.ip,
       metadata: {
         mobile,
+        orderNumber: order.orderNumber,
         totalToman: rialToToman(order.totalRial),
         isFree: order.totalRial === 0n,
       },
@@ -311,11 +289,7 @@ router.get("/mine", requireAuth, async (req, res) => {
         items: {
           include: {
             assignedAccount: {
-              select: {
-                id: true,
-                credentialsEncrypted: true,
-                status: true,
-              },
+              select: { id: true, credentialsEncrypted: true, status: true },
             },
           },
         },
@@ -330,7 +304,6 @@ router.get("/mine", requireAuth, async (req, res) => {
 
     const result = orders.map((order) => {
       const isFulfilled = order.status === "PAID" || order.status === "DELIVERED";
-
       return {
         id: order.id,
         orderNumber: order.orderNumber,
