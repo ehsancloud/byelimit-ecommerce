@@ -1,9 +1,12 @@
+// Frontend/src/components/products/ProductCard.jsx
 import Link from "next/link";
 import Image from "next/image";
 import { Star, ArrowUpRight } from "lucide-react";
 
 export default function ProductCard({
-  titleFa = "اکانت اختصاصی",
+  titlePrefix,
+  title,
+  titleFa,
   titleEn,
   guaranteeText = "ضمانت ۱۰۰٪",
   deliveryText = "تحویل سریع",
@@ -14,9 +17,10 @@ export default function ProductCard({
   imageSrc,
   href = "#",
 }) {
+  const prefix = titlePrefix || titleFa || "خرید اشتراک";
+  const mainTitle = title || titleEn || "";
+
   return (
-    // ✅ FIX: کل کارت به Link تبدیل شد - نه فقط دکمه پایین
-    // ✅ FIX: سایزها در حالت موبایل کوچک‌تر شدند (p-2.5، فونت کوچک‌تر، ارتفاع کمتر)
     <Link
       href={href}
       className="block w-full bg-[#12e2a3] border-[3px] border-black rounded-[14px] p-2.5 sm:p-4 shadow-[-6px_6px_0px_0px_rgba(0,0,0,1)] font-[family-name:var(--font-farsi)] text-black select-none dir-rtl flex flex-col justify-between no-underline hover:shadow-[-4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[1px] active:shadow-none active:translate-x-[-2px] active:translate-y-[2px] transition-all"
@@ -42,7 +46,13 @@ export default function ProductCard({
         {/* کاور محصول */}
         <div className="relative bg-[#f2f4f8] border-[2px] sm:border-[3px] border-black rounded-[10px] aspect-square sm:h-[160px] sm:aspect-auto w-full overflow-hidden">
           {imageSrc ? (
-            <Image src={imageSrc} alt={titleEn || titleFa} fill className="object-cover" />
+            <Image
+              src={imageSrc}
+              alt={`${prefix} ${mainTitle}`}
+              fill
+              sizes="(max-width: 640px) 50vw, 300px"
+              className="object-cover"
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-bold">
               بدون تصویر
@@ -50,18 +60,15 @@ export default function ProductCard({
           )}
         </div>
 
-        {/* عناوین و قیمت */}
+        {/* عناوین سئو و قیمت */}
         <div className="text-center mt-2 sm:mt-4">
-          <h2 className="text-xs sm:text-[18px] font-black leading-tight line-clamp-2">
-            {titleFa}
-            {titleEn && (
-              <>
-                <br />
-                <span className="text-sm sm:text-[22px] font-black tracking-normal">
-                  {titleEn}
-                </span>
-              </>
-            )}
+          <h2 className="leading-snug">
+            <span className="block text-[11px] sm:text-xs font-black text-gray-800 tracking-tight">
+              {prefix}
+            </span>
+            <span className="block text-sm sm:text-[20px] font-black tracking-normal text-black mt-0.5 line-clamp-1">
+              {mainTitle}
+            </span>
           </h2>
 
           <div className="inline-block bg-[#e2e8f0] text-gray-700 text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-md mt-1 sm:mt-2 border border-gray-300">
@@ -92,7 +99,7 @@ export default function ProductCard({
         </div>
       </div>
 
-      {/* دکمه اکشن - اکنون فقط ظاهری است؛ کل کارت کلیک‌پذیر است */}
+      {/* دکمه اکشن */}
       <div className="w-full mt-3 sm:mt-4 bg-[#ccff00] border-[2px] sm:border-[3px] border-black rounded-[10px] py-2 sm:py-2.5 px-3 sm:px-4 flex items-center justify-between font-black text-sm sm:text-base shadow-[-3px_3px_0px_0px_rgba(0,0,0,1)]">
         <span className="text-xs sm:text-sm">{priceTBD ? "مشاهده جزئیات" : "مشاهده گزینه‌ها و خرید"}</span>
         <ArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3]" />

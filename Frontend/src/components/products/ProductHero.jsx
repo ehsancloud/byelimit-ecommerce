@@ -1,4 +1,4 @@
-// src/components/products/ProductHero.jsx
+// Frontend/src/components/products/ProductHero.jsx
 "use client";
 
 import Image from "next/image";
@@ -10,11 +10,8 @@ import {
   Star,
   Users,
   ShoppingBag,
-  Tag,
-  AlertCircle,
   CheckCircle2,
   Clock,
-  X,
 } from "lucide-react";
 
 export default function ProductHero({
@@ -30,9 +27,6 @@ export default function ProductHero({
   onToggleClaudeAddon,
   claudeAddonPrice = 1495000,
 }) {
-  // Discount codes are intentionally not supported at the product page level.
-
-
   const isPriceTBD = Boolean(selectedVariant.priceTBD) || selectedVariant.price == null;
 
   const discountPercent =
@@ -50,13 +44,12 @@ export default function ProductHero({
       ? product.monthlySalesCount
       : product.totalSalesCount;
 
-
   return (
     <div className="bg-white border-[3.5px] border-black rounded-2xl p-4 md:p-8 shadow-[-8px_8px_0_0_rgba(0,0,0,1)] mb-10">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* تصویر محصول و هشدار VPN */}
+        {/* تصویر محصول (لبه‌به‌لبه، بدون کادر بنفش و با شفافیت بالا) */}
         <div className="lg:col-span-5 flex flex-col gap-4">
-          <div className="relative bg-[#d1c4e9] border-[3px] border-black rounded-xl p-6 flex items-center justify-center overflow-visible">
+          <div className="relative w-full aspect-[4/3] sm:h-[320px] md:h-[360px] bg-gray-100 border-[3.5px] border-black rounded-2xl overflow-hidden shadow-[-6px_6px_0_0_rgba(0,0,0,1)]">
             {discountPercent > 0 && (
               <div className="absolute top-3 right-3 bg-[#ff4757] text-white border-[2px] border-black px-2.5 py-1 rounded-lg text-xs font-black shadow-[-2px_2px_0_0_rgba(0,0,0,1)] z-10">
                 {discountPercent}٪ تخفیف
@@ -64,11 +57,12 @@ export default function ProductHero({
             )}
             <Image
               src={product.mainImage}
-              alt={product.title}
-              width={300}
-              height={300}
+              alt={`${product.titlePrefix || "خرید اشتراک"} ${product.title}`}
+              fill
               priority
-              className="w-full h-auto max-h-64 object-contain filter drop-shadow-[-4px_4px_0_rgba(0,0,0,1)]"
+              quality={95}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
+              className="object-cover w-full h-full select-none"
             />
           </div>
 
@@ -106,12 +100,20 @@ export default function ProductHero({
                 </div>
               )}
             </div>
+
+            {/* تفکیک پیشوند و عنوان در صفحه تک‌محصول */}
+            <span className="text-xs sm:text-sm font-bold text-gray-600 block mb-0.5">
+              {product.titlePrefix || "خرید اشتراک"}
+            </span>
             <h1 className="text-2xl md:text-3xl font-black text-black tracking-tight mb-1">
               {product.title}
             </h1>
-            <p className="text-xs md:text-sm font-bold text-gray-600">
-              {product.subtitle}
-            </p>
+
+            {product.subtitle && (
+              <p className="text-xs md:text-sm font-bold text-gray-600">
+                {product.subtitle}
+              </p>
+            )}
           </div>
 
           {/* انتخاب پلن‌ها */}
@@ -174,7 +176,7 @@ export default function ProductHero({
             </div>
           </div>
 
-          {/* Social Proof - فقط وقتی داده واقعی فروش وجود دارد نمایش داده می‌شود */}
+          {/* Social Proof */}
           {hasSalesData && (
             <div className="bg-[#e0f2fe] border-[2px] border-black p-3 rounded-xl flex items-center gap-2.5 text-xs font-bold shadow-[-2px_2px_0_0_rgba(0,0,0,1)]">
               <Users className="w-5 h-5 text-blue-600 shrink-0 stroke-[2.5]" />
@@ -191,7 +193,6 @@ export default function ProductHero({
               </div>
             </div>
           )}
-
 
           {/* قیمت و دکمه ثبت سفارش */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-2 border-t-[2px] border-black">
@@ -241,20 +242,28 @@ export default function ProductHero({
             </button>
           </div>
 
-
-          {/* Add-on: پرداخت فوق امن برای Claude */}
+          {/* سرویس پرداخت فوق امن بین‌المللی */}
           {isClaude && (
             <div
               onClick={() => onToggleClaudeAddon && onToggleClaudeAddon(!claudeSecureAddon)}
-              className={`border-[2.5px] border-black rounded-xl p-4 cursor-pointer transition-all select-none ${claudeSecureAddon ? "bg-[#e0f2fe] shadow-[-3px_3px_0_0_rgba(0,0,0,1)]" : "bg-white hover:bg-gray-50"}`}>
+              className={`border-[2.5px] border-black rounded-xl p-4 cursor-pointer transition-all select-none ${
+                claudeSecureAddon ? "bg-[#e0f2fe] shadow-[-3px_3px_0_0_rgba(0,0,0,1)]" : "bg-white hover:bg-gray-50"
+              }`}
+            >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <div className={`w-5 h-5 border-[2px] border-black rounded flex items-center justify-center shrink-0 ${claudeSecureAddon ? "bg-[#12e2a3]" : "bg-white"}`}>
+                  <div
+                    className={`w-5 h-5 border-[2px] border-black rounded flex items-center justify-center shrink-0 ${
+                      claudeSecureAddon ? "bg-[#12e2a3]" : "bg-white"
+                    }`}
+                  >
                     {claudeSecureAddon && <CheckCircle2 className="w-3.5 h-3.5 text-black stroke-[2.5]" />}
                   </div>
                   <div>
                     <p className="font-black text-xs text-black">پرداخت فوق امن و مطمئن بین‌المللی</p>
-                    <p className="text-[10px] font-bold text-gray-600 mt-0.5">تضمین تحویل فوری با پشتیبانی اختصاصی ۲۴/۷</p>
+                    <p className="text-[10px] font-bold text-gray-600 mt-0.5">
+                      تضمین تحویل فوری با پشتیبانی اختصاصی ۲۴/۷
+                    </p>
                   </div>
                 </div>
                 <span className="font-black text-xs whitespace-nowrap text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1">
@@ -274,7 +283,7 @@ export default function ProductHero({
             </p>
           )}
 
-          {/* نمادها */}
+          {/* مزایا */}
           <div className="grid grid-cols-3 gap-2 pt-2">
             <div className="flex items-center gap-1.5 justify-center text-[11px] font-black bg-white border-[1.5px] border-black p-2 rounded-lg">
               <ShieldCheck className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
