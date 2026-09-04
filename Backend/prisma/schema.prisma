@@ -53,7 +53,7 @@ model Product {
   slug              String   @unique
   sku               String   @unique
   category          String
-  titlePrefix       String   @default
+  titlePrefix       String   @default("خرید اشتراک")
   title             String
   subtitle          String?
   metaTitle         String
