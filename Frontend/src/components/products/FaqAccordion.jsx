@@ -1,18 +1,32 @@
-// src/components/product/FaqAccordion.jsx
+// Frontend/src/components/product/FaqAccordion.jsx
 "use client";
 
 import { useState } from "react";
 import { ChevronDown, HelpCircle } from "lucide-react";
 
-export default function FaqAccordion({ faqs }) {
-  const [openIndex, setOpenIndex] = useState(null);
+export default function FaqAccordion({ faqs = [] }) {
+  const [openIndex, setOpenIndex] = useState(0);
+
+  const items = Array.isArray(faqs)
+    ? faqs
+    : typeof faqs === "string"
+    ? (() => {
+        try {
+          return JSON.parse(faqs);
+        } catch {
+          return [];
+        }
+      })()
+    : [];
+
+  if (!items || items.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-base md:text-lg font-black text-black mb-2">
         پاسخ به سوالات متداول پیش از خرید
       </h3>
-      {faqs.map((faq, idx) => {
+      {items.map((faq, idx) => {
         const isOpen = openIndex === idx;
         return (
           <div
@@ -20,6 +34,7 @@ export default function FaqAccordion({ faqs }) {
             className="border-[2.5px] border-black rounded-xl overflow-hidden bg-white shadow-[-2px_2px_0_0_rgba(0,0,0,1)] transition-all"
           >
             <button
+              type="button"
               onClick={() => setOpenIndex(isOpen ? null : idx)}
               className="w-full p-4 font-black text-xs md:text-sm flex items-center justify-between text-right bg-white hover:bg-gray-50 cursor-pointer"
             >
