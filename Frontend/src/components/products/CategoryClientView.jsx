@@ -107,7 +107,39 @@ export default function CategoryClientView({ categoryInfo, products }) {
         <p className="text-sm md:text-base font-semibold leading-relaxed text-gray-700">
           {categoryInfo.seoArticle.paragraph2}
         </p>
+        {categoryInfo.seoArticle.paragraph3 && (
+          <p className="text-sm md:text-base font-semibold leading-relaxed text-gray-700 mt-4">
+            {categoryInfo.seoArticle.paragraph3}
+          </p>
+        )}
       </article>
+
+      {/* راهنمای انتخاب: کدام محصول مناسب شماست */}
+      {categoryInfo.buyingGuide && (
+        <section className="mt-8 bg-white border-[3.5px] border-black rounded-[20px] p-6 md:p-8 shadow-[-8px_8px_0_0_rgba(0,0,0,1)] dir-rtl">
+          <h2 className="text-xl md:text-2xl font-black mb-2 border-b-[3px] border-black pb-2 inline-block">
+            {categoryInfo.buyingGuide.heading}
+          </h2>
+          <p className="text-sm md:text-base font-semibold leading-relaxed text-gray-700 mt-4 mb-5">
+            {categoryInfo.buyingGuide.intro}
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {categoryInfo.buyingGuide.items.map((item, idx) => (
+              <div
+                key={idx}
+                className="bg-[#f8f9fa] border-[2.5px] border-black rounded-xl p-4"
+              >
+                <h3 className="font-black text-sm md:text-base mb-1">
+                  {item.name}
+                </h3>
+                <p className="text-xs md:text-sm font-bold text-gray-700 leading-relaxed">
+                  {item.bestFor}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <MobileFilterDrawer
         isOpen={isMobileFilterOpen}

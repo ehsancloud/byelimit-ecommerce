@@ -27,10 +27,10 @@ export async function generateMetadata({ params }) {
   if (!post) return {};
 
   return {
-    title: `${post.metaTitle || post.title} | کافه هوش`,
+    title: post.metaTitle || post.title,
     description: post.metaDescription || post.summary,
     alternates: {
-      canonical: post.canonicalUrl || `https://yourdomain.com/blog/${post.slug}`,
+      canonical: post.canonicalUrl || `https://byelimit.ir/blog/${post.slug}`,
     },
     openGraph: {
       title: post.metaTitle || post.title,
@@ -54,13 +54,8 @@ export default async function BlogPostPage({ params }) {
     (p) => p.slug !== post.slug && p.category.slug === post.category.slug
   );
 
-  // استخراج خودکار تیترها برای TOC
-  const headings = [
-    { id: "section-1", text: "مقدمه و بررسی اهمیت ChatGPT Plus", level: 2 },
-    { id: "section-2", text: "قابلیت‌های کلیدی مدل GPT-4o", level: 2 },
-    { id: "section-2-1", text: "تحلیل فایل و داده‌های سنگین", level: 3 },
-    { id: "section-3", text: "نتیجه‌گیری و جمع‌بندی", level: 2 },
-  ];
+  // تیترهای TOC مخصوص همین مقاله (از data/blogData.js)
+  const headings = post.headings || [];
 
   const breadcrumbs = [
     { name: "خانه", url: "/" },

@@ -16,10 +16,10 @@ export async function generateMetadata({ params }) {
   if (!author) return {};
 
   return {
-    title: `مقالات ${author.name} | نویسنده کافه هوش`,
+    title: `مقالات ${author.name}`,
     description: author.bio,
     alternates: {
-      canonical: `https://yourdomain.com/author/${author.slug}`,
+      canonical: `https://byelimit.ir/author/${author.slug}`,
     },
   };
 }

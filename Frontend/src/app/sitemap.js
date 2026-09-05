@@ -16,6 +16,14 @@ export default async function sitemap() {
     priority: route === "" ? 1.0 : 0.9,
   }));
 
+  // صفحات اطلاعاتی سایت
+  const infoRoutes = ["/about", "/contact", "/faq", "/rules"].map((route) => ({
+    url: `${BASE_URL}${route}`,
+    lastModified: new Date().toISOString(),
+    changeFrequency: "monthly",
+    priority: 0.5,
+  }));
+
   // صفحات محصول - قبلاً اصلاً در sitemap نبودند
   let products = [];
   try {
@@ -46,5 +54,5 @@ export default async function sitemap() {
     priority: 0.7,
   }));
 
-  return [...staticRoutes, ...productRoutes, ...categoryRoutes, ...postRoutes];
+  return [...staticRoutes, ...infoRoutes, ...productRoutes, ...categoryRoutes, ...postRoutes];
 }

@@ -6,17 +6,17 @@ import BlogCard from "../../components/blog/BlogCard";
 import { BookOpen, Sparkles, SlidersHorizontal } from "lucide-react";
 
 export const metadata = {
-  title: "مجله تخصصی و وبلاگ هوش مصنوعی | کافه هوش",
+  title: "مجله تخصصی و وبلاگ هوش مصنوعی",
   description:
     "جدیدترین مقالات آموزشی، راهنمای خرید اکانت‌های پرمیوم، بررسی مدل‌های GPT-4o، Midjourney v6، راهنمای پرامپت‌نویسی و اخبار روز AI.",
   alternates: {
-    canonical: "https://yourdomain.com/blog",
+    canonical: "https://byelimit.ir/blog",
   },
   openGraph: {
-    title: "مجله تخصصی و وبلاگ هوش مصنوعی | کافه هوش",
+    title: "مجله تخصصی و وبلاگ هوش مصنوعی",
     description:
       "جدیدترین مقالات آموزشی، راهنمای خرید اکانت‌های پرمیوم و بررسی تخصصی مدل‌های جدید AI.",
-    url: "https://yourdomain.com/blog",
+    url: "https://byelimit.ir/blog",
     type: "website",
   },
 };
@@ -39,7 +39,7 @@ export default function BlogListPage() {
         <header className="mb-10 text-center md:text-right border-b-[3.5px] border-black pb-6">
           <div className="inline-flex items-center gap-2 bg-[#ccff00] border-[2.5px] border-black px-3 py-1 rounded-lg text-xs font-black shadow-[-2px_2px_0_0_rgba(0,0,0,1)] mb-3">
             <BookOpen className="w-4 h-4 stroke-[2.5]" />
-            <span>مجله تخصصی کافه هوش</span>
+            <span>مجله تخصصی بای لیمیت</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-black mb-3">
             وبلاگ و مقالات آموزشی هوش مصنوعی

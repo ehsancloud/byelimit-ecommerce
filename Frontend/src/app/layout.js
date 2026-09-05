@@ -18,10 +18,46 @@ const fontFarsi = localFont({
 
 export const metadata = {
   metadataBase: new URL("https://byelimit.ir"),
-  title: "بای لیمیت | فروشگاه اکانت‌های هوش مصنوعی",
+  title: {
+    default: "بای لیمیت | فروشگاه اکانت‌های هوش مصنوعی",
+    template: "%s | بای لیمیت",
+  },
   description:
     "خرید اکانت‌های اختصاصی و قانونی هوش مصنوعی (ChatGPT، Claude، Midjourney و...) با تحویل سریع و ضمانت ۱۰۰٪.",
   other: { google: "notranslate" },
+};
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "بای لیمیت",
+  alternateName: "byelimit",
+  url: "https://byelimit.ir",
+  logo: "https://byelimit.ir/images/logo.png",
+  description:
+    "فروشگاه تخصصی اکانت‌های اختصاصی هوش مصنوعی، اشتراک‌های پرمیوم بین‌المللی و سرور مجازی در ایران.",
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "customer support",
+    url: "https://t.me/byelimit_support",
+    availableLanguage: ["Persian"],
+  },
+  sameAs: ["https://t.me/byelimit_support"],
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "بای لیمیت",
+  url: "https://byelimit.ir",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: "https://byelimit.ir/products?search={search_term_string}",
+    },
+    "query-input": "required name=search_term_string",
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -30,6 +66,14 @@ export default function RootLayout({ children }) {
       <head>
         <meta name="google" content="notranslate" />
         <meta httpEquiv="Content-Language" content="fa" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
       </head>
       <body className="font-[family-name:var(--font-farsi)] antialiased bg-[#f3f3f3] text-black">
         {/* AuthProvider باید بیرونی‌ترین provider باشد تا useAuth در همه صفحات کار کند */}

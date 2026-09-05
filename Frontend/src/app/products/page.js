@@ -2,7 +2,7 @@
 import ProductsPageClient from "../../components/products/ProductsPageClient";
 
 export const metadata = {
-  title: "فروشگاه اکانت‌های هوش مصنوعی | بای لیمیت",
+  title: "فروشگاه اکانت‌های هوش مصنوعی و اشتراک پرمیوم",
   description:
     "خرید مستقیم و اختصاصی اکانت ChatGPT، Claude، Midjourney، Gemini و ده‌ها ابزار هوش مصنوعی دیگر با تحویل سریع، ضمانت ۱۰۰٪ و پشتیبانی هرروز ۱۰ تا ۲۲.",
   alternates: {

@@ -9,7 +9,7 @@ export async function generateMetadata({ params }) {
   const product = await getProductBySlug(resolvedParams.slug);
 
   if (!product) {
-    return { title: "محصول یافت نشد | بای لیمیت" };
+    return { title: "محصول یافت نشد" };
   }
 
   return {
@@ -41,13 +41,15 @@ export default async function ProductPage({ params }) {
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: product.title,
+    name: `${product.titlePrefix || "خرید اشتراک"} ${product.title}`,
     image: `https://byelimit.ir${product.mainImage}`,
     description: product.metaDescription,
     sku: product.sku,
+    category: product.category,
     brand: {
       "@type": "Brand",
       name: "بای لیمیت",
+      logo: "https://byelimit.ir/images/logo.png",
     },
     offers: pricedVariants.length
       ? {
@@ -85,6 +87,21 @@ export default async function ProductPage({ params }) {
       }
     : null;
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "خانه", item: "https://byelimit.ir" },
+      { "@type": "ListItem", position: 2, name: "فروشگاه", item: "https://byelimit.ir/products" },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: `${product.titlePrefix || "خرید اشتراک"} ${product.title}`,
+        item: `https://byelimit.ir/products/${product.slug}`,
+      },
+    ],
+  };
+
   return (
     <>
       <script
@@ -97,6 +114,10 @@ export default async function ProductPage({ params }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
         />
       )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
 
       <ProductPageClient product={product} />
     </>

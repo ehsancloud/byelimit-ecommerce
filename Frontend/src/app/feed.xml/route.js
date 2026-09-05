@@ -21,7 +21,7 @@ export async function GET() {
   const rssFeed = `<?xml version="1.0" encoding="UTF-8" ?>
     <rss version="2.0">
       <channel>
-        <title>وبلاگ کافه هوش</title>
+        <title>وبلاگ بای لیمیت</title>
         <link>${baseUrl}</link>
         <description>جدیدترین اخبار و آموزش‌های کاربردی ابزارهای هوش مصنوعی</description>
         <language>fa-ir</language>

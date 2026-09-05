@@ -6,25 +6,25 @@ export function ArticleSchema({ post, author }) {
     "@type": "BlogPosting",
     headline: post.metaTitle || post.title,
     description: post.metaDescription || post.summary,
-    image: [`https://yourdomain.com${post.featuredImage}`],
+    image: [`https://byelimit.ir${post.featuredImage}`],
     datePublished: post.publishedAt,
     dateModified: post.updatedAt || post.publishedAt,
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": post.canonicalUrl || `https://yourdomain.com/blog/${post.slug}`,
+      "@id": post.canonicalUrl || `https://byelimit.ir/blog/${post.slug}`,
     },
     author: {
       "@type": "Person",
       name: author.name,
-      url: `https://yourdomain.com/author/${author.slug}`,
+      url: `https://byelimit.ir/author/${author.slug}`,
       jobTitle: author.jobTitle,
     },
     publisher: {
       "@type": "Organization",
-      name: "کافه هوش",
+      name: "بای لیمیت",
       logo: {
         "@type": "ImageObject",
-        url: "https://yourdomain.com/images/logo.png",
+        url: "https://byelimit.ir/images/logo.png",
       },
     },
   };
@@ -45,7 +45,7 @@ export function BreadcrumbSchema({ items }) {
       "@type": "ListItem",
       position: index + 1,
       name: item.name,
-      item: `https://yourdomain.com${item.url}`,
+      item: `https://byelimit.ir${item.url}`,
     })),
   };
 
@@ -90,8 +90,8 @@ export function PersonSchema({ author }) {
     "@context": "https://schema.org",
     "@type": "Person",
     name: author.name,
-    url: `https://yourdomain.com/author/${author.slug}`,
-    image: `https://yourdomain.com${author.avatarUrl}`,
+    url: `https://byelimit.ir/author/${author.slug}`,
+    image: `https://byelimit.ir${author.avatarUrl}`,
     jobTitle: author.jobTitle,
     description: author.bio,
     sameAs: sameAsLinks,
