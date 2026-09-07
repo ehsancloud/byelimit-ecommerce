@@ -34,7 +34,7 @@ export default function HeroBento() {
         {/* ================= کارت ۱ (عریض - ۸ ستون): بنر اصلی ChatGPT Plus ================= */}
         <div className="sm:col-span-2 md:col-span-8 row-span-2 relative bg-black border-[3.5px] border-black rounded-[24px] overflow-hidden shadow-[-8px_8px_0_0_rgba(0,0,0,1)] group p-6 md:p-8 flex flex-col justify-end">
           <Image
-            src="/images/gpt2.jpeg"
+            src="/images/banner1.jpeg"
             alt="ChatGPT Plus"
             fill
             priority
