@@ -12,21 +12,26 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;");
 }
 
-function cleanEnv(val) {
-  return (val || "").trim().replace(/^["']|["']$/g, "");
-}
-
+/**
+ * Sends a new order notification to the Telegram support group.
+ * This function is designed to be non-blocking and fails gracefully.
+ *
+ * @param {Object} order - Full order object including items, products, variants, and user.
+ * @param {Object} verifyResult - Payment verification result.
+ */
 async function notifyNewOrder(order, verifyResult) {
-  const proxyUrl = cleanEnv(process.env.TELEGRAM_PROXY_URL);
-  const botToken = cleanEnv(process.env.TELEGRAM_BOT_TOKEN);
-  let chatId = cleanEnv(process.env.TELEGRAM_SUPPORT_CHAT_ID);
-  const topicId = cleanEnv(process.env.TELEGRAM_SUPPORT_TOPIC_ID);
+  const proxyUrl = process.env.TELEGRAM_PROXY_URL;
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  let chatId = (process.env.TELEGRAM_SUPPORT_CHAT_ID || "").trim();
+  const topicId = process.env.TELEGRAM_SUPPORT_TOPIC_ID;
 
   if (!proxyUrl || !botToken || !chatId) {
-    console.warn("⚠️ [Telegram Notifier] Missing environment variables. Skipping notification.");
+    console.warn("⚠️ [Telegram Notifier] Missing environment variables (TELEGRAM_PROXY_URL, TELEGRAM_BOT_TOKEN, or TELEGRAM_SUPPORT_CHAT_ID). Skipping notification.");
     return;
   }
 
+  // Telegram supergroups/channels start with -100...
+  // If the user provided 1004360326001 without the minus, automatically prepend '-'
   if (!chatId.startsWith("-") && chatId.startsWith("100")) {
     chatId = `-${chatId}`;
   }
@@ -65,22 +70,14 @@ async function notifyNewOrder(order, verifyResult) {
       payload.message_thread_id = Number(topicId);
     }
 
-    const fetchOptions = {
+    const response = await fetch(proxyUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(payload),
-    };
-
-    // First request with manual redirect to prevent POST converting to GET on 302
-    let response = await fetch(proxyUrl, { ...fetchOptions, redirect: "manual" });
-
-    // Handle Google Apps Script 302 redirect manually to preserve POST
-    if ([301, 302, 303, 307, 308].includes(response.status)) {
-      const location = response.headers.get("location");
-      if (location) {
-        response = await fetch(location, { ...fetchOptions, redirect: "follow" });
-      }
-    }
+      redirect: "follow",
+    });
 
     const responseText = await response.text();
     let responseData;
@@ -93,11 +90,13 @@ async function notifyNewOrder(order, verifyResult) {
     if (!response.ok || (responseData && responseData.ok === false)) {
       console.error("❌ [Telegram Notifier] Error from Telegram API/Proxy:", responseText);
     } else {
-      console.log("✅ [Telegram Notifier] Order notification sent successfully.");
+      console.log("✅ [Telegram Notifier] Order notification sent successfully. Message ID:", responseData?.result?.message_id);
     }
   } catch (err) {
-    console.error("❌ [Telegram Notifier] Exception occurred while sending notification:", err.message || err);
+    console.error("❌ [Telegram Notifier] Exception occurred while sending notification:", err);
   }
 }
 
-module.exports = { notifyNewOrder };
+module.exports = {
+  notifyNewOrder,
+};
