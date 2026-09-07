@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from "../../../lib/apiClient";
 
-export default function DollarBox() {
+export default function DollarBox({ variant = "desktop" }) {
   const [displayPrice, setDisplayPrice] = useState(() => {
     if (typeof window !== "undefined") {
       const cached = localStorage.getItem("byelimit_usd_rate");
@@ -34,12 +34,18 @@ export default function DollarBox() {
 
   return (
     <div
-      className="flex items-center gap-2 px-4 h-full border-x-[3.5px] border-black bg-[#fff9c4] hover:bg-[#fff59d] transition-colors shrink-0 cursor-default select-none"
+      className={
+        variant === "mobile"
+          ? "flex items-center justify-between px-3 py-2 bg-[#fff9c4] border-[2px] border-black rounded-lg w-full cursor-default select-none shadow-[-2px_2px_0_0_rgba(0,0,0,1)]"
+          : "flex items-center gap-2 px-4 h-full border-l-[3.5px] border-black bg-[#fff9c4] hover:bg-[#fff59d] transition-colors shrink-0 cursor-default select-none"
+      }
       title="نرخ لحظه‌ای دلار / تتر"
     >
-      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+      <div className="flex items-center gap-2">
+        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+        <span className="text-gray-700 font-black text-sm">نرخ دلار:</span>
+      </div>
       <div className="flex items-center gap-1.5 font-black text-sm">
-        <span className="text-gray-700">نرخ دلار:</span>
         <span className="text-black dir-ltr tracking-tight font-black">
           {displayPrice.toLocaleString("fa-IR")}
         </span>

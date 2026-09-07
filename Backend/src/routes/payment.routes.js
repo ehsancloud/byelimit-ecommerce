@@ -6,6 +6,7 @@ const usdRateJob = require("../jobs/usd-rate-job");
 const { paymentRateLimiter } = require("../middleware/rateLimit");
 const { writeAuditLog } = require("../lib/audit");
 const { rialToToman } = require("../lib/pricing");
+const { notifyNewOrder } = require("../services/telegramNotifier");
 
 const router = express.Router();
 
@@ -272,6 +273,15 @@ async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
         console.error("Telegram notification error:", tgErr);
       }
     });
+
+    const fullOrder = await prisma.order.findUnique({
+      where: { id: order.id },
+      include: {
+        items: { include: { product: true, variant: true } },
+        user: true,
+      }
+    });
+    await notifyNewOrder(fullOrder, verifyResult).catch(console.error);
 
     await writeAuditLog({
       orderId: order.id,

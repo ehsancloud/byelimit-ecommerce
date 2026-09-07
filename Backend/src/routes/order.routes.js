@@ -309,6 +309,7 @@ router.get("/mine", requireAuth, async (req, res) => {
         orderNumber: order.orderNumber,
         status: order.status,
         statusLabel: STATUS_LABEL[order.status] || order.status,
+        deliveryStatus: order.deliveryStatus,
         totalToman: rialToToman(order.totalRial),
         createdAt: order.createdAt,
         payment: order.payments[0] || null,
@@ -362,6 +363,7 @@ router.get("/:orderNumber", async (req, res, next) => {
       orderNumber: order.orderNumber,
       status: order.status,
       statusLabel: STATUS_LABEL[order.status] || order.status,
+      deliveryStatus: order.deliveryStatus,
       mobile: order.mobile,
       fullName: order.fullName,
       totalRial: order.totalRial.toString(),
@@ -381,6 +383,33 @@ router.get("/:orderNumber", async (req, res, next) => {
   } catch (err) {
     console.error("GET ORDER BY NUMBER ERROR:", err);
     return res.status(500).json({ error: "خطا در بازیابی مشخصات سفارش." });
+  }
+});
+
+router.patch("/:orderNumber/delivery-status", async (req, res) => {
+  const apiKey = req.headers["x-internal-api-key"] || req.headers["authorization"]?.replace("Bearer ", "");
+  if (!apiKey || apiKey !== process.env.INTERNAL_API_KEY) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  try {
+    const { orderNumber } = req.params;
+    const { deliveryStatus } = req.body;
+
+    const validStatuses = ["PROCESSING", "SECURING", "DELIVERING", "DELIVERED"];
+    if (!validStatuses.includes(deliveryStatus)) {
+      return res.status(400).json({ error: "وضعیت تحویل نامعتبر است." });
+    }
+
+    const order = await prisma.order.update({
+      where: { orderNumber },
+      data: { deliveryStatus },
+    });
+
+    return res.json({ success: true, orderNumber, deliveryStatus: order.deliveryStatus });
+  } catch (err) {
+    console.error("PATCH DELIVERY STATUS ERROR:", err);
+    return res.status(500).json({ error: "خطا در بروزرسانی وضعیت تحویل." });
   }
 });
 

@@ -23,7 +23,7 @@ export default function ProductCard({
   return (
     <Link
       href={href}
-      className="block w-full bg-[#12e2a3] border-[3px] border-black rounded-[14px] p-2.5 sm:p-4 shadow-[-6px_6px_0px_0px_rgba(0,0,0,1)] font-[family-name:var(--font-farsi)] text-black select-none dir-rtl flex flex-col justify-between no-underline hover:shadow-[-4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[1px] active:shadow-none active:translate-x-[-2px] active:translate-y-[2px] transition-all"
+      className="block w-full bg-[#12e2a3] border-[3px] border-black rounded-[14px] p-2 sm:p-4 shadow-[-6px_6px_0px_0px_rgba(0,0,0,1)] font-[family-name:var(--font-farsi)] text-black select-none dir-rtl flex flex-col justify-between no-underline hover:shadow-[-4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[1px] active:shadow-none active:translate-x-[-2px] active:translate-y-[2px] transition-all"
     >
       <div>
         {/* بالای کارت: ضمانت و امتیاز */}
@@ -44,7 +44,7 @@ export default function ProductCard({
         </div>
 
         {/* کاور محصول */}
-        <div className="relative bg-[#f2f4f8] border-[2px] sm:border-[3px] border-black rounded-[10px] aspect-square sm:h-[160px] sm:aspect-auto w-full overflow-hidden">
+        <div className="relative bg-[#f2f4f8] border-[2px] sm:border-[3px] border-black rounded-[10px] aspect-[4/3] sm:h-[160px] sm:aspect-auto w-full overflow-hidden">
           {imageSrc ? (
             <Image
               src={imageSrc}
@@ -61,7 +61,7 @@ export default function ProductCard({
         </div>
 
         {/* عناوین سئو و قیمت */}
-        <div className="text-center mt-2 sm:mt-4">
+        <div className="text-center mt-1.5 sm:mt-4">
           <h2 className="leading-snug">
             <span className="block text-[11px] sm:text-xs font-black text-gray-800 tracking-tight">
               {prefix}
@@ -75,7 +75,7 @@ export default function ProductCard({
             {deliveryText}
           </div>
 
-          <div className="mt-2 sm:mt-3 flex flex-col items-center justify-center">
+          <div className="mt-1 sm:mt-3 flex flex-col items-center justify-center">
             {priceTBD ? (
               <span className="bg-[#fff9c4] border-[1.5px] border-black text-black text-xs sm:text-sm font-black px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg">
                 قیمت به‌زودی اعلام می‌شود
@@ -101,7 +101,7 @@ export default function ProductCard({
 
       {/* دکمه اکشن */}
       <div className="w-full mt-3 sm:mt-4 bg-[#ccff00] border-[2px] sm:border-[3px] border-black rounded-[10px] py-2 sm:py-2.5 px-3 sm:px-4 flex items-center justify-between font-black text-sm sm:text-base shadow-[-3px_3px_0px_0px_rgba(0,0,0,1)]">
-        <span className="text-xs sm:text-sm">{priceTBD ? "مشاهده جزئیات" : "مشاهده گزینه‌ها و خرید"}</span>
+        <span className="text-[10px] sm:text-sm">{priceTBD ? "مشاهده جزئیات" : "مشاهده گزینه‌ها و خرید"}</span>
         <ArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3]" />
       </div>
     </Link>

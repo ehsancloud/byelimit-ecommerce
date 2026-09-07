@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { HelpCircle, ChevronDown } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function HomeFaq() {
   const [openIndex, setOpenIndex] = useState(null);
@@ -64,11 +65,21 @@ export default function HomeFaq() {
                   className={`w-5 h-5 transition-transform ${isOpen ? "rotate-180" : ""}`}
                 />
               </button>
-              {isOpen && (
-                <div className="p-4 bg-gray-50 border-t-[2px] border-black text-xs md:text-sm font-bold text-gray-700 leading-relaxed">
-                  {faq.answer}
-                </div>
-              )}
+              <AnimatePresence>
+                {isOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-4 bg-gray-50 border-t-[2px] border-black text-xs md:text-sm font-bold text-gray-700 leading-relaxed">
+                      {faq.answer}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           );
         })}

@@ -291,6 +291,7 @@ model Order {
   telegramId     String?
   fullName       String?
   status         OrderStatus @default(PENDING_PAYMENT)
+  deliveryStatus DeliveryStatus @default(PROCESSING)
   subtotalRial   BigInt
   discountRial   BigInt      @default(0)
   totalRial      BigInt
@@ -317,6 +318,13 @@ enum OrderStatus {
   FAILED
   REFUNDED
   CANCELLED
+}
+
+enum DeliveryStatus {
+  PROCESSING
+  SECURING
+  DELIVERING
+  DELIVERED
 }
 
 model OrderItem {
@@ -419,6 +427,8 @@ model TelegramNotification {
   orderId   String
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   payload   Json
+  status    String   @default("PENDING")
+  attempts  Int      @default(0)
   sentAt    DateTime?
   createdAt DateTime @default(now())
 

@@ -13,23 +13,39 @@ export default function AIComparison() {
     text: [
       {
         name: "ChatGPT Plus",
-        code: "مناسب",
-        math: "عالی",
-        persian: "عالی",
-        speed: "بسیار بالا",
+        col1: "عالی", // persian
+        col2: "مناسب", // code
+        col3: "بسیار بالا", // speed
         link: "/products/chatgpt",
         img: "/images/gpt2.jpeg",
       },
       {
         name: "Claude 3.5",
-        code: "بسیار عالی",
-        math: "خوب",
-        persian: "خوب",
-        speed: "بالا",
+        col1: "خوب",
+        col2: "بسیار عالی",
+        col3: "بالا",
         link: "/products/claude",
         img: "/images/claude.png",
       },
     ],
+    image: [
+      {
+        name: "Midjourney",
+        col1: "هنری",
+        col2: "بسیار عالی",
+        col3: "متوسط",
+        link: "/products/midjourney",
+        img: "/images/midjourney.png",
+      },
+      {
+        name: "DALL·E 3",
+        col1: "واقع‌گرایانه",
+        col2: "عالی",
+        col3: "بالا",
+        link: "/products/chatgpt",
+        img: "/images/gpt2.jpeg",
+      },
+    ]
   };
 
   return (
@@ -45,13 +61,13 @@ export default function AIComparison() {
         <div className="flex items-center border-b-[3.5px] border-black bg-gray-100 overflow-x-auto">
           <button
             onClick={() => setActiveTab("text")}
-            className={`px-6 py-4 font-black text-sm border-l-[3.5px] border-black transition-colors ${activeTab === "text" ? "bg-[#12e2a3]" : "hover:bg-gray-200"}`}
+            className={`px-6 py-4 font-black text-sm border-l-[3.5px] border-black transition-colors cursor-pointer ${activeTab === "text" ? "bg-[#12e2a3]" : "hover:bg-gray-200"}`}
           >
             تولید متن و کُد
           </button>
           <button
             onClick={() => setActiveTab("image")}
-            className={`px-6 py-4 font-black text-sm border-l-[3.5px] border-black transition-colors ${activeTab === "image" ? "bg-[#12e2a3]" : "hover:bg-gray-200"}`}
+            className={`px-6 py-4 font-black text-sm border-l-[3.5px] border-black transition-colors cursor-pointer ${activeTab === "image" ? "bg-[#12e2a3]" : "hover:bg-gray-200"}`}
           >
             تولید تصویر و عکس
           </button>
@@ -65,17 +81,19 @@ export default function AIComparison() {
                   مدل هوش مصنوعی
                 </th>
                 <th className="p-4 border-l-[2.5px] border-black">
-                  درک زبان فارسی
+                  {activeTab === "text" ? "درک زبان فارسی" : "سبک تصویر"}
                 </th>
-                <th className="p-4 border-l-[2.5px] border-black">کدنویسی</th>
                 <th className="p-4 border-l-[2.5px] border-black">
-                  سرعت پاسخ‌گویی
+                  {activeTab === "text" ? "کدنویسی" : "کیفیت تصویر"}
+                </th>
+                <th className="p-4 border-l-[2.5px] border-black">
+                  {activeTab === "text" ? "سرعت پاسخ‌گویی" : "سرعت تولید"}
                 </th>
                 <th className="p-4">لینک خرید</th>
               </tr>
             </thead>
             <tbody>
-              {comparisonData.text.map((item, idx) => (
+              {comparisonData[activeTab]?.map((item, idx) => (
                 <tr
                   key={idx}
                   className="border-x-[2.5px] border-b-[2.5px] border-black hover:bg-gray-50"
@@ -92,13 +110,13 @@ export default function AIComparison() {
                     <span className="font-black text-base">{item.name}</span>
                   </td>
                   <td className="p-4 border-l-[2.5px] border-black text-emerald-700">
-                    {item.persian}
+                    {item.col1}
                   </td>
                   <td className="p-4 border-l-[2.5px] border-black text-blue-700">
-                    {item.code}
+                    {item.col2}
                   </td>
                   <td className="p-4 border-l-[2.5px] border-black">
-                    {item.speed}
+                    {item.col3}
                   </td>
                   <td className="p-4">
                     <Link

@@ -80,7 +80,10 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <CartProvider>
             <Header />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 font-[family-name:var(--font-farsi)]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-2 font-[family-name:var(--font-farsi)]">
+              <div className="md:hidden mb-2">
+                <DollarBox variant="mobile" />
+              </div>
               <Breadcrumb />
             </div>
             {children}

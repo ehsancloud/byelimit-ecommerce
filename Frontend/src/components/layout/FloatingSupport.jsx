@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircle, Phone, Send, X, Clock } from "lucide-react";
 
+import { usePathname } from "next/navigation";
+
 const SUPPORT_PHONE_DISPLAY = "۰۲۱-۰۰۰۰۰۰۰";
 const SUPPORT_PHONE_TEL = "+9821xxxxxxx";
 const SUPPORT_TELEGRAM_URL = "https://t.me/byelimit_support";
@@ -12,6 +14,7 @@ const WORKING_HOURS_LABEL = "پاسخگویی و تحویل: هرروز ساعت
 export default function FloatingSupport() {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -23,12 +26,13 @@ export default function FloatingSupport() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const isProductDetail = pathname?.startsWith("/products/") && pathname.length > 10;
+  const bottomClass = isProductDetail ? "bottom-32 sm:bottom-6" : "bottom-24 sm:bottom-6";
+
   return (
     <div
       ref={containerRef}
-      // ✅ FIX: z-30 به جای z-50 تا سایدبار موبایل (z-50) و کشوی فیلتر (z-50)
-      // روی این آیکون بیایند و آن را بپوشانند.
-      className="fixed bottom-24 sm:bottom-6 right-4 sm:right-6 z-30 font-[family-name:var(--font-farsi)] dir-rtl"
+      className={`fixed ${bottomClass} right-4 sm:right-6 z-30 font-[family-name:var(--font-farsi)] dir-rtl`}
     >
       <AnimatePresence>
         {isOpen && (

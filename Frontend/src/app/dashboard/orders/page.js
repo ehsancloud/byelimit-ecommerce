@@ -15,6 +15,20 @@ const STATUS_LABEL = {
   DELIVERED: "📦 تحویل‌شده",
 };
 
+const DELIVERY_STATUS_LABEL = {
+  PROCESSING: "🔄 در حال پردازش",
+  SECURING:   "🔒 در حال تهیه",
+  DELIVERING: "🚀 در حال تحویل",
+  DELIVERED:  "✅ تحویل شده",
+};
+
+const DELIVERY_STATUS_COLOR = {
+  PROCESSING: "bg-amber-100 border-amber-400 text-amber-700",
+  SECURING:   "bg-blue-100 border-blue-400 text-blue-700",
+  DELIVERING: "bg-purple-100 border-purple-400 text-purple-700",
+  DELIVERED:  "bg-emerald-100 border-emerald-400 text-emerald-700",
+};
+
 const COMPLETED_STATUSES = ["PAID", "DELIVERED"];
 
 export default function DashboardOrdersPage() {
@@ -88,9 +102,16 @@ export default function DashboardOrdersPage() {
                   <span className="text-gray-400">•</span>
                   <span className="text-xs font-bold text-gray-600">{Number(order.totalToman).toLocaleString("fa-IR")} تومان</span>
                 </div>
-                <span className={`text-[10px] font-black px-3 py-1 border-[2px] rounded-lg ${STATUS_COLOR[order.status] || "bg-gray-100 border-black"}`}>
-                  {STATUS_LABEL[order.status] || order.status}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] font-black px-3 py-1 border-[2px] rounded-lg ${STATUS_COLOR[order.status] || "bg-gray-100 border-black"}`}>
+                    {STATUS_LABEL[order.status] || order.status}
+                  </span>
+                  {order.deliveryStatus && (
+                    <span className={`text-[10px] font-black px-3 py-1 border-[2px] rounded-lg ${DELIVERY_STATUS_COLOR[order.deliveryStatus] || "bg-gray-100 border-black"}`}>
+                      {DELIVERY_STATUS_LABEL[order.deliveryStatus] || order.deliveryStatus}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* آیتم‌ها */}
