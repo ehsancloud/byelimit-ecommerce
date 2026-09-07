@@ -44,7 +44,14 @@ app.use(cookieParser());
 app.use(pinoHttp());
 app.use(generalApiRateLimiter);
 
-app.get("/health", (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
+app.get("/health", (req, res) => {
+  const { getTelegramConfigStatus } = require("./services/telegramNotifier");
+  return res.json({
+    ok: true,
+    time: new Date().toISOString(),
+    telegram: getTelegramConfigStatus(),
+  });
+});
 
 app.use("/api/auth",        authRoutes);
 app.use("/api/cart",        cartRoutes);

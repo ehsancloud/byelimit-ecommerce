@@ -116,10 +116,15 @@ router.post("/request", paymentRateLimiter, async (req, res) => {
 });
 
 // ───────────── بازگشت از درگاه زیبال (Callback) ─────────────
-router.get("/callback/zibal", async (req, res) => {
-  const { trackId, success, orderId } = req.query;
+router.all("/callback/zibal", async (req, res) => {
+  const trackId = req.query.trackId || req.body?.trackId;
+  const success = req.query.success || req.body?.success;
+  const orderId = req.query.orderId || req.body?.orderId;
 
-  if (!trackId || !orderId) {
+  console.log(`[Zibal Callback Hit] Method: ${req.method}, trackId: ${trackId}, success: ${success}, orderId: ${orderId}`);
+
+  if (!trackId) {
+    console.error("[Zibal Callback Error]: Missing trackId parameter");
     return res.redirect(`${FRONTEND_URL}/checkout/failed?reason=missing_params`);
   }
 
@@ -129,6 +134,7 @@ router.get("/callback/zibal", async (req, res) => {
     });
 
     if (!payment) {
+      console.error(`[Zibal Callback Error]: Payment record not found for authority (trackId): ${trackId}`);
       return res.redirect(`${FRONTEND_URL}/checkout/failed?reason=payment_not_found`);
     }
 
@@ -138,6 +144,7 @@ router.get("/callback/zibal", async (req, res) => {
     });
 
     if (!order) {
+      console.error(`[Zibal Callback Error]: Order record not found for orderId: ${payment.orderId}`);
       return res.redirect(`${FRONTEND_URL}/checkout/failed?reason=order_not_found`);
     }
 
@@ -281,6 +288,7 @@ async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
     }
 
     // واکشی کامل سفارش با محصولات و کاربر جهت ارسال به تلگرام
+    console.log(`[PAYMENT FULFILL] Preparing to send Telegram notification for order ${order.orderNumber}...`);
     try {
       const fullOrder = await prisma.order.findUnique({
         where: { id: order.id },
@@ -289,10 +297,13 @@ async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
           user: true,
         },
       });
-      await notifyNewOrder(fullOrder || order, verifyResult);
+      const tgRes = await notifyNewOrder(fullOrder || order, verifyResult);
+      console.log(`[PAYMENT FULFILL] Telegram notification result for ${order.orderNumber}:`, tgRes);
     } catch (notifyErr) {
-      console.error("[Telegram Notifier Error]:", notifyErr);
-      await notifyNewOrder(order, verifyResult).catch(() => {});
+      console.error("[Telegram Notifier Primary Error]:", notifyErr);
+      await notifyNewOrder(order, verifyResult).catch((fallbackErr) => {
+        console.error("[Telegram Notifier Fallback Error]:", fallbackErr);
+      });
     }
 
     await writeAuditLog({
@@ -311,8 +322,11 @@ async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
     console.error("FULFILL SAFE ERROR:", err);
     // حتی در صورت بروز خطا در تراکنش تحویل، چون پول از مشتری کسر شده، اعلان تلگرام حتماً باید ارسال شود
     try {
+      console.log(`[PAYMENT FULFILL] Triggering emergency Telegram notification for ${order.orderNumber}...`);
       await notifyNewOrder(order, verifyResult);
-    } catch (e) {}
+    } catch (e) {
+      console.error("[Telegram Emergency Notification Error]:", e);
+    }
     return { success: false, error: err };
   }
 }

@@ -268,8 +268,12 @@ router.post("/", optionalAuth, async (req, res) => {
             user: true,
           },
         });
-        notifyNewOrder(fullOrder || order, { refNumber: "FREE_ORDER" }).catch(() => {});
-      } catch (e) {}
+        await notifyNewOrder(fullOrder || order, { refNumber: "FREE_ORDER" }).catch((err) => {
+          console.error("[Free Order Telegram Notification Error]:", err);
+        });
+      } catch (e) {
+        console.error("[Free Order Telegram Exception]:", e);
+      }
     }
 
     return res.status(201).json({
