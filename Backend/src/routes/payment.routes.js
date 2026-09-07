@@ -238,50 +238,62 @@ async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
         });
       }
 
-      // ۱. حذف اقلام سبد خرید متصل به شناسه کاربر (در صورت لاگین بودن)
+      // ۱. تغییر وضعیت کارت‌های فعال کاربر
       if (order.userId) {
-        const userCarts = await tx.cart.findMany({
-          where: { userId: order.userId, status: "ACTIVE" },
-          select: { id: true },
+        await tx.cartItem.deleteMany({
+          where: { cart: { userId: order.userId, status: "ACTIVE" } },
         });
-        for (const uc of userCarts) {
-          await tx.cartItem.deleteMany({ where: { cartId: uc.id } });
-          await tx.cart.update({ where: { id: uc.id }, data: { status: "CONVERTED" } }).catch(() => {});
-        }
+        await tx.cart.updateMany({
+          where: { userId: order.userId, status: "ACTIVE" },
+          data: { status: "CONVERTED" },
+        });
       }
 
-      // ۲. حذف اقلام سبد خریدی که فاکتور مستقیماً از روی آن ایجاد شده است
+      // ۲. تغییر وضعیت کارت متصل به سفارش
       if (order.cartId) {
         await tx.cartItem.deleteMany({ where: { cartId: order.cartId } });
-        await tx.cart.update({ where: { id: order.cartId }, data: { status: "CONVERTED" } }).catch(() => {});
-      }
-
-      try {
-        await tx.telegramNotification.create({
-          data: {
-            orderId: order.id,
-            payload: {
-              orderNumber: order.orderNumber,
-              mobile: order.mobile,
-              gateway: "ZIBAL",
-              refNumber: verifyResult.refNumber,
-              totalToman: rialToToman(order.totalRial),
-            },
-          },
+        await tx.cart.updateMany({
+          where: { id: order.cartId, status: "ACTIVE" },
+          data: { status: "CONVERTED" },
         });
-      } catch (tgErr) {
-        console.error("Telegram notification error:", tgErr);
       }
     });
 
-    const fullOrder = await prisma.order.findUnique({
-      where: { id: order.id },
-      include: {
-        items: { include: { product: true, variant: true } },
-        user: true,
-      }
-    });
-    await notifyNewOrder(fullOrder, verifyResult).catch(console.error);
+    console.log(`[PAYMENT FULFILL] Order ${order.orderNumber} successfully fulfilled in DB.`);
+
+    // ثبت لاگ نوتیفیکیشن تلگرام در دیتابیس (خارج از تراکنش برای جلوگیری از خطای همگام‌سازی)
+    try {
+      await prisma.telegramNotification.create({
+        data: {
+          orderId: order.id,
+          status: "SENT",
+          payload: {
+            orderNumber: order.orderNumber,
+            mobile: order.mobile,
+            gateway: "ZIBAL",
+            refNumber: verifyResult?.refNumber || null,
+            totalToman: rialToToman(order.totalRial),
+          },
+        },
+      });
+    } catch (tgDbErr) {
+      console.warn("[Telegram Notification DB Warning]:", tgDbErr.message);
+    }
+
+    // واکشی کامل سفارش با محصولات و کاربر جهت ارسال به تلگرام
+    try {
+      const fullOrder = await prisma.order.findUnique({
+        where: { id: order.id },
+        include: {
+          items: { include: { product: true, variant: true } },
+          user: true,
+        },
+      });
+      await notifyNewOrder(fullOrder || order, verifyResult);
+    } catch (notifyErr) {
+      console.error("[Telegram Notifier Error]:", notifyErr);
+      await notifyNewOrder(order, verifyResult).catch(() => {});
+    }
 
     await writeAuditLog({
       orderId: order.id,
@@ -297,6 +309,10 @@ async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
     return { success: true };
   } catch (err) {
     console.error("FULFILL SAFE ERROR:", err);
+    // حتی در صورت بروز خطا در تراکنش تحویل، چون پول از مشتری کسر شده، اعلان تلگرام حتماً باید ارسال شود
+    try {
+      await notifyNewOrder(order, verifyResult);
+    } catch (e) {}
     return { success: false, error: err };
   }
 }

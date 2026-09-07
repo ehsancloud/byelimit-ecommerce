@@ -6,6 +6,7 @@ const prisma = require("../lib/prisma");
 const { optionalAuth, requireAuth } = require("../middleware/auth");
 const { calculateOrderTotals, rialToToman } = require("../lib/pricing");
 const { writeAuditLog } = require("../lib/audit");
+const { notifyNewOrder } = require("../services/telegramNotifier");
 
 const router = express.Router();
 
@@ -257,6 +258,19 @@ router.post("/", optionalAuth, async (req, res) => {
         isFree: order.totalRial === 0n,
       },
     });
+
+    if (order.totalRial === 0n) {
+      try {
+        const fullOrder = await prisma.order.findUnique({
+          where: { id: order.id },
+          include: {
+            items: { include: { product: true, variant: true } },
+            user: true,
+          },
+        });
+        notifyNewOrder(fullOrder || order, { refNumber: "FREE_ORDER" }).catch(() => {});
+      } catch (e) {}
+    }
 
     return res.status(201).json({
       orderId: order.id,

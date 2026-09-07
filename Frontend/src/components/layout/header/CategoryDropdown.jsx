@@ -100,7 +100,7 @@ export default function CategoryDropdown({
     >
       {/* دکمه سربرگ محصولات */}
       <button
-        className={`flex items-center gap-2 px-6 border-x-[3.5px] border-black font-black text-base transition-colors ${
+        className={`flex items-center gap-2 px-6 h-full border-l-[3.5px] border-black font-black text-base transition-colors ${
           activeMenu === "products"
             ? "bg-[#12e2a3]"
             : "bg-white hover:bg-gray-100"

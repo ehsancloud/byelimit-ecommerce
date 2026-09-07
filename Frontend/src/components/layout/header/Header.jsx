@@ -25,9 +25,8 @@ import {
 
 import SearchBar from "./SearchBar";
 import CategoryDropdown from "./CategoryDropdown";
+import Navbar from "./Navbar";
 import UserMenu from "./UserMenu";
-import CartIcon from "../../cart/CartIcon";
-import DollarBox from "./DollarBox";
 import { useAuth } from "../../../context/AuthContext";
 
 export default function Header() {
@@ -105,20 +104,19 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* نوار میانی دسکتاپ: مگامنو + سرچ‌بار + سبد + دلار */}
-          <div className="hidden md:flex items-center flex-1">
-            <CategoryDropdown
-              activeMenu={activeMenu}
-              setActiveMenu={setActiveMenu}
-              isScrolled={isScrolled}
-            />
+          {/* نوار میانی دسکتاپ: مگامنو + سرچ‌بار + نوبار (سبد و دلار) */}
+          <div className="hidden md:flex items-stretch flex-1">
+            <div className="flex items-stretch h-full">
+              <CategoryDropdown
+                activeMenu={activeMenu}
+                setActiveMenu={setActiveMenu}
+                isScrolled={isScrolled}
+              />
+            </div>
             <div className="flex items-center gap-2 flex-1 px-3">
               <SearchBar isScrolled={isScrolled} />
             </div>
-            <div className="flex items-stretch h-full">
-              <CartIcon variant="desktop" />
-              <DollarBox />
-            </div>
+            <Navbar />
           </div>
 
           {/* منوی کاربر دسکتاپ */}
