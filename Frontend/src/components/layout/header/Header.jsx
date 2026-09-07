@@ -27,6 +27,7 @@ import SearchBar from "./SearchBar";
 import CategoryDropdown from "./CategoryDropdown";
 import Navbar from "./Navbar";
 import UserMenu from "./UserMenu";
+import CartIcon from "../../cart/CartIcon";
 import { useAuth } from "../../../context/AuthContext";
 
 export default function Header() {
