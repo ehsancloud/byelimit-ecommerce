@@ -23,7 +23,7 @@ export default function Bestsellers() {
           
         // اگه فروشی نداشت، ۴ محصول اول سایت رو به عنوان پیشنهادی برداره
         if (top.length === 0) {
-          top = products.slice(0, 4);
+          top = products.slice(2, 6);
         }
         
         setBestProducts(top.map(toProductCardProps));
