@@ -6,9 +6,9 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 if (!process.env.DATABASE_URL) {
   require("dotenv").config({ path: "/etc/byelimit/.env" });
-if (!process.env.DATABASE_URL) {
-  require("dotenv").config({ path: path.join(__dirname, "../", ".env.production") });
 }
+if (!process.env.DATABASE_URL) {
+  require("dotenv").config({ path: path.join(__dirname, "../.env.production") });
 }
 
 const prisma = new PrismaClient();
