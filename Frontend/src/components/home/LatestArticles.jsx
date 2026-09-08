@@ -1,9 +1,10 @@
 // src/components/home/LatestArticles.jsx
 "use client";
 
+import Link from "next/link";
 import BlogCard from "../blog/BlogCard";
 import { BLOG_POSTS } from "../../data/blogData";
-import { BookOpen } from "lucide-react";
+import { BookOpen, ArrowLeft } from "lucide-react";
 
 export default function LatestArticles() {
   const posts = BLOG_POSTS.slice(0, 3);
@@ -15,6 +16,10 @@ export default function LatestArticles() {
           <BookOpen className="w-6 h-6 stroke-[2.5]" />
           <h2 className="text-2xl font-black">آخرین مقالات مجله هوش مصنوعی</h2>
         </div>
+        
+        <Link href="/blog" className="hidden sm:flex items-center gap-1 text-sm font-black text-black hover:text-gray-700 transition-colors">
+          مشاهده همه <ArrowLeft className="w-4 h-4" />
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

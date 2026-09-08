@@ -14,22 +14,25 @@ export default function Bestsellers() {
     getAllProducts()
       .then((products) => {
         if (cancelled) return;
-        const top = products
+        
+        // اول سعی کن پرفروش‌ها رو بگیره
+        let top = products
           .filter((p) => p.totalSalesCount > 0)
           .sort((a, b) => b.totalSalesCount - a.totalSalesCount)
-          .slice(0, 4)
-          .map(toProductCardProps);
-        setBestProducts(top);
+          .slice(0, 4);
+          
+        // اگه فروشی نداشت، ۴ محصول اول سایت رو به عنوان پیشنهادی برداره
+        if (top.length === 0) {
+          top = products.slice(0, 4);
+        }
+        
+        setBestProducts(top.map(toProductCardProps));
       })
-      .catch(() => {
-        // اگر بک‌اند در دسترس نبود، این بخش صرفاً نمایش داده نمی‌شود (بدون شکستن صفحه اصلی)
-      });
-    return () => {
-      cancelled = true;
-    };
+      .catch(() => {});
+      
+    return () => { cancelled = true; };
   }, []);
 
-  // تا فروش واقعی رخ ندهد، این بخش عمداً نمایش داده نمی‌شود (بدون آمار جعلی)
   if (bestProducts.length === 0) return null;
 
   return (

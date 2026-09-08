@@ -10,8 +10,8 @@ import "./globals.css";
 
 const fontFarsi = localFont({
   src: [
-    { path: "./fonts/Modam-Bold.ttf",  weight: "400", style: "normal" },
-    { path: "./fonts/Modam-Black.ttf", weight: "700", style: "normal" },
+    { path: "./fonts/Modam-Bold.ttf",  weight: "700", style: "normal" },
+    { path: "./fonts/Modam-Black.ttf", weight: "900", style: "normal" }, // اصلاح وزن به 900
   ],
   variable: "--font-farsi",
 });

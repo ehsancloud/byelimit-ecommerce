@@ -1,12 +1,9 @@
 // src/components/home/HeroBento.jsx
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import {
-  Search,
   ArrowLeft,
   Zap,
   Sparkles,
@@ -16,31 +13,33 @@ import {
   Layers,
 } from "lucide-react";
 
+const IMAGE_FOCUS = {
+  hero: "Left",
+  midjourney: "center",
+  claude: "center",
+  gemini: "center",
+};
+
+const FOCUS_CLASS = {
+  left: "object-left md:object-center",
+  center: "object-center",
+  right: "object-right md:object-center",
+};
+
 export default function HeroBento() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const router = useRouter();
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchQuery)}`);
-    }
-  };
-
   return (
     <section className="mt-2 dir-rtl">
-      {/* شبکه Bento Grid با ۷ کارت مجزا (کاملاً ریسپانسیو) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4 auto-rows-[160px] md:auto-rows-[180px]">
-        {/* ================= کارت ۱ (عریض - ۸ ستون): بنر اصلی ChatGPT Plus ================= */}
+      {/* ارتفاع ردیف‌ها در موبایل بیشتر شد تا کارت‌ها فشرده نشن */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4 auto-rows-[220px] sm:auto-rows-[200px] md:auto-rows-[180px]">
+        {/* کارت ۱ */}
         <div className="sm:col-span-2 md:col-span-8 row-span-2 relative bg-black border-[3.5px] border-black rounded-[24px] overflow-hidden shadow-[-8px_8px_0_0_rgba(0,0,0,1)] group p-6 md:p-8 flex flex-col justify-end">
           <Image
             src="/images/banner1.jpeg"
             alt="ChatGPT Plus"
             fill
             priority
-            className="object-cover group-hover:scale-105 transition-transform duration-700"
+            className={`object-cover ${FOCUS_CLASS[IMAGE_FOCUS.hero]} group-hover:scale-105 transition-transform duration-700`}
           />
-          {/* هاله مشکی چندلایه جهت قرائت بهتر تیتر و دکمه */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/30 z-10" />
 
           <div className="relative z-20">
@@ -73,41 +72,48 @@ export default function HeroBento() {
           </div>
         </div>
 
-        {/* ================= کارت ۲ (۴ ستون): سرچ‌بار هوشمند داخل Bento ================= */}
-        <div className="sm:col-span-2 md:col-span-4 row-span-1 bg-[#ccff00] border-[3.5px] border-black rounded-[24px] p-5 shadow-[-6px_6px_0_0_rgba(0,0,0,1)] flex flex-col justify-between">
-          <div className="flex items-center gap-2 font-black text-sm text-black mb-2">
-            <Search className="w-5 h-5 stroke-[2.5]" />
-            <span>جستجوی زنده ابزارها</span>
+        {/* کارت ۲ */}
+        <div className="sm:col-span-2 md:col-span-4 row-span-1 relative bg-black border-[3.5px] border-black rounded-[24px] overflow-hidden shadow-[-6px_6px_0_0_rgba(0,0,0,1)] group p-5 flex flex-col justify-between">
+          <Image
+            src="/images/gemini.png"
+            alt="Gemini Advanced"
+            fill
+            className={`object-cover ${FOCUS_CLASS[IMAGE_FOCUS.gemini]} group-hover:scale-110 transition-transform duration-700 opacity-70`}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />
+
+          <div className="relative z-20 flex items-center justify-between w-full">
+            <span className="bg-blue-300 text-black border border-black px-2 py-0.5 rounded text-[10px] font-black">
+              دستیار هوشمند گوگل
+            </span>
+            <Layers className="w-5 h-5 text-blue-300" />
           </div>
 
-          <form onSubmit={handleSearch} className="relative w-full">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="مثال: Midjourney, Claude..."
-              className="w-full bg-white border-[2.5px] border-black rounded-xl py-3 pr-4 pl-10 text-xs font-black text-black outline-none focus:shadow-[-3px_3px_0_0_rgba(0,0,0,1)] transition-all placeholder:text-gray-400 placeholder:font-bold"
-            />
-            <button
-              type="submit"
-              className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-[#12e2a3] border-[1.5px] border-black rounded-lg cursor-pointer"
+          <div className="relative z-20 flex items-end justify-between">
+            <div>
+              <h3 className="text-lg font-black text-white">
+                Gemini Advanced
+              </h3>
+              <p className="text-[11px] font-bold text-gray-300">
+                قدرتمند در تحلیل و تولید محتوا
+              </p>
+            </div>
+            <Link
+              href="/products/gemini"
+              className="bg-[#ccff00] hover:bg-[#b5e600] border-[2px] border-black p-2 rounded-xl text-black no-underline shadow-[-2px_2px_0_0_rgba(0,0,0,1)]"
             >
               <ArrowLeft className="w-4 h-4 stroke-[3]" />
-            </button>
-          </form>
-
-          <span className="text-[10px] font-bold text-gray-800">
-            جستجو بین بیش از ۵۰ اکانت پرمیوم هوش مصنوعی
-          </span>
+            </Link>
+          </div>
         </div>
 
-        {/* ================= کارت ۳ (۴ ستون): Midjourney v6 ================= */}
+        {/* کارت ۳ */}
         <div className="sm:col-span-1 md:col-span-4 row-span-1 relative bg-black border-[3.5px] border-black rounded-[24px] overflow-hidden shadow-[-6px_6px_0_0_rgba(0,0,0,1)] group p-5 flex flex-col justify-between">
           <Image
             src="/images/midjourney.png"
             alt="Midjourney"
             fill
-            className="object-cover group-hover:scale-110 transition-transform duration-700 opacity-70"
+            className={`object-cover ${FOCUS_CLASS[IMAGE_FOCUS.midjourney]} group-hover:scale-110 transition-transform duration-700 opacity-70`}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />
 
@@ -134,13 +140,13 @@ export default function HeroBento() {
           </div>
         </div>
 
-        {/* ================= کارت ۴ (۴ ستون): Claude 3.5 Sonnet ================= */}
+        {/* کارت ۴ */}
         <div className="sm:col-span-1 md:col-span-4 row-span-1 relative bg-black border-[3.5px] border-black rounded-[24px] overflow-hidden shadow-[-6px_6px_0_0_rgba(0,0,0,1)] group p-5 flex flex-col justify-between">
           <Image
             src="/images/claude.png"
             alt="Claude Pro"
             fill
-            className="object-cover group-hover:scale-110 transition-transform duration-700 opacity-60"
+            className={`object-cover ${FOCUS_CLASS[IMAGE_FOCUS.claude]} group-hover:scale-110 transition-transform duration-700 opacity-60`}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-10" />
 
@@ -167,7 +173,7 @@ export default function HeroBento() {
           </div>
         </div>
 
-        {/* ================= کارت ۵ (۴ ستون): سرور مجازی (VPS) ================= */}
+        {/* کارت ۵ */}
         <div className="sm:col-span-1 md:col-span-4 row-span-1 bg-[#12e2a3] border-[3.5px] border-black rounded-[24px] p-5 shadow-[-6px_6px_0_0_rgba(0,0,0,1)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="bg-white text-black border border-black px-2 py-0.5 rounded text-[10px] font-black">
@@ -194,8 +200,8 @@ export default function HeroBento() {
           </div>
         </div>
 
-        {/* ================= کارت ۷ (۴ ستون): Cursor AI / Copilot ================= */}
-        <div className="sm:col-span-2 md:col-span-4 row-span-1 bg-[#ff8f1f] border-[3.5px] border-black rounded-[24px] p-5 shadow-[-6px_6px_0_0_rgba(0,0,0,1)] flex items-center justify-between">
+        {/* کارت ۶ */}
+        <div className="sm:col-span-2 md:col-span-4 row-span-1 bg-[#ff8f1f] border-[3.5px] border-black rounded-[24px] p-5 shadow-[-6px_6px_0_0_rgba(0,0,0,1)] flex items-center justify-between gap-4">
           <div>
             <div className="inline-block bg-black text-white text-[10px] font-black px-2 py-0.5 rounded mb-1">
               ویژه توسعه‌دهندگان

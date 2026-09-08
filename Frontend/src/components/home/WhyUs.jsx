@@ -43,15 +43,15 @@ export default function WhyUs() {
           return (
             <div
               key={idx}
-              className="bg-[#f8f9fa] border-[2.5px] border-black rounded-2xl p-5 shadow-[-4px_4px_0_0_rgba(0,0,0,1)] flex flex-col gap-3"
+              className={`${f.bg} border-[2.5px] border-black rounded-2xl p-5 shadow-[-4px_4px_0_0_rgba(0,0,0,1)] flex flex-col gap-3 hover:-translate-y-1 hover:-translate-x-1 transition-transform duration-300`}
             >
               <div
-                className={`w-12 h-12 ${f.bg} border-[2px] border-black rounded-xl flex items-center justify-center shadow-[-2px_2px_0_0_rgba(0,0,0,1)]`}
+                className="w-12 h-12 bg-white border-[2px] border-black rounded-xl flex items-center justify-center shadow-[-2px_2px_0_0_rgba(0,0,0,1)]"
               >
                 <Icon className="w-6 h-6 text-black stroke-[2.5]" />
               </div>
               <h3 className="font-black text-base text-black">{f.title}</h3>
-              <p className="text-xs font-bold text-gray-600 leading-relaxed">
+              <p className="text-sm font-bold text-black/80 leading-relaxed">
                 {f.desc}
               </p>
             </div>

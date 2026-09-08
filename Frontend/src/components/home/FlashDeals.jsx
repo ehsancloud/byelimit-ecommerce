@@ -1,18 +1,18 @@
+// src/components/home/FlashDeals.jsx
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Timer, ShoppingBag, ChevronRight, ChevronLeft, Loader2 } from "lucide-react";
+import { Timer, ShoppingBag, ChevronRight, ChevronLeft } from "lucide-react";
 import { apiFetch } from "../../lib/apiClient";
 
-// تابع کمکی برای محاسبه زمان باقی‌مانده
 function calcTimeLeft(endsAt) {
   if (!endsAt) return null;
   const diff = new Date(endsAt).getTime() - Date.now();
   if (diff <= 0) return null;
   return {
-    hours:   Math.floor(diff / (1000 * 60 * 60)),
+    hours: Math.floor(diff / (1000 * 60 * 60)),
     minutes: Math.floor((diff / (1000 * 60)) % 60),
     seconds: Math.floor((diff / 1000) % 60),
   };
@@ -29,7 +29,6 @@ export default function FlashDeals() {
   const [timeLeft, setTimeLeft] = useState(null);
   const [mounted, setMounted] = useState(false);
 
-  // ✅ دریافت پیشنهادات ویژه از بک‌اند (قابل تنظیم از Prisma Studio)
   useEffect(() => {
     setMounted(true);
     apiFetch("/api/flash-deals")
@@ -38,22 +37,18 @@ export default function FlashDeals() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  // تایمر برای deal فعلی
   useEffect(() => {
     const currentDeal = deals[currentIndex];
     if (!currentDeal?.endsAt) {
       setTimeLeft(null);
       return;
     }
-
     setTimeLeft(calcTimeLeft(currentDeal.endsAt));
-
     const interval = setInterval(() => {
       const tl = calcTimeLeft(currentDeal.endsAt);
       setTimeLeft(tl);
       if (!tl) clearInterval(interval);
     }, 1000);
-
     return () => clearInterval(interval);
   }, [deals, currentIndex]);
 
@@ -65,14 +60,19 @@ export default function FlashDeals() {
     setCurrentIndex((i) => (i === deals.length - 1 ? 0 : i + 1));
   }, [deals.length]);
 
-  // Auto-slide هر ۵ ثانیه
+  // اصلاح تداخل تایمر: currentIndex اضافه شد تا با هر کلیک یا تغییر، تایمر ۵ ثانیه‌ای ریست بشه
   useEffect(() => {
     if (deals.length <= 1) return;
     const timer = setInterval(next, 5000);
     return () => clearInterval(timer);
-  }, [deals.length, next]);
+  }, [deals.length, next, currentIndex]); 
 
-  if (!mounted || isLoading) return null;
+  if (!mounted || isLoading) {
+    return (
+      <div className="h-[380px] md:h-[280px] bg-gray-100 border-[3.5px] border-black rounded-[24px] shadow-[-10px_10px_0_0_rgba(0,0,0,1)] animate-pulse" />
+    );
+  }
+  
   if (deals.length === 0) return null;
 
   const deal = deals[currentIndex];
@@ -80,11 +80,9 @@ export default function FlashDeals() {
 
   return (
     <section className="bg-rose-500 border-[3.5px] border-black rounded-[24px] p-6 md:p-8 shadow-[-10px_10px_0_0_rgba(0,0,0,1)] relative overflow-hidden">
-      {/* پترن پس‌زمینه */}
       <div className="absolute inset-0 bg-[url('/images/pattern-noise.png')] opacity-20 mix-blend-overlay pointer-events-none" />
 
       <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-        {/* اطلاعات پیشنهاد */}
         <div className="flex-1 text-center md:text-right text-white">
           <div className="inline-flex items-center gap-2 bg-black border-[2px] border-white px-3 py-1 rounded-lg text-xs font-black mb-4">
             <Timer className="w-4 h-4 text-[#ccff00]" />
@@ -103,11 +101,10 @@ export default function FlashDeals() {
             {dealVariant.discountPercent}٪ تخفیف اختصاصی روی پلن {dealVariant.name}
           </p>
 
-          {/* ✅ تایمر شمارش معکوس واقعی از endsAt که در Prisma Studio ست می‌شود */}
           {timeLeft && (
             <div className="flex items-center justify-center md:justify-start gap-3 dir-ltr mb-6">
               {[
-                { value: pad(timeLeft.hours),   label: "ساعت"  },
+                { value: pad(timeLeft.hours), label: "ساعت" },
                 { value: pad(timeLeft.minutes), label: "دقیقه" },
                 { value: pad(timeLeft.seconds), label: "ثانیه" },
               ].map(({ value, label }, i, arr) => (
@@ -118,15 +115,12 @@ export default function FlashDeals() {
                     </span>
                     <span className="text-[10px] font-black mt-1">{label}</span>
                   </div>
-                  {i < arr.length - 1 && (
-                    <span className="text-2xl font-black mb-4">:</span>
-                  )}
+                  {i < arr.length - 1 && <span className="text-2xl font-black mb-4">:</span>}
                 </div>
               ))}
             </div>
           )}
 
-          {/* دکمه‌های ناوبری کروسل */}
           {deals.length > 1 && (
             <div className="flex items-center gap-3 justify-center md:justify-start">
               <button
@@ -136,21 +130,16 @@ export default function FlashDeals() {
               >
                 <ChevronRight className="w-5 h-5 text-white stroke-[2.5]" />
               </button>
-
-              {/* نقطه‌های کروسل */}
               <div className="flex gap-1.5">
                 {deals.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => setCurrentIndex(i)}
-                    className={`w-2 h-2 rounded-full border border-white transition-all ${
-                      i === currentIndex ? "bg-white w-5" : "bg-white/40"
-                    }`}
+                    className={`w-2 h-2 rounded-full border border-white transition-all ${i === currentIndex ? "bg-white w-5" : "bg-white/40"}`}
                     aria-label={`پیشنهاد ${i + 1}`}
                   />
                 ))}
               </div>
-
               <button
                 onClick={next}
                 className="w-10 h-10 bg-white/20 hover:bg-white/40 border-2 border-white rounded-xl flex items-center justify-center transition-colors"
@@ -162,7 +151,6 @@ export default function FlashDeals() {
           )}
         </div>
 
-        {/* کارت محصول */}
         <div className="relative z-10 bg-white border-[3.5px] border-black rounded-[20px] p-5 shadow-[-6px_6px_0_0_rgba(0,0,0,1)] flex flex-col items-center w-full max-w-xs shrink-0">
           <div className="relative w-full h-36 bg-gray-100 border-[2px] border-black rounded-xl overflow-hidden mb-4">
             <Image
