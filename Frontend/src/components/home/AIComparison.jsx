@@ -6,7 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, GitCompare, Star, Check, X } from "lucide-react";
 
-// سیستم امتیازدهی ستاره‌ای برای خوانایی بهتر
 function RatingStars({ value, max = 5 }) {
   return (
     <div className="flex gap-0.5">
@@ -265,11 +264,64 @@ export default function AIComparison() {
           ))}
         </div>
 
-        {/* جدول */}
-        <div className="p-4 md:p-8 overflow-x-auto relative">
-          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-l from-transparent to-white pointer-events-none z-10 md:hidden" />
+        {/* ========== نسخه موبایل: کارت‌های عمودی ========== */}
+        <div className="md:hidden p-4 space-y-4">
+          {current.rows.map((item, idx) => (
+            <div
+              key={idx}
+              className="bg-white border-[2.5px] border-black rounded-xl p-4 shadow-[-4px_4px_0_0_rgba(0,0,0,1)]"
+            >
+              {/* هدر کارت */}
+              <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-dashed border-gray-300">
+                <div className="w-10 h-10 relative rounded-lg overflow-hidden border-[1.5px] border-black shrink-0">
+                  <Image src={item.img} alt={item.name} fill className="object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-black text-base truncate">{item.name}</div>
+                  {item.badge && (
+                    <span className="text-[10px] font-black text-gray-500">
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+                <span className="bg-gray-100 border border-black px-2 py-1 rounded text-xs font-black whitespace-nowrap">
+                  {item.price}
+                </span>
+              </div>
 
-          <table className="w-full text-right text-xs md:text-sm font-bold min-w-[700px]">
+              {/* امتیازات */}
+              <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+                <div className="bg-gray-50 border border-black rounded-lg p-2 flex flex-col items-center gap-1">
+                  <span className="text-[10px] font-bold text-gray-600">{current.headers[2]}</span>
+                  <RatingStars value={item.lang} />
+                </div>
+                <div className="bg-gray-50 border border-black rounded-lg p-2 flex flex-col items-center gap-1">
+                  <span className="text-[10px] font-bold text-gray-600">{current.headers[3]}</span>
+                  <RatingStars value={item.skill} />
+                </div>
+                <div className="bg-gray-50 border border-black rounded-lg p-2 flex flex-col items-center gap-1">
+                  <span className="text-[10px] font-bold text-gray-600">{current.headers[4]}</span>
+                  <RatingStars value={item.speed} />
+                </div>
+              </div>
+
+              {/* API و دکمه خرید */}
+              <div className="flex items-center justify-between">
+                <ApiBadge status={item.api} />
+                <Link
+                  href={item.link}
+                  className="bg-black text-white px-4 py-2 rounded-lg text-xs font-black inline-flex items-center gap-1 hover:bg-gray-800 transition-colors"
+                >
+                  مشاهده پلن <ArrowLeft className="w-3 h-3" />
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ========== نسخه دسکتاپ: جدول ========== */}
+        <div className="hidden md:block p-6 lg:p-8 overflow-x-auto">
+          <table className="w-full text-right text-xs lg:text-sm font-bold min-w-[700px]">
             <thead className="bg-[#ccff00] border-[2.5px] border-black font-black">
               <tr>
                 {current.headers.map((h, i) => (
@@ -334,18 +386,6 @@ export default function AIComparison() {
               ))}
             </tbody>
           </table>
-        </div>
-
-        {/* زیرنویس راهنما */}
-        <div className="px-4 md:px-8 py-3 bg-gray-50 border-t-[2.5px] border-black flex flex-wrap items-center gap-4 text-[11px] font-bold text-gray-600">
-          <span>راهنما:</span>
-          <span className="flex items-center gap-1">
-            <RatingStars value={5} /> بالاترین کیفیت
-          </span>
-          <span className="flex items-center gap-1">
-            <ApiBadge status="کامل" />
-          </span>
-          <span>• قیمت‌ها بر اساس پلن پایه ماهانه درج شده است.</span>
         </div>
       </div>
     </section>

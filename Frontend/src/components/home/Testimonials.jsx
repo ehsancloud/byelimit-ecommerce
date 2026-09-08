@@ -3,7 +3,6 @@
 
 import { Star, MessageSquareQuote, BadgeCheck } from "lucide-react";
 
-// آواتار با حروف اول اسم و رنگ تصادفی ثابت بر اساس اسم
 const AVATAR_COLORS = [
   "bg-rose-300",
   "bg-amber-300",
@@ -50,7 +49,6 @@ const reviews = [
     comment:
       "من Claude رو برای code review روزانه استفاده می‌کنم. یه بار اکانتم مشکلی پیش اومد، بچه‌های پشتیبانی تو کمتر از نیم ساعت برام جایگزین فرستادن. قیمتشونم نسبت به چند سایت دیگه که تست کردم منطقی‌تر بود.",
     rating: 5,
-    featured: true,
   },
   {
     name: "نگار رحیمی",
@@ -60,7 +58,6 @@ const reviews = [
     comment:
       "با Midjourney پوستر می‌زنم و کارم خیلی سریع‌تر شده. فقط کاش یه راهنمای کوتاه برای پرامپت نویسی هم تو سایت می‌ذاشتین که تازه‌کارا راحت‌تر شروع کنن. در کل از خریدم راضیم.",
     rating: 5,
-    featured: false,
   },
   {
     name: "پویا صفری",
@@ -70,7 +67,6 @@ const reviews = [
     comment:
       "سرور آلمان رو برای ترید گرفتم. پینگش خوبه و قطعی نداشتم تا الان. تحویلش یکم طول کشید (حدود ۲۰ دقیقه) ولی در کل اوکیه و قیمتشم مناسب بود.",
     rating: 4,
-    featured: false,
   },
   {
     name: "مریم خسروی",
@@ -80,7 +76,6 @@ const reviews = [
     comment:
       "از GPT-4 برای ایده‌پردازی و بازنویسی متن استفاده می‌کنم. چیزی که برام مهم بود، اصالت اکانت بود که خوشبختانه کاملاً اختصاصی و به نام خودم بود.",
     rating: 5,
-    featured: false,
   },
 ];
 
@@ -92,17 +87,12 @@ export default function Testimonials() {
         <h2 className="text-2xl font-black">تجربه خریداران بای لیمیت</h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+      {/* همه کارت‌ها هم‌اندازه: در دسکتاپ ۴ ستون مساوی */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         {reviews.map((rev, idx) => (
           <div
             key={idx}
-            className={`bg-white border-[3px] border-black rounded-2xl p-5 shadow-[-5px_5px_0_0_rgba(0,0,0,1)] flex flex-col gap-4 hover:-translate-y-0.5 hover:-translate-x-0.5 transition-transform duration-300 ${
-              rev.featured
-                ? "md:col-span-6 md:row-span-2"
-                : idx === 1
-                ? "md:col-span-6"
-                : "md:col-span-3"
-            }`}
+            className="bg-white border-[3px] border-black rounded-2xl p-5 shadow-[-5px_5px_0_0_rgba(0,0,0,1)] flex flex-col gap-4 hover:-translate-y-0.5 hover:-translate-x-0.5 transition-transform duration-300"
           >
             {/* هدر با آواتار و اطلاعات */}
             <div className="flex items-start gap-3">
@@ -120,7 +110,7 @@ export default function Testimonials() {
             </div>
 
             {/* متن نظر */}
-            <p className={`font-medium text-gray-700 leading-relaxed ${rev.featured ? "text-sm md:text-base" : "text-xs md:text-sm"}`}>
+            <p className="font-medium text-xs md:text-sm text-gray-700 leading-relaxed flex-1">
               {rev.comment}
             </p>
 
