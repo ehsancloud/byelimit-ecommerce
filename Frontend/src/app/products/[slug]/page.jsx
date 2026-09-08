@@ -54,9 +54,9 @@ export default async function ProductPage({ params }) {
     offers: pricedVariants.length
       ? {
           "@type": "AggregateOffer",
-          priceCurrency: "IRT",
-          lowPrice: Math.min(...pricedVariants.map((v) => v.price)),
-          highPrice: Math.max(...pricedVariants.map((v) => v.price)),
+          priceCurrency: "IRR",
+          lowPrice: Math.min(...pricedVariants.map((v) => v.price)) * 10,
+          highPrice: Math.max(...pricedVariants.map((v) => v.price)) * 10,
           offerCount: pricedVariants.length,
           availability: "https://schema.org/InStock",
         }
