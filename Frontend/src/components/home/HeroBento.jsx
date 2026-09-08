@@ -52,10 +52,13 @@ export default function HeroBento() {
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight mb-2">
+            <h1 className="sr-only">
+              خرید اکانت هوش مصنوعی و ابزارهای پرمیوم با پرداخت امن بین‌المللی
+            </h1>
+            <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight mb-2">
               اشتراک اختصاصی{" "}
               <span className="text-[#ccff00]">Gemini Pro</span>
-            </h1>
+            </div>
 
             <p className="text-xs md:text-sm font-bold text-gray-200 mb-5 max-w-lg leading-relaxed">
               دسترسی نامحدود به تمامی ابزارها و مدل‌های Google AI Pro

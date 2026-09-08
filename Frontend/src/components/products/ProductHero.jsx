@@ -102,11 +102,13 @@ export default function ProductHero({
             </div>
 
             {/* تفکیک پیشوند و عنوان در صفحه تک‌محصول */}
-            <span className="text-xs sm:text-sm font-bold text-gray-600 block mb-0.5">
-              {product.titlePrefix || "خرید اشتراک"}
-            </span>
-            <h1 className="text-2xl md:text-3xl font-black text-black tracking-tight mb-1">
-              {product.title}
+            <h1 className="flex flex-col mb-1">
+              <span className="text-xs sm:text-sm font-bold text-gray-600 block mb-0.5">
+                {product.titlePrefix || "خرید اشتراک"}
+              </span>
+              <span className="text-2xl md:text-3xl font-black text-black tracking-tight">
+                {product.title}
+              </span>
             </h1>
 
             {product.subtitle && (

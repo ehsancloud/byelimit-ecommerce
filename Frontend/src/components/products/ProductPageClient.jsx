@@ -107,7 +107,7 @@ export default function ProductPageClient({ product }) {
           </div>
 
           <div className="p-6 md:p-8">
-            {activeTab === "description" && (
+            <div className={activeTab === "description" ? "block" : "hidden"}>
               <div className="flex flex-col gap-6">
                 <div className="prose text-xs md:text-sm font-bold text-gray-800 leading-relaxed max-w-none">
                   <h3 className="text-base md:text-lg font-black text-black mb-3">
@@ -130,22 +130,24 @@ export default function ProductPageClient({ product }) {
                   </div>
                 )}
               </div>
-            )}
+            </div>
 
-            {activeTab === "comparison" && (
+            <div className={activeTab === "comparison" ? "block" : "hidden"}>
               <PlanComparisonTable data={product.comparisonTable || []} />
-            )}
+            </div>
 
-            {activeTab === "faq" && <FaqAccordion faqs={product.faqs || []} />}
+            <div className={activeTab === "faq" ? "block" : "hidden"}>
+              <FaqAccordion faqs={product.faqs || []} />
+            </div>
 
-            {activeTab === "reviews" && (
+            <div className={activeTab === "reviews" ? "block" : "hidden"}>
               <ProductReviews
                 reviews={product.reviews || []}
                 average={product.ratingAverage}
                 count={product.ratingCount}
                 productId={product.id}
               />
-            )}
+            </div>
           </div>
         </div>
 
