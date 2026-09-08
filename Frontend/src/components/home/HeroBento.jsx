@@ -35,7 +35,7 @@ export default function HeroBento() {
         <div className="sm:col-span-2 md:col-span-8 row-span-2 relative bg-black border-[3.5px] border-black rounded-[24px] overflow-hidden shadow-[-8px_8px_0_0_rgba(0,0,0,1)] group p-6 md:p-8 flex flex-col justify-end">
           <Image
             src="/images/banner1.jpeg"
-            alt="ChatGPT Plus"
+            alt="خرید جمنای پرو ارزان از بای لیمیت "
             fill
             priority
             className={`object-cover ${FOCUS_CLASS[IMAGE_FOCUS.hero]} group-hover:scale-105 transition-transform duration-700`}
@@ -45,28 +45,27 @@ export default function HeroBento() {
           <div className="relative z-20">
             <div className="flex items-center gap-2 mb-2">
               <span className="bg-[#ff4757] text-white border-[1.5px] border-black px-3 py-1 rounded-md text-xs font-black shadow-[-2px_2px_0_0_rgba(0,0,0,1)]">
-                پرفروش‌ترین ماه
+                پرفروش‌ ترین ماه
               </span>
               <span className="bg-[#ccff00] text-black border-[1.5px] border-black px-2.5 py-1 rounded-md text-xs font-black">
-                تحویل ۵ دقیقه‌ای
+                تحویل سریع 
               </span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight mb-2">
               اشتراک اختصاصی{" "}
-              <span className="text-[#ccff00]">ChatGPT Plus</span>
+              <span className="text-[#ccff00]"> Gemini Pro</span>
             </h1>
 
             <p className="text-xs md:text-sm font-bold text-gray-200 mb-5 max-w-lg leading-relaxed">
-              دسترسی نامحدود به قدرتمندترین مدل هوش مصنوعی دنیا (GPT-4o) با
-              پشتیبانی اختصاصی و ضمانت تعویض.
+دسترسی نامحدود به تمامی ابزار ها و مدل های Google AI Pro
             </p>
 
             <Link
-              href="/products/chatgpt"
+              href="/products/gemini"
               className="inline-flex items-center gap-2 bg-[#12e2a3] hover:bg-[#0fd196] border-[3px] border-black px-6 py-3 rounded-xl font-black text-sm text-black shadow-[-4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-[-2px] active:translate-y-[2px] active:shadow-none transition-all no-underline"
             >
-              <span>مشاهده گزینه‌ها و خرید</span>
+              <span>مشاهده گزینه‌ ها و خرید</span>
               <ArrowLeft className="w-4 h-4 stroke-[3]" />
             </Link>
           </div>
@@ -75,31 +74,23 @@ export default function HeroBento() {
         {/* کارت ۲ */}
         <div className="sm:col-span-2 md:col-span-4 row-span-1 relative bg-black border-[3.5px] border-black rounded-[24px] overflow-hidden shadow-[-6px_6px_0_0_rgba(0,0,0,1)] group p-5 flex flex-col justify-between">
           <Image
-            src="/images/gemini.png"
-            alt="Gemini Advanced"
+            src="/images/bannercoursera.jpeg"
+            alt="خرید کورسرا ارزان از بای لیمیت "
             fill
             className={`object-cover ${FOCUS_CLASS[IMAGE_FOCUS.gemini]} group-hover:scale-110 transition-transform duration-700 opacity-70`}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />
 
-          <div className="relative z-20 flex items-center justify-between w-full">
-            <span className="bg-blue-300 text-black border border-black px-2 py-0.5 rounded text-[10px] font-black">
-              دستیار هوشمند گوگل
-            </span>
-            <Layers className="w-5 h-5 text-blue-300" />
-          </div>
-
           <div className="relative z-20 flex items-end justify-between">
             <div>
               <h3 className="text-lg font-black text-white">
-                Gemini Advanced
+                 Coursera (کورسرا)
               </h3>
               <p className="text-[11px] font-bold text-gray-300">
-                قدرتمند در تحلیل و تولید محتوا
-              </p>
+به جای اشتراک سالیانه مکتب                   </p>
             </div>
             <Link
-              href="/products/gemini"
+              href="/products/coursera"
               className="bg-[#ccff00] hover:bg-[#b5e600] border-[2px] border-black p-2 rounded-xl text-black no-underline shadow-[-2px_2px_0_0_rgba(0,0,0,1)]"
             >
               <ArrowLeft className="w-4 h-4 stroke-[3]" />
@@ -110,29 +101,22 @@ export default function HeroBento() {
         {/* کارت ۳ */}
         <div className="sm:col-span-1 md:col-span-4 row-span-1 relative bg-black border-[3.5px] border-black rounded-[24px] overflow-hidden shadow-[-6px_6px_0_0_rgba(0,0,0,1)] group p-5 flex flex-col justify-between">
           <Image
-            src="/images/midjourney.png"
-            alt="Midjourney"
+            src="/images/bannergta6.jpeg"
+            alt="خرید جی تی ای 6 از بای لیمیت"
             fill
             className={`object-cover ${FOCUS_CLASS[IMAGE_FOCUS.midjourney]} group-hover:scale-110 transition-transform duration-700 opacity-70`}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />
 
-          <div className="relative z-20 flex items-center justify-between w-full">
-            <span className="bg-[#ff8f1f] text-black border border-black px-2 py-0.5 rounded text-[10px] font-black">
-              هنر و تصویر
-            </span>
-            <Sparkles className="w-5 h-5 text-[#ccff00]" />
-          </div>
-
           <div className="relative z-20 flex items-end justify-between">
             <div>
-              <h3 className="text-lg font-black text-white">Midjourney v6</h3>
+              <h3 className="text-lg font-black text-white">GTA 6 (جی تی ای 6)</h3>
               <p className="text-[11px] font-bold text-gray-300">
-                طراحی پوستر و عکس
+               زود تر از دوستات تجربش کن!
               </p>
             </div>
             <Link
-              href="/products/midjourney"
+              href="/products/gta6"
               className="bg-[#ccff00] hover:bg-[#b5e600] border-[2px] border-black p-2 rounded-xl text-black no-underline shadow-[-2px_2px_0_0_rgba(0,0,0,1)]"
             >
               <ArrowLeft className="w-4 h-4 stroke-[3]" />
@@ -143,25 +127,19 @@ export default function HeroBento() {
         {/* کارت ۴ */}
         <div className="sm:col-span-1 md:col-span-4 row-span-1 relative bg-black border-[3.5px] border-black rounded-[24px] overflow-hidden shadow-[-6px_6px_0_0_rgba(0,0,0,1)] group p-5 flex flex-col justify-between">
           <Image
-            src="/images/claude.png"
-            alt="Claude Pro"
+            src="/images/bannerclaude.jpeg"
+            alt="خرید کلاد پرو از بای لیمیت "
             fill
             className={`object-cover ${FOCUS_CLASS[IMAGE_FOCUS.claude]} group-hover:scale-110 transition-transform duration-700 opacity-60`}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-10" />
 
-          <div className="relative z-20 flex items-center justify-between">
-            <span className="bg-purple-300 text-black border border-black px-2 py-0.5 rounded text-[10px] font-black">
-              برنامه‌نویسی
-            </span>
-            <Bot className="w-5 h-5 text-purple-300" />
-          </div>
 
           <div className="relative z-20 flex items-end justify-between">
             <div>
               <h3 className="text-lg font-black text-white">Claude Pro</h3>
               <p className="text-[11px] font-bold text-gray-300">
-                بهترین مدل کدنویسی
+                بهترین مدل برای کد نویسی
               </p>
             </div>
             <Link
@@ -175,12 +153,6 @@ export default function HeroBento() {
 
         {/* کارت ۵ */}
         <div className="sm:col-span-1 md:col-span-4 row-span-1 bg-[#12e2a3] border-[3.5px] border-black rounded-[24px] p-5 shadow-[-6px_6px_0_0_rgba(0,0,0,1)] flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="bg-white text-black border border-black px-2 py-0.5 rounded text-[10px] font-black">
-              آی‌پی ثابت
-            </span>
-            <Zap className="w-5 h-5 text-black stroke-[2.5]" />
-          </div>
 
           <div className="flex items-end justify-between">
             <div>
