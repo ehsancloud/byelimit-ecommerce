@@ -34,3 +34,5 @@ export function formatPriceRial(rial) {
   const rounded = roundPriceBeautifully(toman);
   return rounded.toLocaleString("fa-IR");
 }
+
+export { normalizeMarkdown } from "./markdown";

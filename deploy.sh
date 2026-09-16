@@ -64,6 +64,11 @@ pm2 stop byelimit-studio 2>/dev/null || true
 npx prisma db push --skip-generate
 npx prisma generate
 
+if [[ -f "$BACKEND_DIR/prisma/update-gemini-description.js" ]]; then
+  echo "📝 به روزرسانی توضیحات استاندارد در دیتابیس..."
+  node "$BACKEND_DIR/prisma/update-gemini-description.js" || true
+fi
+
 # ── ۴. فرانت اند: بیلد قطعی (همیشه اجرا می شود) ────────────
 echo "🔨 [3/5] بیلد نکس جی اس (Next.js build)..."
 cd "$FRONTEND_DIR"
