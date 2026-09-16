@@ -32,7 +32,7 @@ export default function HomePage() {
         {/* بنر تبلیغاتی ۱ (اولترا واید بالای بنتو گرید) */}
         <PromoBanner
           desktopImage="/images/uban1.jpg"
-          mobileImage="/images/uban1.jpg"
+          mobileImage="/images/uban1m.jpg"
           alt="بنر ویژه بالای سایت بای لیمیت"
         />
 
@@ -50,8 +50,8 @@ export default function HomePage() {
 
         {/* بنر تبلیغاتی ۲ (افقی وسط صفحه) */}
         <PromoBanner
-          desktopImage="/images/uban1.jpg"
-          mobileImage="/images/uban1.jpg"
+          desktopImage="/images/uban2.jpg"
+          mobileImage="/images/uban2m.jpg"
           alt="بنر تبلیغاتی میانی بای لیمیت"
         />
 
@@ -69,8 +69,8 @@ export default function HomePage() {
 
         {/* بنر تبلیغاتی ۳ (افقی پایین صفحه) */}
         <PromoBanner
-          desktopImage="/images/uban1.jpg"
-          mobileImage="/images/uban1.jpg"
+          desktopImage="/images/uban3.jpg"
+          mobileImage="/images/uban3m.jpg"
           alt="بنر تخفیف و پیشنهاد ویژه بای لیمیت"
         />
 
