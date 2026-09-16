@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { PlayCircle, MessageCircle } from "lucide-react";
 import ProductHero from "./ProductHero";
 import PlanComparisonTable from "./PlanComparisonTable";
@@ -12,9 +13,14 @@ import StickyMobileBar from "./StickyMobileBar";
 import AddedToCartModal from "../cart/AddedToCartModal";
 import Breadcrumb from "../common/Breadcrumb";
 import { useCart } from "../../context/CartContext";
-import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
+
+// رندر داینامیک کامپوننت مارکداون در سمت کلاینت جهت جلوگیری کامل از ارور هایدریشن #418
+const ReactMarkdown = dynamic(() => import("react-markdown"), {
+  ssr: false,
+  loading: () => <div className="animate-pulse h-24 bg-gray-100 rounded-md" />,
+});
 
 // استایل های اختصاصی رندر مارکداون در تب توضیحات طبق الزامات دیزاین
 const markdownComponents = {
@@ -184,12 +190,12 @@ export default function ProductPageClient({ product }) {
                     معرفی کامل سرویس {product.title}
                   </h3>
                   {product.longDescription ? (
-                    <div className="dir-rtl font-[family-name:var(--font-farsi)] text-xs sm:text-sm text-gray-800 leading-relaxed">
+                    <div className="w-full text-right leading-relaxed dir-rtl font-[family-name:var(--font-farsi)] text-xs sm:text-sm text-gray-800" dir="rtl">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkBreaks]}
                         components={markdownComponents}
                       >
-                        {product.longDescription}
+                        {product.longDescription || ""}
                       </ReactMarkdown>
                     </div>
                   ) : (
