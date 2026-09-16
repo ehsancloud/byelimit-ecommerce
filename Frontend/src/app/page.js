@@ -29,11 +29,12 @@ export default function HomePage() {
         {/* اطلاعیه قرمز رنگ سراسری سایت (تنظیم از پریسما استودیو - در صورت null رندر نمی شود) */}
         <AnnouncementBanner />
 
-        {/* بنر تبلیغاتی ۱ (اولترا واید بالای بنتو گرید) */}
+        {/* بنر تبلیغاتی ۱ (اولترا واید بالای بنتو گرید - لینک به فروشگاه) */}
         <PromoBanner
           desktopImage="/images/uban1.jpg"
           mobileImage="/images/uban1m.jpg"
           alt="بنر ویژه بالای سایت بای لیمیت"
+          href="/products"
         />
 
         {/* ۱. هیرو سکشن Bento Grid + سرچ بار زنده */}
@@ -48,11 +49,12 @@ export default function HomePage() {
         {/* ۶. پیشنهادات شگفت انگیز (FOMO) */}
         <FlashDeals />
 
-        {/* بنر تبلیغاتی ۲ (افقی وسط صفحه) */}
+        {/* بنر تبلیغاتی ۲ (افقی وسط صفحه - لینک به دسته بندی کدنویسی) */}
         <PromoBanner
           desktopImage="/images/uban2.jpg"
           mobileImage="/images/uban2m.jpg"
           alt="بنر تبلیغاتی میانی بای لیمیت"
+          href="/products/category/code"
         />
 
         {/* ۵. پرفروش ترین اکانت ها */}
@@ -67,11 +69,12 @@ export default function HomePage() {
         {/* ۱۰. چرا بای لیمیت؟ */}
         <WhyUs />
 
-        {/* بنر تبلیغاتی ۳ (افقی پایین صفحه) */}
+        {/* بنر تبلیغاتی ۳ (افقی پایین صفحه - لینک به فروشگاه) */}
         <PromoBanner
           desktopImage="/images/uban3.jpg"
           mobileImage="/images/uban3m.jpg"
           alt="بنر تخفیف و پیشنهاد ویژه بای لیمیت"
+          href="/products"
         />
 
         {/* ۸. نظرات و رضایت خریداران */}

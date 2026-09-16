@@ -43,11 +43,11 @@ export default function HeroBento() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/30 z-10" />
 
           <div className="relative z-20">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="bg-[#ff4757] text-white border-[1.5px] border-black px-3 py-1 rounded-md text-xs font-black shadow-[-2px_2px_0_0_rgba(0,0,0,1)]">
+            <div className="flex items-center gap-1.5 mb-2">
+              <span className="bg-[#ff4757] text-white border-[1.5px] border-black px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-black shadow-[-1.5px_1.5px_0_0_rgba(0,0,0,1)]">
                 پرفروش ترین ماه
               </span>
-              <span className="bg-[#ccff00] text-black border-[1.5px] border-black px-2.5 py-1 rounded-md text-xs font-black">
+              <span className="bg-[#ccff00] text-black border-[1.5px] border-black px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-black">
                 تحویل سریع
               </span>
             </div>
@@ -55,21 +55,21 @@ export default function HeroBento() {
             <h1 className="sr-only">
               خرید اکانت هوش مصنوعی و ابزارهای پرمیوم با پرداخت امن بین المللی
             </h1>
-            <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight mb-2">
+            <div className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight mb-1.5">
               اشتراک اختصاصی{" "}
               <span className="text-[#ccff00]">Gemini Pro</span>
             </div>
 
-            <p className="text-xs md:text-sm font-bold text-gray-200 mb-5 max-w-lg leading-relaxed">
+            <p className="text-[11px] sm:text-xs font-bold text-gray-200 mb-3.5 max-w-lg leading-relaxed">
               دسترسی نامحدود به تمامی ابزارها و مدل های Google AI Pro
             </p>
 
             <Link
               href="/products/gemini"
-              className="inline-flex items-center gap-2 bg-[#12e2a3] hover:bg-[#0fd196] border-[3px] border-black px-6 py-3 rounded-xl font-black text-sm text-black shadow-[-4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-[-2px] active:translate-y-[2px] active:shadow-none transition-all no-underline"
+              className="inline-flex items-center gap-1.5 bg-[#12e2a3] hover:bg-[#0fd196] border-[2.5px] border-black px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl font-black text-xs sm:text-sm text-black shadow-[-3px_3px_0_0_rgba(0,0,0,1)] active:translate-x-[-1px] active:translate-y-[1px] active:shadow-none transition-all no-underline"
             >
               <span>مشاهده گزینه ها و خرید</span>
-              <ArrowLeft className="w-4 h-4 stroke-[3]" />
+              <ArrowLeft className="w-3.5 h-3.5 stroke-[3]" />
             </Link>
           </div>
         </div>

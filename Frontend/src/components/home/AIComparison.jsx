@@ -58,7 +58,7 @@ const DATA = {
     headers: ["مدل", "قیمت ماهانه", "درک فارسی", "کدنویسی", "سرعت پاسخ", "API", "خرید"],
     rows: [
       {
-        name: "ChatGPT Plus (o3 / GPT-4.5)",
+        name: "ChatGPT Plus (GPT 6 Astra)",
         img: "/images/products/chatgpt.jpeg",
         price: "۲۰ دلار",
         lang: 5,
@@ -69,18 +69,18 @@ const DATA = {
         badge: "محبوب ترین",
       },
       {
-        name: "Claude Opus 5 / 3.7",
+        name: "Claude (Fable 5.1 / Opus 5)",
         img: "/images/products/Claude.jpeg",
         price: "۲۰ دلار",
-        lang: 4,
+        lang: 5,
         skill: 5,
-        speed: 4,
+        speed: 5,
         api: "کامل",
         link: "/products/claude",
         badge: "بهترین برای کد و استدلال",
       },
       {
-        name: "Gemini 2.5 Advanced",
+        name: "Gemini (Flash 3.8 / Pro 3.1)",
         img: "/images/products/gemini.jpeg",
         price: "۲۰ دلار",
         lang: 5,
@@ -132,7 +132,7 @@ const DATA = {
     headers: ["ابزار", "قیمت ماهانه", "درک کانتکست", "پشتیبانی زبان ها", "سرعت", "API", "خرید"],
     rows: [
       {
-        name: "Cursor Pro (Claude 3.7)",
+        name: "Cursor Pro",
         img: "/images/products/Cursor.jpeg",
         price: "۲۰ دلار",
         lang: 5,

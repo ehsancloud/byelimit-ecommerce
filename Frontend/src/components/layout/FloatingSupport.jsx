@@ -11,8 +11,51 @@ const SUPPORT_PHONE_TEL = "+989180100290";
 const SUPPORT_TELEGRAM_URL = "tg://resolve?domain=byelimit_support";
 const WORKING_HOURS_LABEL = "پاسخگویی و تحویل: هرروز ساعت ۱۰ تا ۲۲";
 
+// تابع تولید صدای بیپ ملایم و جذاب با Web Audio API بدون نیاز به فایل خارجی
+function playSoftChime() {
+  if (typeof window === "undefined") return;
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+    const now = ctx.currentTime;
+
+    // نت اول (فرکانس ملایم 784 هرتز)
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(783.99, now);
+    gain1.gain.setValueAtTime(0, now);
+    gain1.gain.linearRampToValueAtTime(0.12, now + 0.04);
+    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.35);
+
+    // نت دوم هارمونیک زنگوله‌ای (1046 هرتز)
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = "sine";
+    osc2.frequency.setValueAtTime(1046.5, now + 0.08);
+    gain2.gain.setValueAtTime(0, now + 0.08);
+    gain2.gain.linearRampToValueAtTime(0.1, now + 0.12);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.08);
+    osc2.stop(now + 0.45);
+  } catch (e) {
+    // در صورت مسدود بودن صدای خودکار توسط مرورگر
+  }
+}
+
 export default function FloatingSupport() {
   const [isOpen, setIsOpen] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(false);
   const containerRef = useRef(null);
   const pathname = usePathname();
 
@@ -25,6 +68,26 @@ export default function FloatingSupport() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // تایمر ۱۰ ثانیه بعد از ورود کاربر جهت پخش بیپ و بیرون آمدن متن راهنمایی
+  useEffect(() => {
+    const hasSeen = sessionStorage.getItem("byelimit_seen_support_prompt");
+    if (hasSeen) return;
+
+    const timer = setTimeout(() => {
+      setShowPrompt(true);
+      playSoftChime();
+      sessionStorage.setItem("byelimit_seen_support_prompt", "true");
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // در صورت باز شدن منو، بابل متن بسته شود
+  const handleToggle = () => {
+    setIsOpen((prev) => !prev);
+    setShowPrompt(false);
+  };
 
   // فقط در صفحه تک محصول بالاتر باشد تا روی نوار ثبت سفارش نیفتد، در صفحه فروشگاه و دسته بندی ها هم راستا با فیلتر (bottom-6) است
   const isProductDetail = Boolean(
@@ -41,6 +104,38 @@ export default function FloatingSupport() {
       ref={containerRef}
       className={`fixed ${bottomClass} right-6 z-30 font-[family-name:var(--font-farsi)] dir-rtl`}
     >
+      {/* بابل متن کمکی بعد از ۱۰ ثانیه */}
+      <AnimatePresence>
+        {showPrompt && !isOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: 20, scale: 0.9 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 20, scale: 0.9 }}
+            transition={{ duration: 0.25 }}
+            className="absolute bottom-2.5 right-[68px] sm:right-[72px] whitespace-nowrap bg-[#fff9c4] border-[2.5px] border-black px-3.5 py-2 rounded-2xl shadow-[-3px_3px_0_0_rgba(0,0,0,1)] flex items-center gap-2.5 cursor-pointer select-none group"
+            onClick={() => {
+              setIsOpen(true);
+              setShowPrompt(false);
+            }}
+          >
+            <span className="font-black text-xs text-black group-hover:text-blue-700 transition-colors">
+              نیاز به راهنمایی دارید؟
+            </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowPrompt(false);
+              }}
+              className="p-0.5 hover:bg-black/10 rounded-full transition-colors"
+              aria-label="بستن پیام"
+            >
+              <X className="w-3 h-3 text-black stroke-[3]" />
+            </button>
+            {/* فلش جهت‌نما به سمت دکمه پشتیبانی */}
+            <div className="absolute top-1/2 -right-2 -translate-y-1/2 w-0 h-0 border-y-[6px] border-y-transparent border-l-[8px] border-l-black pointer-events-none" />
+          </motion.div>
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -106,7 +201,7 @@ export default function FloatingSupport() {
       </AnimatePresence>
 
       <button
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={handleToggle}
         className="w-14 h-14 bg-[#12e2a3] border-[3px] border-black rounded-full flex items-center justify-center shadow-[-4px_4px_0_0_rgba(0,0,0,1)] cursor-pointer relative active:translate-x-[-1px] active:translate-y-[1px] active:shadow-none transition-all"
         aria-label="ارتباط با پشتیبانی"
         aria-expanded={isOpen}
