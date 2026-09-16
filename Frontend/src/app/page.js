@@ -31,8 +31,8 @@ export default function HomePage() {
 
         {/* بنر تبلیغاتی ۱ (اولترا واید بالای بنتو گرید) */}
         <PromoBanner
-          desktopImage="/images/ban1.jpeg"
-          mobileImage="/images/ban1.jpeg"
+          desktopImage="/images/uban1.jpeg"
+          mobileImage="/images/uban1.jpeg"
           alt="بنر ویژه بالای سایت بای لیمیت"
         />
 
