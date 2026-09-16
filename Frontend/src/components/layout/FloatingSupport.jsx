@@ -11,45 +11,138 @@ const SUPPORT_PHONE_TEL = "+989180100290";
 const SUPPORT_TELEGRAM_URL = "tg://resolve?domain=byelimit_support";
 const WORKING_HOURS_LABEL = "پاسخگویی و تحویل: هرروز ساعت ۱۰ تا ۲۲";
 
-// تابع تولید صدای بیپ ملایم و جذاب با Web Audio API بدون نیاز به فایل خارجی
-function playSoftChime() {
-  if (typeof window === "undefined") return;
-  try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
-    if (ctx.state === "suspended") {
-      ctx.resume().catch(() => {});
+// مدیریت یکپارچه موتور صوتی در سطح تب/ویندو
+let sharedAudioCtx = null;
+let sharedAudio = null;
+let isAudioUnlocked = false;
+let isPendingChime = false;
+
+function getAudioCtx() {
+  if (typeof window === "undefined") return null;
+  if (!sharedAudioCtx) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) {
+      sharedAudioCtx = new AudioCtx();
     }
+  }
+  return sharedAudioCtx;
+}
+
+function getAudioElement() {
+  if (typeof window === "undefined") return null;
+  if (!sharedAudio) {
+    sharedAudio = new Audio("/sounds/chime.wav");
+    sharedAudio.preload = "auto";
+    sharedAudio.volume = 0.6;
+  }
+  return sharedAudio;
+}
+
+// سنتز صدای زنگوله بسیار شفاف و ملایم (دو نت سل 5 و دو 6) بدون وابستگی به شبکه
+function playSynthesizedBell(ctx) {
+  try {
     const now = ctx.currentTime;
 
-    // نت اول (فرکانس ملایم 784 هرتز)
+    // نت اول: سل 5 (784 هرتز) با افت طبیعی
     const osc1 = ctx.createOscillator();
     const gain1 = ctx.createGain();
     osc1.type = "sine";
     osc1.frequency.setValueAtTime(783.99, now);
     gain1.gain.setValueAtTime(0, now);
-    gain1.gain.linearRampToValueAtTime(0.12, now + 0.04);
-    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+    gain1.gain.linearRampToValueAtTime(0.18, now + 0.02);
+    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
     osc1.connect(gain1);
     gain1.connect(ctx.destination);
     osc1.start(now);
-    osc1.stop(now + 0.35);
+    osc1.stop(now + 0.38);
 
-    // نت دوم هارمونیک زنگوله‌ای (1046 هرتز)
+    // نت دوم: دو 6 (1046.5 هرتز) شفاف و زنگوله ای
     const osc2 = ctx.createOscillator();
     const gain2 = ctx.createGain();
     osc2.type = "sine";
-    osc2.frequency.setValueAtTime(1046.5, now + 0.08);
-    gain2.gain.setValueAtTime(0, now + 0.08);
-    gain2.gain.linearRampToValueAtTime(0.1, now + 0.12);
-    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+    osc2.frequency.setValueAtTime(1046.5, now + 0.07);
+    gain2.gain.setValueAtTime(0, now + 0.07);
+    gain2.gain.linearRampToValueAtTime(0.2, now + 0.09);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.48);
     osc2.connect(gain2);
     gain2.connect(ctx.destination);
-    osc2.start(now + 0.08);
-    osc2.stop(now + 0.45);
-  } catch (e) {
-    // در صورت مسدود بودن صدای خودکار توسط مرورگر
+    osc2.start(now + 0.07);
+    osc2.stop(now + 0.48);
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// تابع پخش صدای زنگوله با فال بک های چند لایه
+function triggerChime() {
+  if (typeof window === "undefined") return;
+
+  // لایه ۱: تلاش برای پخش با Web Audio API (صفر تاخیر و بالاترین کیفیت)
+  const ctx = getAudioCtx();
+  if (ctx) {
+    if (ctx.state === "suspended") {
+      ctx.resume().then(() => {
+        playSynthesizedBell(ctx);
+      }).catch(() => {
+        isPendingChime = true;
+      });
+      return;
+    } else if (ctx.state === "running") {
+      playSynthesizedBell(ctx);
+      return;
+    }
+  }
+
+  // لایه ۲: تلاش برای پخش با تگ صوتی HTML5
+  try {
+    const audio = getAudioElement();
+    if (audio) {
+      audio.currentTime = 0;
+      audio.volume = 0.6;
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(() => {
+          isPendingChime = true;
+        });
+      }
+      return;
+    }
+  } catch {
+    isPendingChime = true;
+  }
+}
+
+// فعال سازی دسترسی صوتی با اولین تعامل کاربر (لمس یا کلیک)
+function unlockAudioEngine() {
+  if (typeof window === "undefined") return;
+
+  const ctx = getAudioCtx();
+  if (ctx && ctx.state === "suspended") {
+    ctx.resume().catch(() => {});
+    try {
+      const buf = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      src.start(0);
+    } catch {}
+  }
+
+  const audio = getAudioElement();
+  if (audio && !isAudioUnlocked) {
+    audio.play().then(() => {
+      audio.pause();
+      audio.currentTime = 0;
+      isAudioUnlocked = true;
+    }).catch(() => {});
+  }
+
+  // اگر پخش صدا در صف مانده بود، بلافاصله پس از فعال سازی اجرا شود
+  if (isPendingChime) {
+    isPendingChime = false;
+    triggerChime();
   }
 }
 
@@ -59,6 +152,7 @@ export default function FloatingSupport() {
   const containerRef = useRef(null);
   const pathname = usePathname();
 
+  // بستن پاپ آپ راه های ارتباطی هنگام کلیک بیرون از آن
   useEffect(() => {
     function handleClickOutside(e) {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -69,24 +163,52 @@ export default function FloatingSupport() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // تایمر ۱۰ ثانیه بعد از ورود کاربر جهت پخش بیپ و بیرون آمدن متن راهنمایی
+  // رجیستر کردن لیسنر تعامل کاربر جهت دور زدن محدودیت Autoplay مرورگرها
   useEffect(() => {
-    const hasSeen = sessionStorage.getItem("byelimit_seen_support_prompt");
-    if (hasSeen) return;
+    const events = ["pointerdown", "touchstart", "touchend", "click", "keydown"];
+    const handleInteraction = () => {
+      unlockAudioEngine();
+    };
+
+    events.forEach((evt) => {
+      window.addEventListener(evt, handleInteraction, { passive: true });
+    });
+
+    return () => {
+      events.forEach((evt) => {
+        window.removeEventListener(evt, handleInteraction);
+      });
+    };
+  }, []);
+
+  // با ورود به هر صفحه یا ریلود شدن، بابل مخفی و دقیقا بعد از ۱۰ ثانیه ظاهر شود و صدا پخش کند
+  useEffect(() => {
+    setShowPrompt(false);
+    isPendingChime = false;
 
     const timer = setTimeout(() => {
       setShowPrompt(true);
-      playSoftChime();
-      sessionStorage.setItem("byelimit_seen_support_prompt", "true");
+      triggerChime();
     }, 10000);
 
-    return () => clearTimeout(timer);
-  }, []);
+    return () => {
+      clearTimeout(timer);
+      isPendingChime = false;
+    };
+  }, [pathname]);
 
-  // در صورت باز شدن منو، بابل متن بسته شود
+  // باز یا بسته کردن پاپ آپ ارتباطی
   const handleToggle = () => {
     setIsOpen((prev) => !prev);
     setShowPrompt(false);
+    isPendingChime = false;
+  };
+
+  // بستن بابل راهنمایی
+  const handleClosePrompt = (e) => {
+    e.stopPropagation();
+    setShowPrompt(false);
+    isPendingChime = false;
   };
 
   // فقط در صفحه تک محصول بالاتر باشد تا روی نوار ثبت سفارش نیفتد، در صفحه فروشگاه و دسته بندی ها هم راستا با فیلتر (bottom-6) است
@@ -116,22 +238,20 @@ export default function FloatingSupport() {
             onClick={() => {
               setIsOpen(true);
               setShowPrompt(false);
+              isPendingChime = false;
             }}
           >
             <span className="font-black text-xs text-black group-hover:text-blue-700 transition-colors">
               نیاز به راهنمایی دارید؟
             </span>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowPrompt(false);
-              }}
+              onClick={handleClosePrompt}
               className="p-0.5 hover:bg-black/10 rounded-full transition-colors"
               aria-label="بستن پیام"
             >
               <X className="w-3 h-3 text-black stroke-[3]" />
             </button>
-            {/* فلش جهت‌نما به سمت دکمه پشتیبانی */}
+            {/* فلش جهت نما به سمت دکمه پشتیبانی */}
             <div className="absolute top-1/2 -right-2 -translate-y-1/2 w-0 h-0 border-y-[6px] border-y-transparent border-l-[8px] border-l-black pointer-events-none" />
           </motion.div>
         )}
