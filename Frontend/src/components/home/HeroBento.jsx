@@ -155,19 +155,27 @@ export default function HeroBento() {
         </div>
 
         {/* کارت ۵ - VPS */}
-        <div className="sm:col-span-1 md:col-span-4 row-span-1 bg-[#12e2a3] border-[3.5px] border-black rounded-[24px] p-5 shadow-[-6px_6px_0_0_rgba(0,0,0,1)] flex flex-col justify-end">
-          <div className="flex items-end justify-between">
+        <div className="sm:col-span-1 md:col-span-4 row-span-1 relative bg-black border-[3.5px] border-black rounded-[24px] overflow-hidden shadow-[-6px_6px_0_0_rgba(0,0,0,1)] group p-5 flex flex-col justify-end">
+          <Image
+            src="/images/products/ByelimitVPS.png"
+            alt="خرید سرور مجازی VPS از بای لیمیت"
+            fill
+            className="object-cover object-center group-hover:scale-110 transition-transform duration-700 opacity-60"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-10" />
+
+          <div className="relative z-20 flex items-end justify-between">
             <div>
-              <h3 className="text-lg font-black text-black">
+              <h3 className="text-lg font-black text-white">
                 سرور مجازی (VPS)
               </h3>
-              <p className="text-[11px] font-bold text-gray-800 mt-0.5">
-                مناسب ترید و AI
+              <p className="text-[11px] font-bold text-gray-300 mt-0.5">
+                مناسب ترید و AI با آی‌پی ثابت
               </p>
             </div>
             <Link
-              href="/products?vps=germany"
-              className="bg-black text-white border-[2px] border-black p-2 rounded-xl no-underline shadow-[-2px_2px_0_0_rgba(0,0,0,1)]"
+              href="/products/vps-germany"
+              className="bg-[#12e2a3] hover:bg-[#0fd196] border-[2px] border-black p-2 rounded-xl text-black no-underline shadow-[-2px_2px_0_0_rgba(0,0,0,1)]"
             >
               <ArrowLeft className="w-4 h-4 stroke-[3]" />
             </Link>
@@ -175,23 +183,32 @@ export default function HeroBento() {
         </div>
 
         {/* کارت ۶ - Cursor */}
-        <div className="sm:col-span-2 md:col-span-4 row-span-1 bg-[#ff8f1f] border-[3.5px] border-black rounded-[24px] p-5 shadow-[-6px_6px_0_0_rgba(0,0,0,1)] flex flex-col justify-end gap-4">
-          <div>
-            <div className="inline-block bg-black text-white text-[10px] font-black px-2 py-0.5 rounded mb-1">
-              ویژه توسعه‌دهندگان
-            </div>
-            <h3 className="text-lg font-black text-black">Cursor & Copilot</h3>
-            <p className="text-[11px] font-bold text-gray-900 mt-0.5">
-              دستیار هوشمند برنامه‌نویسان
-            </p>
-          </div>
+        <div className="sm:col-span-2 md:col-span-4 row-span-1 relative bg-black border-[3.5px] border-black rounded-[24px] overflow-hidden shadow-[-6px_6px_0_0_rgba(0,0,0,1)] group p-5 flex flex-col justify-end gap-2">
+          <Image
+            src="/images/products/Cursor.jpeg"
+            alt="خرید اکانت Cursor و Copilot از بای لیمیت"
+            fill
+            className="object-cover object-center group-hover:scale-110 transition-transform duration-700 opacity-60"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent z-10" />
 
-          <Link
-            href="/products/copilot"
-            className="bg-white border-[2.5px] border-black px-4 py-2 rounded-xl text-xs font-black text-black no-underline shadow-[-2px_2px_0_0_rgba(0,0,0,1)] active:shadow-none transition-all self-start"
-          >
-            خرید آنلاین
-          </Link>
+          <div className="relative z-20 flex items-end justify-between">
+            <div>
+              <div className="inline-block bg-[#ff8f1f] text-black text-[10px] font-black px-2 py-0.5 rounded mb-1 border border-black">
+                ویژه برنامه‌نویسان
+              </div>
+              <h3 className="text-lg font-black text-white">Cursor & Copilot</h3>
+              <p className="text-[11px] font-bold text-gray-300 mt-0.5">
+                دستیار هوشمند کدنویسی با AI
+              </p>
+            </div>
+            <Link
+              href="/products/cursor"
+              className="bg-[#ccff00] hover:bg-[#b8e600] border-[2px] border-black p-2 rounded-xl text-black no-underline shadow-[-2px_2px_0_0_rgba(0,0,0,1)]"
+            >
+              <ArrowLeft className="w-4 h-4 stroke-[3]" />
+            </Link>
+          </div>
         </div>
       </div>
     </section>

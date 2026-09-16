@@ -90,12 +90,30 @@ async function notifyNewOrder(order, verifyResult) {
     chatId = `-${chatId}`;
   }
 
+function formatDuration(days) {
+  if (!days) return "";
+  if (days === 1) return "تستی";
+  if (days === 7) return "۷ روزه";
+  if (days === 30) return "۱ ماهه";
+  if (days === 60) return "۲ ماهه";
+  if (days === 90) return "۳ ماهه";
+  if (days === 120) return "۴ ماهه";
+  if (days === 180) return "۶ ماهه";
+  if (days === 365) return "۱ ساله";
+  if (days % 30 === 0) return `${days / 30} ماهه`;
+}
+
   try {
     const itemsText = (order?.items || [])
       .map((item, index) => {
         const title = escapeHtml(item.product?.title || item.product?.titleEn || item.productTitleSnapshot || "محصول");
-        const variant = escapeHtml(item.variant?.name || item.variantNameSnapshot || "");
-        return `${index + 1}. ${title} ${variant ? `(${variant})` : ""}`;
+        const variantName = escapeHtml(item.variant?.name || item.variantNameSnapshot || "");
+        const variantType = item.variant?.type === "exclusive" ? "اختصاصی" : item.variant?.type === "shared" ? "اشتراکی" : (item.variant?.type || "");
+        const duration = formatDuration(item.variant?.durationDays);
+        
+        const details = [variantName, variantType, duration].filter(Boolean).join(" - ");
+        const secureAddonText = item.hasSecureAddon ? " [پرداخت فوق امن 🛡️]" : "";
+        return `${index + 1}. ${title} ${details ? `(${details})` : ""}${secureAddonText}`;
       })
       .join("\n");
 
@@ -106,7 +124,11 @@ async function notifyNewOrder(order, verifyResult) {
     const mobile = escapeHtml(order?.mobile || "نامشخص");
     const orderNumber = escapeHtml(order?.orderNumber || "نامشخص");
 
-    const text = `<b>🛒 سفارش جدید #${orderNumber}</b>\n\n👤 نام: ${fullName}\n📱 شماره: ${mobile}\n🆔 آیدی: <code>${userId}</code>\n\n📦 محصول:\n${itemsText}\n\n💰 مبلغ کل: ${totalToman} تومان\n🔢 کد رهگیری: <code>${refNumber}</code>`;
+    const rawTg = (order?.telegramId || order?.user?.telegramId || "").trim();
+    const cleanTg = rawTg.replace(/^@/, "");
+    const telegramLine = cleanTg ? `\n💬 تلگرام: <a href="https://t.me/${cleanTg}">@${escapeHtml(cleanTg)}</a>` : "";
+
+    const text = `<b>🛒 سفارش جدید #${orderNumber}</b>\n\n👤 نام: ${fullName}\n📱 شماره: ${mobile}${telegramLine}\n🆔 آیدی: <code>${userId}</code>\n\n📦 محصولات:\n${itemsText}\n\n💰 مبلغ کل: ${totalToman} تومان\n🔢 کد رهگیری: <code>${refNumber}</code>`;
 
     const payload = {
       token: botToken,

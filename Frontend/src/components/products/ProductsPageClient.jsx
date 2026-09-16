@@ -8,9 +8,10 @@ import Filters from "./Filters";
 import MobileFilterDrawer from "./MobileFilterDrawer";
 import Pagination from "./Pagination";
 import SeoSection from "./SeoSection";
+import Breadcrumb from "../common/Breadcrumb";
 import { getAllProducts, toProductCardProps } from "../../data/products";
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 12;
 
 export default function ProductsPageClient({ initialSearch = "", initialCategory = "all" }) {
   const router = useRouter();
@@ -87,7 +88,7 @@ export default function ProductsPageClient({ initialSearch = "", initialCategory
         if (sortBy === "price-asc")  return a.priceNum - b.priceNum;
         if (sortBy === "price-desc") return b.priceNum - a.priceNum;
         if (sortBy === "newest")     return String(b.id).localeCompare(String(a.id));
-        return b.ratingNum - a.ratingNum;
+        return (b.orderItemsCount || 0) - (a.orderItemsCount || 0) || b.ratingNum - a.ratingNum;
       });
   }, [rawProducts, priceRange, sortBy]);
 
@@ -109,6 +110,9 @@ export default function ProductsPageClient({ initialSearch = "", initialCategory
   return (
     <main className="min-h-screen bg-[#f3f3f3] p-5 sm:p-8 md:p-12 font-[family-name:var(--font-farsi)] dir-rtl text-black">
       <div className="max-w-7xl mx-auto">
+        <div className="mb-4 sm:mb-6">
+          <Breadcrumb />
+        </div>
 
         <header className="mb-8 text-center md:text-right">
           <h1 className="text-3xl md:text-4xl font-black mb-2">

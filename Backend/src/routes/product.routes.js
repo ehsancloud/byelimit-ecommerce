@@ -89,6 +89,8 @@ function serializeProduct(p) {
     ratingCount: p.ratingCount,
     monthlySalesCount: p.monthlySalesCount,
     totalSalesCount: p.totalSalesCount,
+    orderItemsCount: (p._count?.orderItems || 0) + (p.totalSalesCount || 0),
+    cartItemsCount: p._count?.cartItems || 0,
     demoVideoUrl: null,
     variants: p.variants ? p.variants.map(serializeVariant) : [],
     faqs: Array.isArray(parsedFaqs) && parsedFaqs.length > 0 ? parsedFaqs : GENERIC_FAQS,
@@ -118,10 +120,71 @@ router.get("/", async (req, res) => {
           }
         : {}),
     },
-    include: { variants: { where: { isActive: true } } },
+    include: {
+      variants: { where: { isActive: true } },
+      _count: { select: { orderItems: true, cartItems: true } },
+    },
     orderBy: { createdAt: "desc" },
   });
   res.json(products.map(serializeProduct));
+});
+
+// پرفروش‌ترین محصولات بر اساس خرید‌های واقعی (orderItems) به جز محصول تستی
+router.get("/bestsellers", async (req, res) => {
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        isActive: true,
+        NOT: [
+          { slug: { contains: "test", mode: "insensitive" } },
+          { title: { contains: "تست", mode: "insensitive" } },
+          { sku: { contains: "TEST", mode: "insensitive" } },
+        ],
+      },
+      include: {
+        variants: { where: { isActive: true } },
+        _count: { select: { orderItems: true } },
+      },
+    });
+
+    const sorted = products
+      .map(serializeProduct)
+      .sort((a, b) => b.orderItemsCount - a.orderItemsCount)
+      .slice(0, 8);
+
+    res.json(sorted);
+  } catch (err) {
+    res.status(500).json({ error: "خطا در دریافت پرفروش‌ترین‌ها" });
+  }
+});
+
+// پربازدیدترین محصولات بر اساس افزودن به سبد خرید (cartItems) به جز محصول تستی
+router.get("/most-viewed", async (req, res) => {
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        isActive: true,
+        NOT: [
+          { slug: { contains: "test", mode: "insensitive" } },
+          { title: { contains: "تست", mode: "insensitive" } },
+          { sku: { contains: "TEST", mode: "insensitive" } },
+        ],
+      },
+      include: {
+        variants: { where: { isActive: true } },
+        _count: { select: { cartItems: true } },
+      },
+    });
+
+    const sorted = products
+      .map(serializeProduct)
+      .sort((a, b) => (b.cartItemsCount || 0) - (a.cartItemsCount || 0))
+      .slice(0, 8);
+
+    res.json(sorted);
+  } catch (err) {
+    res.status(500).json({ error: "خطا در دریافت پربازدیدترین‌ها" });
+  }
 });
 
 router.get("/:slug", async (req, res) => {
@@ -129,6 +192,7 @@ router.get("/:slug", async (req, res) => {
     where: { slug: req.params.slug },
     include: {
       variants: { where: { isActive: true } },
+      _count: { select: { orderItems: true, cartItems: true } },
       reviews: {
         where: { status: "APPROVED" },
         orderBy: { createdAt: "desc" },

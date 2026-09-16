@@ -80,11 +80,9 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <CartProvider>
             <Header />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-2 font-[family-name:var(--font-farsi)]">
-              <div className="md:hidden mb-2">
-                <DollarBox variant="mobile" />
-              </div>
-              <Breadcrumb />
+            {/* باکس نرخ دلار در موبایل به صورت استیکی */}
+            <div className="md:hidden sticky top-14 sm:top-16 z-30 px-4 py-2 bg-[#f3f3f3]/90 backdrop-blur-xs">
+              <DollarBox variant="mobile" />
             </div>
             {children}
             <Footer />

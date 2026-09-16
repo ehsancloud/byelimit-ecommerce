@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import categoriesData from "../../../../data/categoriesData.json";
 import CategoryClientView from "../../../../components/products/CategoryClientView";
+import Breadcrumb from "../../../../components/common/Breadcrumb";
 import { getProductsByCategory, toProductCardProps } from "../../../../data/products";
 
 export const dynamic = "force-dynamic";
@@ -75,6 +76,9 @@ export default async function CategoryProductsPage({ params }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
       />
+      <div className="max-w-7xl mx-auto mb-4 sm:mb-6">
+        <Breadcrumb productTitle={categoryInfo.titleFa} />
+      </div>
       <CategoryClientView
         categoryInfo={categoryInfo}
         products={categoryProducts}

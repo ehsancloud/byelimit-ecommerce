@@ -4,6 +4,8 @@ import TrustTicker from "../components/home/TrustTicker";
 import VisualCategories from "../components/home/VisualCategories";
 import FlashDeals from "../components/home/FlashDeals";
 import Bestsellers from "../components/home/Bestsellers";
+import MostViewed from "../components/home/MostViewed";
+import PromoBanner from "../components/home/PromoBanner";
 import AIComparison from "../components/home/AIComparison";
 import WhyUs from "../components/home/WhyUs";
 import Testimonials from "../components/home/Testimonials";
@@ -22,7 +24,14 @@ export const metadata = {
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#f3f3f3] font-[family-name:var(--font-farsi)] dir-rtl text-black pb-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 flex flex-col gap-12 md:gap-20 pt-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 flex flex-col gap-10 md:gap-16 pt-4">
+        {/* بنر تبلیغاتی ۱ (اولترا واید بالای بنتو گرید) */}
+        <PromoBanner
+          desktopImage="/images/promo1-desktop.jpeg"
+          mobileImage="/images/promo1-mobile.jpeg"
+          alt="بنر ویژه بالای سایت بای لیمیت"
+        />
+
         {/* ۱. هیرو سکشن Bento Grid + سرچ بار زنده */}
         <HeroBento />
 
@@ -35,14 +44,31 @@ export default function HomePage() {
         {/* ۶. پیشنهادات شگفت‌انگیز (FOMO) */}
         <FlashDeals />
 
+        {/* بنر تبلیغاتی ۲ (افقی وسط صفحه) */}
+        <PromoBanner
+          desktopImage="/images/promo2-desktop.jpeg"
+          mobileImage="/images/promo2-mobile.jpeg"
+          alt="بنر تبلیغاتی میانی بای لیمیت"
+        />
+
         {/* ۵. پرفروش‌ترین اکانت‌ها */}
         <Bestsellers />
+
+        {/* پربازدیدترین و محبوب‌ترین اکانت‌ها */}
+        <MostViewed />
 
         {/* ۷. سیستم مقایسه ابزارها */}
         <AIComparison />
 
         {/* ۱۰. چرا بای لیمیت؟ */}
         <WhyUs />
+
+        {/* بنر تبلیغاتی ۳ (افقی پایین صفحه) */}
+        <PromoBanner
+          desktopImage="/images/promo3-desktop.jpeg"
+          mobileImage="/images/promo3-mobile.jpeg"
+          alt="بنر تخفیف و پیشنهاد ویژه بای لیمیت"
+        />
 
         {/* ۸. نظرات و رضایت خریداران */}
         <Testimonials />

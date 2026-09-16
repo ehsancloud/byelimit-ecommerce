@@ -1,34 +1,34 @@
-// src/components/home/Bestsellers.jsx
+// src/components/home/MostViewed.jsx
 "use client";
 
 import { useState, useEffect } from "react";
 import ProductCard from "../products/ProductCard";
-import { Flame } from "lucide-react";
-import { getBestsellerProducts, getAllProducts, toProductCardProps } from "../../data/products";
+import { Eye } from "lucide-react";
+import { getMostViewedProducts, getAllProducts, toProductCardProps } from "../../data/products";
 
-export default function Bestsellers() {
-  const [bestProducts, setBestProducts] = useState([]);
+export default function MostViewed() {
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
 
-    getBestsellerProducts()
-      .then((products) => {
+    getMostViewedProducts()
+      .then((data) => {
         if (cancelled) return;
-        if (Array.isArray(products) && products.length > 0) {
-          const filtered = products
+        if (Array.isArray(data) && data.length > 0) {
+          const filtered = data
             .filter((p) => !p.slug?.toLowerCase().includes("test") && !p.title?.includes("تست"))
             .slice(0, 4);
-          setBestProducts(filtered.map(toProductCardProps));
+          setProducts(filtered.map(toProductCardProps));
         } else {
-          // فال‌بک به getAllProducts با مرتب‌سازی orderItemsCount
+          // فال‌بک به getAllProducts با مرتب‌سازی cartItemsCount
           return getAllProducts().then((allProds) => {
             if (cancelled) return;
             const top = (allProds || [])
               .filter((p) => !p.slug?.toLowerCase().includes("test") && !p.title?.includes("تست"))
-              .sort((a, b) => (b.orderItemsCount || b.totalSalesCount || 0) - (a.orderItemsCount || a.totalSalesCount || 0))
+              .sort((a, b) => (b.cartItemsCount || 0) - (a.cartItemsCount || 0))
               .slice(0, 4);
-            setBestProducts(top.map(toProductCardProps));
+            setProducts(top.map(toProductCardProps));
           });
         }
       })
@@ -37,21 +37,21 @@ export default function Bestsellers() {
     return () => { cancelled = true; };
   }, []);
 
-  if (bestProducts.length === 0) return null;
+  if (products.length === 0) return null;
 
   return (
     <section>
       <div className="flex items-center justify-between mb-6 border-b-[3.5px] border-black pb-2">
         <div className="flex items-center gap-2">
-          <Flame className="w-6 h-6 stroke-[2.5] text-orange-500 fill-orange-500" />
+          <Eye className="w-6 h-6 stroke-[2.5] text-cyan-600" />
           <h2 className="text-xl sm:text-2xl font-black">
-            پرفروش‌ترین و محبوب‌ترین اکانت‌ها
+            پربازدیدترین و داغ‌ترین محصولات
           </h2>
         </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {bestProducts.map((product) => (
+        {products.map((product) => (
           <ProductCard key={product.id} {...product} />
         ))}
       </div>

@@ -41,21 +41,21 @@ export default function Breadcrumb({ productTitle, className = "" }) {
 
   return (
     <nav aria-label="breadcrumb"
-      className={`inline-flex items-center flex-wrap gap-0.5 dir-rtl ${className}`}>
-      <div className="flex items-center flex-wrap gap-0.5 bg-white/80 backdrop-blur-sm border-[2px] border-black rounded-xl px-3 py-1.5 shadow-[-2px_2px_0_0_rgba(0,0,0,1)]">
+      className={`inline-flex items-center flex-wrap gap-1 dir-rtl ${className}`}>
+      <div className="flex items-center flex-wrap gap-1 bg-white border-[2px] border-black rounded-xl px-3 py-1.5 md:px-4 md:py-2 shadow-[-2px_2px_0_0_rgba(0,0,0,1)]">
         {crumbs.map((crumb, i) => {
           const isLast = i === crumbs.length - 1;
           return (
-            <span key={crumb.href} className="flex items-center gap-0.5">
-              {i === 0 && <Home className="w-3 h-3 shrink-0 text-gray-500" />}
+            <span key={crumb.href} className="flex items-center gap-1">
+              {i === 0 && <Home className="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0 text-gray-600" />}
               {isLast ? (
-                <span className="text-[11px] font-black text-black truncate max-w-[140px] sm:max-w-none">{crumb.label}</span>
+                <span className="text-xs md:text-sm font-black text-black truncate max-w-[160px] sm:max-w-none">{crumb.label}</span>
               ) : (
-                <Link href={crumb.href} className="text-[11px] font-bold text-gray-500 hover:text-black transition-colors shrink-0 hover:underline">
+                <Link href={crumb.href} className="text-xs md:text-sm font-bold text-gray-500 hover:text-black transition-colors shrink-0 hover:underline">
                   {crumb.label}
                 </Link>
               )}
-              {!isLast && <ChevronLeft className="w-3 h-3 shrink-0 text-gray-300" />}
+              {!isLast && <ChevronLeft className="w-3.5 h-3.5 md:w-4 md:h-4 shrink-0 text-gray-400" />}
             </span>
           );
         })}

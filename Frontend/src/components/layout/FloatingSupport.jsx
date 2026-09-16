@@ -6,9 +6,9 @@ import { MessageCircle, Phone, Send, X, Clock } from "lucide-react";
 
 import { usePathname } from "next/navigation";
 
-const SUPPORT_PHONE_DISPLAY = "۰۲۱-۰۰۰۰۰۰۰";
-const SUPPORT_PHONE_TEL = "+9821xxxxxxx";
-const SUPPORT_TELEGRAM_URL = "https://t.me/byelimit_support";
+const SUPPORT_PHONE_DISPLAY = "0918 0100 290";
+const SUPPORT_PHONE_TEL = "+989180100290";
+const SUPPORT_TELEGRAM_URL = "tg://resolve?domain=byelimit_support";
 const WORKING_HOURS_LABEL = "پاسخگویی و تحویل: هرروز ساعت ۱۰ تا ۲۲";
 
 export default function FloatingSupport() {
@@ -27,12 +27,13 @@ export default function FloatingSupport() {
   }, []);
 
   const isProductDetail = pathname?.startsWith("/products/") && pathname.length > 10;
-  const bottomClass = isProductDetail ? "bottom-32 sm:bottom-6" : "bottom-24 sm:bottom-6";
+  // در حالت موبایل هم‌راستا با دکمه فیلتر (bottom-6) و در صفحه تک محصول بالاتر (bottom-28)
+  const bottomClass = isProductDetail ? "bottom-28 sm:bottom-6" : "bottom-6";
 
   return (
     <div
       ref={containerRef}
-      className={`fixed ${bottomClass} right-4 sm:right-6 z-30 font-[family-name:var(--font-farsi)] dir-rtl`}
+      className={`fixed ${bottomClass} right-6 z-30 font-[family-name:var(--font-farsi)] dir-rtl`}
     >
       <AnimatePresence>
         {isOpen && (

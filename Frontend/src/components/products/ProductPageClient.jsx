@@ -10,6 +10,7 @@ import ProductReviews from "./ProductReviews";
 import LivePurchasePopup from "./LivePurchasePopup";
 import StickyMobileBar from "./StickyMobileBar";
 import AddedToCartModal from "../cart/AddedToCartModal";
+import Breadcrumb from "../common/Breadcrumb";
 import { useCart } from "../../context/CartContext";
 
 export default function ProductPageClient({ product }) {
@@ -55,6 +56,10 @@ export default function ProductPageClient({ product }) {
       <LivePurchasePopup />
 
       <main className="max-w-7xl mx-auto px-4 py-6 md:py-10">
+        <div className="mb-4 sm:mb-6">
+          <Breadcrumb productTitle={product.title} />
+        </div>
+
         <ProductHero
           product={product}
           selectedVariant={selectedVariant}
@@ -167,9 +172,7 @@ export default function ProductPageClient({ product }) {
             </div>
           </div>
           <a
-            href="https://t.me/byelimit_support"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="tg://resolve?domain=byelimit_support"
             className="bg-white border-[2.5px] border-black px-6 py-2.5 rounded-xl font-black text-xs md:text-sm shadow-[-3px_3px_0_0_rgba(0,0,0,1)] hover:bg-yellow-200 transition-all shrink-0 no-underline text-black"
           >
             ارتباط مستقیم با پشتیبانی

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ShieldCheck, Zap, Clock, Headphones, Send } from "lucide-react";
 
-const TELEGRAM_URL  = "https://t.me/byelimit_support";
+const TELEGRAM_URL  = "tg://resolve?domain=byelimit_support";
 const ENAMAD_CODE   = "Ceg4lOPM2wFTkgCRKw3gAG5KgbSSAXTC";
 const ENAMAD_ID     = "7510836";
 const ENAMAD_HREF   = `https://trustseal.enamad.ir/?id=${ENAMAD_ID}&Code=${ENAMAD_CODE}`;
@@ -91,13 +91,13 @@ export default function Footer() {
           <h3 className="font-black text-base mb-4 border-b-[2.5px] border-black pb-2 inline-block">ابزارهای هوش مصنوعی</h3>
           <ul className="flex flex-col gap-2.5 text-xs font-black text-gray-800">
             {[
-              ["/products/category/text",     "خرید اکانت ChatGPT (چت‌جی‌پی‌تی)"],
-              ["/products/category/text",     "خرید اشتراک Claude (کلود)"],
-              ["/products/category/image",    "خرید اکانت Midjourney (میدجرنی)"],
-              ["/products/category/code",     "خرید اشتراک GitHub Copilot"],
-              ["/products/category/video",    "خرید اکانت Runway و Kling AI"],
-              ["/products/category/audio",    "خرید اشتراک ElevenLabs"],
-              ["/products/category/research", "خرید اشتراک Perplexity Pro"],
+              ["/products/chatgpt",     "خرید اکانت ChatGPT (چت‌جی‌پی‌تی)"],
+              ["/products/claude",      "خرید اشتراک Claude (کلود)"],
+              ["/products/midjourney",  "خرید اکانت Midjourney (میدجرنی)"],
+              ["/products/copilot",     "خرید اشتراک GitHub Copilot"],
+              ["/products/runway",      "خرید اکانت Runway Gen-3"],
+              ["/products/elevenlabs",  "خرید اشتراک ElevenLabs"],
+              ["/products/perplexity",  "خرید اشتراک Perplexity Pro"],
             ].map(([href, label]) => (
               <li key={label}><Link href={href} className="hover:underline hover:text-black transition-colors">• {label}</Link></li>
             ))}
@@ -110,8 +110,7 @@ export default function Footer() {
           <ul className="flex flex-col gap-2.5 text-xs font-black text-gray-800">
             {[
               ["/",         "صفحه اصلی"],
-              ["/products", "فروشگاه"],
-              ["/services", "خدمات"],
+              ["/products", "فروشگاه محصولات"],
               ["/about",    "درباره ما"],
               ["/contact",  "تماس با ما"],
               ["/faq",      "سوالات متداول"],
@@ -126,7 +125,7 @@ export default function Footer() {
         <div className="lg:col-span-3 flex flex-col gap-5">
           <div>
             <h3 className="font-black text-base mb-4 border-b-[2.5px] border-black pb-2 inline-block">ارتباط با ما</h3>
-            <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer"
+            <a href={TELEGRAM_URL}
               className="flex items-center gap-3 bg-[#e0f2fe] border-[2px] border-black p-3 rounded-xl shadow-[-3px_3px_0_0_rgba(0,0,0,1)] hover:bg-[#ccff00] transition-colors mb-3">
               <Send className="w-5 h-5 stroke-[2.5] text-blue-600 shrink-0" />
               <div>
@@ -134,14 +133,6 @@ export default function Footer() {
                 <span className="text-[10px] font-bold text-gray-600 dir-ltr">@byelimit_support</span>
               </div>
             </a>
-            <div className="flex items-center gap-3">
-              <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer"
-                className="p-2.5 bg-[#e0f2fe] border-[2px] border-black rounded-xl shadow-[-3px_3px_0_0_rgba(0,0,0,1)] hover:bg-[#ccff00] transition-colors" aria-label="Telegram">
-                <svg className="w-5 h-5 fill-current text-black" viewBox="0 0 24 24">
-                  <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-                </svg>
-              </a>
-            </div>
           </div>
         </div>
       </div>
@@ -150,10 +141,6 @@ export default function Footer() {
       <div className="border-t-[3.5px] border-black bg-white py-4 px-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-black text-gray-800">
           <p>© {new Date().getFullYear()} تمامی حقوق مادی و معنوی این وب‌سایت متعلق به بای لیمیت می‌باشد.</p>
-          <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-blue-700 hover:underline">
-            <Send className="w-3.5 h-3.5" /><span>پشتیبانی تلگرام</span>
-          </a>
         </div>
       </div>
     </footer>

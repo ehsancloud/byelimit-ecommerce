@@ -44,6 +44,14 @@ export async function searchProducts(query) {
   return getAllProducts({ search: query });
 }
 
+export async function getBestsellerProducts() {
+  return apiFetch("/api/products/bestsellers");
+}
+
+export async function getMostViewedProducts() {
+  return apiFetch("/api/products/most-viewed");
+}
+
 function getCheapestVariant(product) {
   const pricedVariants = (product.variants || []).filter(
     (v) => typeof v.price === "number" && !v.priceTBD,
@@ -68,6 +76,8 @@ export function toProductCardProps(product) {
     deliveryText: "تحویل سریع",
     rating: product.ratingCount > 0 ? product.ratingAverage?.toLocaleString("fa-IR") : null,
     ratingNum: product.ratingCount > 0 ? product.ratingAverage : 0,
+    orderItemsCount: product.orderItemsCount || 0,
+    cartItemsCount: product.cartItemsCount || 0,
     priceNum: hasRealPrice ? cheapestVariant.price : Number.MAX_SAFE_INTEGER,
     price: hasRealPrice ? cheapestVariant.price.toLocaleString("fa-IR") : null,
     priceTBD: !hasRealPrice,

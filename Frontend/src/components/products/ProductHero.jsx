@@ -120,12 +120,9 @@ export default function ProductHero({
 
           {/* انتخاب پلن‌ها */}
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-black text-black flex items-center justify-between">
-              <span>نوع پلن و مدت زمان اشتراک را انتخاب کنید:</span>
-              <span className="text-gray-500 font-bold">
-                کد محصول: {product.sku}
-              </span>
-            </label>
+            <span className="text-xs font-black text-black block">
+              نوع پلن و مدت زمان اشتراک را انتخاب کنید:
+            </span>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {product.variants.map((variant) => {
@@ -151,11 +148,15 @@ export default function ProductHero({
                       <span>{variant.name}</span>
                       {variant.durationDays && (
                         <span className="text-[9px] font-black bg-black text-white px-1.5 py-0.5 rounded shrink-0">
-                          {variant.durationDays === 30 ? "۱ ماهه"
+                          {variant.durationDays === 1 ? "تستی"
+                            : variant.durationDays === 7 ? "هفتگی"
+                            : variant.durationDays === 30 ? "۱ ماهه"
+                            : variant.durationDays === 60 ? "۲ ماهه"
                             : variant.durationDays === 90 ? "۳ ماهه"
+                            : variant.durationDays === 120 ? "۴ ماهه"
                             : variant.durationDays === 180 ? "۶ ماهه"
                             : variant.durationDays === 365 ? "۱ ساله"
-                            : variant.durationDays === 1 ? "تستی"
+                            : variant.durationDays % 30 === 0 ? `${variant.durationDays / 30} ماهه`
                             : `${variant.durationDays} روزه`}
                         </span>
                       )}
