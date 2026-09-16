@@ -20,7 +20,7 @@ export default function CartPage() {
   const router = useRouter();
   const { items, isHydrated, removeItem, totalPrice, totalCount, refetchCart } = useCart();
 
-  // همگام‌سازی قطعی قیمت‌ها با سرور به محض ورود به صفحه سبد خرید
+  // همگام سازی قطعی قیمت ها با سرور به محض ورود به صفحه سبد خرید
   useEffect(() => {
     refetchCart();
   }, [refetchCart]);
@@ -49,11 +49,11 @@ export default function CartPage() {
           </Link>
         </div>
 
-        {/* نشانگر زنده بودن قیمت‌ها بر اساس دلار */}
+        {/* نشانگر زنده بودن قیمت ها بر اساس دلار */}
         <div className="bg-[#ccff00] border-[2.5px] border-black p-3 rounded-2xl flex items-center justify-between shadow-[-4px_4px_0_0_rgba(0,0,0,1)] mb-6 text-xs font-black">
           <div className="flex items-center gap-2">
             <Zap className="w-4 h-4 fill-black" />
-            <span>قیمت‌های سبد خرید به‌صورت لحظه‌ای با نوسانات نرخ ارز و دلار همگام‌سازی می‌شوند.</span>
+            <span>قیمت های سبد خرید به صورت لحظه ای با نوسانات نرخ ارز و دلار همگام سازی می شوند.</span>
           </div>
           <span className="hidden sm:inline bg-black text-white px-2 py-0.5 rounded text-[10px]">نرخ زنده</span>
         </div>
@@ -65,7 +65,7 @@ export default function CartPage() {
             </div>
             <h2 className="font-black text-lg">سبد خرید شما خالی است</h2>
             <p className="text-xs font-bold text-gray-600">
-              هنوز محصولی به سبد خریدتان اضافه نکرده‌اید.
+              هنوز محصولی به سبد خریدتان اضافه نکرده اید.
             </p>
             <Link
               href="/products"

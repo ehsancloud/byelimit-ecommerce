@@ -1,8 +1,8 @@
 // src/lib/prisma.js
 const { PrismaClient } = require("@prisma/client");
 
-// در توسعه، nodemon باعث ری‌استارت مکرر می‌شود؛ بدون singleton هر بار
-// یک PrismaClient جدید ساخته و کانکشن‌های دیتابیس تمام می‌شوند.
+// در توسعه، nodemon باعث ری استارت مکرر می شود؛ بدون singleton هر بار
+// یک PrismaClient جدید ساخته و کانکشن های دیتابیس تمام می شوند.
 const globalForPrisma = globalThis;
 
 const prisma =

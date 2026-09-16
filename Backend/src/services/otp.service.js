@@ -86,7 +86,7 @@ async function sendOtp(rawMobile, purpose = "LOGIN", ipAddress = null) {
 
   try {
     let res;
-    // اگر پترن خدماتی تنظیم شده باشد، برای عبور از بلک‌لیست از BaseServiceNumber استفاده می‌شود
+    // اگر پترن خدماتی تنظیم شده باشد، برای عبور از بلک لیست از BaseServiceNumber استفاده می شود
     if (melipayamakBodyId) {
       res = await fetch("https://rest.payamak-panel.com/api/SendSMS/BaseServiceNumber", {
         method: "POST",
@@ -159,7 +159,7 @@ async function verifyOtp(rawMobile, code, purpose = "LOGIN") {
     throw err;
   }
 
-  // افزایش اتمیک تعداد تلاش‌ها جهت مسدودسازی حملات Brute Force و Race Condition
+  // افزایش اتمیک تعداد تلاش ها جهت مسدودسازی حملات Brute Force و Race Condition
   const updatedCountRecord = await prisma.otpCode.updateMany({
     where: {
       id: otpRecord.id,
@@ -171,12 +171,12 @@ async function verifyOtp(rawMobile, code, purpose = "LOGIN") {
   });
 
   if (updatedCountRecord.count === 0) {
-    const err = new Error("تعداد تلاش‌های مجاز تمام شده است. لطفاً مجدداً درخواست کد کنید.");
+    const err = new Error("تعداد تلاش های مجاز تمام شده است. لطفاً مجدداً درخواست کد کنید.");
     err.code = "OTP_MAX_ATTEMPTS";
     throw err;
   }
 
-  // صحت‌سنجی کد ارسالی
+  // صحت سنجی کد ارسالی
   const expectedHash = hashOtp(mobile, trimmedCode);
   const isValid = crypto.timingSafeEqual(
     Buffer.from(otpRecord.codeHash, "hex"),
@@ -187,8 +187,8 @@ async function verifyOtp(rawMobile, code, purpose = "LOGIN") {
     const remaining = otpRecord.maxAttempts - (otpRecord.attemptCount + 1);
     const err = new Error(
       remaining > 0
-        ? `کد تایید نادرست است. (${remaining} تلاش باقی‌مانده)`
-        : "تعداد تلاش‌های مجاز تمام شد. لطفاً کد جدید دریافت کنید."
+        ? `کد تایید نادرست است. (${remaining} تلاش باقی مانده)`
+        : "تعداد تلاش های مجاز تمام شد. لطفاً کد جدید دریافت کنید."
     );
     err.code = "OTP_INVALID";
     throw err;

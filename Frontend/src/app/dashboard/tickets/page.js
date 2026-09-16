@@ -15,7 +15,7 @@ export default function DashboardTicketsPage() {
       date: "۲۳ مرداد ۱۴۰۵",
       messages: [
         { sender: "user", text: "سلام، IP آلمان برای این اکانت نیازه؟", time: "۱۴:۲۰" },
-        { sender: "support", text: "سلام وقت بخیر. بله آی‌پی ثابت آلمان یا آمریکا توصیه میشه.", time: "۱۴:۳۵" },
+        { sender: "support", text: "سلام وقت بخیر. بله آی پی ثابت آلمان یا آمریکا توصیه میشه.", time: "۱۴:۳۵" },
       ],
     },
   ]);
@@ -45,10 +45,10 @@ export default function DashboardTicketsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* هدر بخش تیکت‌ها */}
+      {/* هدر بخش تیکت ها */}
       <div className="bg-white border-[3.5px] border-black rounded-[24px] p-6 shadow-[-8px_8px_0_0_rgba(0,0,0,1)] flex items-center justify-between">
         <div>
-          <h1 className="text-xl md:text-2xl font-black">پشتیبانی و تیکت‌ها</h1>
+          <h1 className="text-xl md:text-2xl font-black">پشتیبانی و تیکت ها</h1>
           <p className="text-xs font-bold text-gray-600 mt-1">
             در صورت بروز مشکل در اکانت یا سوال قبل و بعد خرید، تیکت بگذارید.
           </p>
@@ -119,7 +119,7 @@ export default function DashboardTicketsPage() {
         </form>
       )}
 
-      {/* لیست تیکت‌های موجود */}
+      {/* لیست تیکت های موجود */}
       <div className="flex flex-col gap-4">
         {tickets.map((tck) => (
           <div
@@ -134,7 +134,7 @@ export default function DashboardTicketsPage() {
 
               {tck.status === "ANSWERED" ? (
                 <span className="bg-[#12e2a3] border-[1.5px] border-black px-2.5 py-0.5 rounded-lg text-xs font-black">
-                  پاسخ داده‌شده
+                  پاسخ داده شده
                 </span>
               ) : (
                 <span className="bg-amber-200 border-[1.5px] border-black px-2.5 py-0.5 rounded-lg text-xs font-black">

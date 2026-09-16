@@ -11,8 +11,8 @@ const STATUS_COLOR = {
   DELIVERED: "bg-blue-200 border-black",
 };
 const STATUS_LABEL = {
-  PAID:      "✅ پرداخت‌شده",
-  DELIVERED: "📦 تحویل‌شده",
+  PAID:      "✅ پرداخت شده",
+  DELIVERED: "📦 تحویل شده",
 };
 
 const DELIVERY_STATUS_LABEL = {
@@ -71,8 +71,8 @@ export default function DashboardOrdersPage() {
     <div className="flex flex-col gap-6">
       <div className="bg-white border-[3.5px] border-black rounded-[24px] p-6 shadow-[-8px_8px_0_0_rgba(0,0,0,1)] flex items-center justify-between">
         <div>
-          <h1 className="text-xl md:text-2xl font-black">سفارش‌ها و کدهای تحویل</h1>
-          <p className="text-xs font-bold text-gray-600 mt-1">اطلاعات ورود به اکانت‌های خریداری‌شده</p>
+          <h1 className="text-xl md:text-2xl font-black">سفارش ها و کدهای تحویل</h1>
+          <p className="text-xs font-bold text-gray-600 mt-1">اطلاعات ورود به اکانت های خریداری شده</p>
         </div>
         <span className="bg-[#ccff00] border-[2px] border-black px-3 py-1 rounded-xl font-black text-xs shadow-[-2px_2px_0_0_rgba(0,0,0,1)]">
           {orders.length.toLocaleString("fa-IR")} سفارش
@@ -82,7 +82,7 @@ export default function DashboardOrdersPage() {
       {orders.length === 0 ? (
         <div className="bg-white border-[3px] border-black rounded-[24px] p-12 text-center shadow-[-6px_6px_0_0_rgba(0,0,0,1)]">
           <ShoppingBag className="w-12 h-12 mx-auto mb-4 opacity-20" />
-          <p className="font-black text-base">هنوز خرید تکمیل‌شده‌ای ندارید.</p>
+          <p className="font-black text-base">هنوز خرید تکمیل شده ای ندارید.</p>
           <Link href="/products"
             className="mt-4 inline-block bg-[#ccff00] border-[2.5px] border-black px-6 py-2.5 rounded-xl font-black text-sm shadow-[-3px_3px_0_0_rgba(0,0,0,1)] text-black no-underline"
           >رفتن به فروشگاه</Link>
@@ -114,7 +114,7 @@ export default function DashboardOrdersPage() {
                 </div>
               </div>
 
-              {/* آیتم‌ها */}
+              {/* آیتم ها */}
               {order.items.map((item, idx) => (
                 <div key={idx} className="flex flex-col gap-3">
                   <div>
@@ -145,7 +145,7 @@ export default function DashboardOrdersPage() {
                   ) : (
                     <div className="bg-yellow-50 border-[2px] border-yellow-400 p-3 rounded-xl text-xs font-bold text-yellow-700 flex items-center gap-2">
                       <span>⏳</span>
-                      <span>اکانت در حال تحویل و هماهنگی است. می‌توانید مستقیماً به <a href="https://t.me/byelimit_support" target="_blank" rel="noopener noreferrer" className="underline font-black">پشتیبانی تلگرام</a> پیام دهید.</span>
+                      <span>اکانت در حال تحویل و هماهنگی است. می توانید مستقیماً به <a href="https://t.me/byelimit_support" target="_blank" rel="noopener noreferrer" className="underline font-black">پشتیبانی تلگرام</a> پیام دهید.</span>
                     </div>
                   )}
                 </div>

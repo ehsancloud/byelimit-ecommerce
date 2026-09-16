@@ -6,6 +6,7 @@ import FlashDeals from "../components/home/FlashDeals";
 import Bestsellers from "../components/home/Bestsellers";
 import MostViewed from "../components/home/MostViewed";
 import PromoBanner from "../components/home/PromoBanner";
+import AnnouncementBanner from "../components/home/AnnouncementBanner";
 import AIComparison from "../components/home/AIComparison";
 import WhyUs from "../components/home/WhyUs";
 import Testimonials from "../components/home/Testimonials";
@@ -13,7 +14,7 @@ import LatestArticles from "../components/home/LatestArticles";
 import HomeFaq from "../components/home/HomeFaq";
 
 export const metadata = {
-  title: "فروشگاهی امن برای خرید اشتراک‌های اختصاصی",
+  title: "فروشگاهی امن برای خرید اشتراک های اختصاصی",
   description:
     "خرید اکانت اختصاصی و قانونی ChatGPT Plus، Midjourney، Claude Pro و سرور مجازی. تحویل سریع با ضمانت ۱۰۰٪ و پشتیبانی هرروز ۱۰ تا ۲۲.",
   alternates: {
@@ -24,11 +25,14 @@ export const metadata = {
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#f3f3f3] font-[family-name:var(--font-farsi)] dir-rtl text-black pb-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 flex flex-col gap-10 md:gap-16 pt-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 flex flex-col gap-8 md:gap-14 pt-4">
+        {/* اطلاعیه قرمز رنگ سراسری سایت (تنظیم از پریسما استودیو - در صورت null رندر نمی شود) */}
+        <AnnouncementBanner />
+
         {/* بنر تبلیغاتی ۱ (اولترا واید بالای بنتو گرید) */}
         <PromoBanner
-          desktopImage="/images/promo1-desktop.jpeg"
-          mobileImage="/images/promo1-mobile.jpeg"
+          desktopImage="/images/ban1.jpeg"
+          mobileImage="/images/ban1.jpeg"
           alt="بنر ویژه بالای سایت بای لیمیت"
         />
 
@@ -38,10 +42,10 @@ export default function HomePage() {
         {/* ۳. نوار متحرک اعتمادسازی و آمار کلیدی */}
         <TrustTicker />
 
-        {/* ۴. دسته‌بندی تصویری و موضوعی */}
+        {/* ۴. دسته بندی تصویری و موضوعی */}
         <VisualCategories />
 
-        {/* ۶. پیشنهادات شگفت‌انگیز (FOMO) */}
+        {/* ۶. پیشنهادات شگفت انگیز (FOMO) */}
         <FlashDeals />
 
         {/* بنر تبلیغاتی ۲ (افقی وسط صفحه) */}
@@ -51,10 +55,10 @@ export default function HomePage() {
           alt="بنر تبلیغاتی میانی بای لیمیت"
         />
 
-        {/* ۵. پرفروش‌ترین اکانت‌ها */}
+        {/* ۵. پرفروش ترین اکانت ها */}
         <Bestsellers />
 
-        {/* پربازدیدترین و محبوب‌ترین اکانت‌ها */}
+        {/* پربازدیدترین و محبوب ترین اکانت ها */}
         <MostViewed />
 
         {/* ۷. سیستم مقایسه ابزارها */}

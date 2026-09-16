@@ -7,8 +7,8 @@ import { useCart } from "../../context/CartContext";
 
 /**
  * آیکون سبد خرید برای استفاده در هدر.
- * variant="desktop"  -> جایگزین دکمه‌ی «تماس با ما» در Navbar دسکتاپ
- * variant="mobile"   -> جایگزین دکمه‌ی «برگشت» در هدر موبایل
+ * variant="desktop"  -> جایگزین دکمه ی «تماس با ما» در Navbar دسکتاپ
+ * variant="mobile"   -> جایگزین دکمه ی «برگشت» در هدر موبایل
  */
 export default function CartIcon({ variant = "desktop" }) {
   const { totalCount } = useCart();

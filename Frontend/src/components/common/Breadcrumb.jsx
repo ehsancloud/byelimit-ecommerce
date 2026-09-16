@@ -6,11 +6,11 @@ import { ChevronLeft, Home } from "lucide-react";
 
 const SEGMENT_LABELS = {
   products: "فروشگاه", services: "خدمات", dashboard: "پنل کاربری",
-  orders: "سفارش‌ها", profile: "پروفایل", cart: "سبد خرید",
+  orders: "سفارش ها", profile: "پروفایل", cart: "سبد خرید",
   checkout: "تسویه حساب", auth: "ورود", contact: "تماس با ما",
   about: "درباره ما", faq: "سوالات متداول", rules: "قوانین",
   category: null,
-  text: "تولید محتوا", code: "برنامه‌نویسی", image: "تولید تصویر",
+  text: "تولید محتوا", code: "برنامه نویسی", image: "تولید تصویر",
   video: "ویدیو", audio: "صدا و موسیقی", research: "تحقیق و آموزش",
   "film-music": "فیلم و موسیقی", gaming: "گیمینگ",
   "design-graphics": "طراحی و گرافیک", "seo-marketing": "سئو و مارکتینگ",

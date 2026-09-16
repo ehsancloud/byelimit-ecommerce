@@ -14,7 +14,7 @@ export default function SearchBar({ onNavigate }) {
   const containerRef = useRef(null);
   const debounceRef = useRef(null);
 
-  // بستن دراپ‌داون با کلیک خارج
+  // بستن دراپ داون با کلیک خارج
   useEffect(() => {
     function handleClickOutside(e) {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -25,8 +25,8 @@ export default function SearchBar({ onNavigate }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ✅ FIX: جستجوی واقعی از بک‌اند با debounce 300ms
-  // قبلاً از SAMPLE_PRODUCTS هاردکد استفاده می‌شد
+  // ✅ FIX: جستجوی واقعی از بک اند با debounce 300ms
+  // قبلاً از SAMPLE_PRODUCTS هاردکد استفاده می شد
   useEffect(() => {
     const trimmed = query.trim();
     if (!trimmed) {
@@ -69,7 +69,7 @@ export default function SearchBar({ onNavigate }) {
     const cheapest = product.variants
       ?.filter((v) => v.price != null && !v.priceTBD)
       .sort((a, b) => a.price - b.price)[0];
-    if (!cheapest) return "به‌زودی";
+    if (!cheapest) return "به زودی";
     return `${Number(cheapest.price).toLocaleString("fa-IR")} تومان`;
   };
 
@@ -103,7 +103,7 @@ export default function SearchBar({ onNavigate }) {
         )}
       </div>
 
-      {/* دراپ‌داون نتایج زنده */}
+      {/* دراپ داون نتایج زنده */}
       {isOpen && query.trim() !== "" && (
         <div className="absolute top-full right-0 left-0 mt-2 bg-white border-[3px] border-black rounded-xl shadow-[-6px_6px_0_0_rgba(0,0,0,1)] p-3 z-50">
           <div className="text-xs font-black text-gray-500 mb-2 px-1">

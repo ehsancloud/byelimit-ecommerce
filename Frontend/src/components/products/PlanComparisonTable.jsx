@@ -33,10 +33,10 @@ export default function PlanComparisonTable({ data }) {
 
   if (!tableData) return null;
 
-  // حالت اول: ساختار استاندارد ستون‌ها و ردیف‌ها ({ columns, rows })
+  // حالت اول: ساختار استاندارد ستون ها و ردیف ها ({ columns, rows })
   const isColumnar = tableData && Array.isArray(tableData.columns) && Array.isArray(tableData.rows);
 
-  // حالت دوم: آرایه آبجکت‌ها ([{ feature, shared, exclusive }])
+  // حالت دوم: آرایه آبجکت ها ([{ feature, shared, exclusive }])
   const isLegacyArray = Array.isArray(tableData) && tableData.length > 0;
 
   if (!isColumnar && !isLegacyArray) return null;
@@ -48,7 +48,7 @@ export default function PlanComparisonTable({ data }) {
   return (
     <div>
       <h3 className="text-base md:text-lg font-black text-black mb-4">
-        جدول مقایسه پلن‌ها و امکانات
+        جدول مقایسه پلن ها و امکانات
       </h3>
       <div className="overflow-x-auto border-[2.5px] border-black rounded-xl shadow-[-4px_4px_0_0_rgba(0,0,0,1)]">
         <table className="w-full text-right text-xs md:text-sm font-bold">

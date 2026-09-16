@@ -83,7 +83,7 @@ function AuthPageInner() {
     }
   };
 
-  // مدیریت تغییر اینپوت‌ها از چپ به راست (۵ کادر)
+  // مدیریت تغییر اینپوت ها از چپ به راست (۵ کادر)
   const handleOtpChange = (e, index) => {
     let value = e.target.value;
     // تبدیل ارقام فارسی یا عربی
@@ -171,7 +171,7 @@ function AuthPageInner() {
             <div className="w-8 h-8 bg-[#ccff00] border-[2px] border-black rounded-lg flex items-center justify-center shadow-[-2px_2px_0_0_rgba(0,0,0,1)] font-black text-xs">
               BL
             </div>
-            <span className="font-black text-lg">ورود | ثبت‌نام سریع</span>
+            <span className="font-black text-lg">ورود | ثبت نام سریع</span>
           </div>
 
           <Link
@@ -188,7 +188,7 @@ function AuthPageInner() {
             <div>
               <h1 className="text-xl font-black mb-1">شماره موبایل خود را وارد کنید</h1>
               <p className="text-xs font-bold text-gray-600 leading-relaxed">
-                کد تایید یک‌بارمصرف (OTP) به این شماره پیامک خواهد شد.
+                کد تایید یک بارمصرف (OTP) به این شماره پیامک خواهد شد.
               </p>
             </div>
 
@@ -228,7 +228,7 @@ function AuthPageInner() {
             <div className="bg-[#fff9c4] border-[2px] border-black p-3 rounded-xl flex items-start gap-2 text-[11px] font-bold text-gray-700">
               <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <span>
-                اگر با این شماره قبلاً خریدی انجام داده‌اید، سفارش‌ها به طور خودکار به این حساب متصل می‌شوند.
+                اگر با این شماره قبلاً خریدی انجام داده اید، سفارش ها به طور خودکار به این حساب متصل می شوند.
               </span>
             </div>
           </form>
@@ -247,7 +247,7 @@ function AuthPageInner() {
                 </button>
               </div>
               <p className="text-xs font-bold text-gray-600">
-                کد ۵ رقمی پیامک‌شده به شماره <span className="font-black text-black dir-ltr">{mobile}</span> را وارد فرمایید:
+                کد ۵ رقمی پیامک شده به شماره <span className="font-black text-black dir-ltr">{mobile}</span> را وارد فرمایید:
               </p>
             </div>
 

@@ -65,7 +65,7 @@ export default function CommentSection({ comments = [] }) {
           <input
             type="email"
             required
-            placeholder="ایمیل (نمایش داده نمی‌شود)"
+            placeholder="ایمیل (نمایش داده نمی شود)"
             value={formData.email}
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
@@ -94,7 +94,7 @@ export default function CommentSection({ comments = [] }) {
         </button>
       </form>
 
-      {/* لیست کامنت‌های ثبت‌شده */}
+      {/* لیست کامنت های ثبت شده */}
       <div className="flex flex-col gap-4">
         {comments.map((comment) => (
           <div

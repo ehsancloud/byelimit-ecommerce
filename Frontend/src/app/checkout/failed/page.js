@@ -39,7 +39,7 @@ function CheckoutFailedInner() {
 
         <div className="w-full bg-[#f8f9fa] border-[2px] border-black p-4 rounded-xl text-xs font-bold text-right flex flex-col gap-2">
           <div className="flex justify-between">
-            <span className="text-gray-500">شماره فاکتور محفوظ‌شده:</span>
+            <span className="text-gray-500">شماره فاکتور محفوظ شده:</span>
             <span className="font-black dir-ltr">{orderId}</span>
           </div>
           <div className="flex justify-between">
@@ -49,10 +49,10 @@ function CheckoutFailedInner() {
         </div>
 
         {/*
-          TODO(backend): در معماری واقعی، این دکمه باید همان سفارش/Authority ذخیره‌شده
+          TODO(backend): در معماری واقعی، این دکمه باید همان سفارش/Authority ذخیره شده
           را دوباره به درگاه بفرستد (نه اینکه از صفر شروع کند). فعلاً کاربر را به
-          سبد خرید برمی‌گرداند - اگر سبدش هنوز پاک نشده باشد (که در تلاش ناموفق نباید
-          پاک شود)، می‌تواند مستقیماً به چک‌اوت ادامه دهد.
+          سبد خرید برمی گرداند - اگر سبدش هنوز پاک نشده باشد (که در تلاش ناموفق نباید
+          پاک شود)، می تواند مستقیماً به چک اوت ادامه دهد.
         */}
         <button
           onClick={() => router.push("/cart")}

@@ -17,7 +17,7 @@ export default function ProductsPageClient({ initialSearch = "", initialCategory
   const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState(initialSearch);
-  const [selectedCategory] = useState(initialCategory); // دسته‌بندی از URL می‌آید، از Filters نه
+  const [selectedCategory] = useState(initialCategory); // دسته بندی از URL می آید، از Filters نه
   const [sortBy, setSortBy] = useState("popular");
   const [priceRange, setPriceRange] = useState({ min: 0, max: 50000000 });
   const [currentPage, setCurrentPage] = useState(1);
@@ -63,7 +63,7 @@ export default function ProductsPageClient({ initialSearch = "", initialCategory
     router.replace("/products");
   };
 
-  // ✅ FIX: هنگام تغییر صفحه، اسکرول به بالا انجام می‌شود
+  // ✅ FIX: هنگام تغییر صفحه، اسکرول به بالا انجام می شود
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -98,7 +98,7 @@ export default function ProductsPageClient({ initialSearch = "", initialCategory
     return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProducts, currentPage]);
 
-  // ✅ FIX: پراپ‌های category حذف شدند چون بخش "کاربرد و حوزه" از Filters برداشته شده
+  // ✅ FIX: پراپ های category حذف شدند چون بخش "کاربرد و حوزه" از Filters برداشته شده
   const filterProps = {
     sortBy,
     setSortBy,
@@ -116,7 +116,7 @@ export default function ProductsPageClient({ initialSearch = "", initialCategory
 
         <header className="mb-8 text-center md:text-right">
           <h1 className="text-3xl md:text-4xl font-black mb-2">
-            فروشگاه اکانت‌های هوش مصنوعی
+            فروشگاه اکانت های هوش مصنوعی
           </h1>
           <p className="text-gray-700 font-bold text-sm md:text-base">
             خرید مستقیم و اختصاصی تمامی ابزارهای AI با تحویل سریع و پشتیبانی کامل
@@ -124,11 +124,11 @@ export default function ProductsPageClient({ initialSearch = "", initialCategory
 
           {searchQuery && (
             <div className="mt-4 inline-flex items-center gap-2 bg-white border-[2.5px] border-black px-3 py-1.5 rounded-xl text-xs font-black shadow-[-2px_2px_0_0_rgba(0,0,0,1)]">
-              <span>نتایج جست‌وجو برای: «{searchQuery}»</span>
+              <span>نتایج جست وجو برای: «{searchQuery}»</span>
               <button
                 onClick={handleClearSearch}
                 className="p-0.5 hover:bg-gray-100 rounded cursor-pointer"
-                aria-label="پاک کردن جست‌وجو"
+                aria-label="پاک کردن جست وجو"
               >
                 <X className="w-3.5 h-3.5 stroke-[3]" />
               </button>

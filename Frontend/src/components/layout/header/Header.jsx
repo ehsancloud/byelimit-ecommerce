@@ -34,7 +34,7 @@ export default function Header() {
   const [activeMenu, setActiveMenu] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // استیت‌های منوی موبایل
+  // استیت های منوی موبایل
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileAccordion, setMobileAccordion] = useState(null);
   const { user } = useAuth();
@@ -105,7 +105,7 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* نوار میانی دسکتاپ: مگامنو + سرچ‌بار + نوبار (سبد و دلار) */}
+          {/* نوار میانی دسکتاپ: مگامنو + سرچ بار + نوبار (سبد و دلار) */}
           <div className="hidden md:flex items-stretch flex-1">
             <div className="flex items-stretch h-full">
               <CategoryDropdown
@@ -287,7 +287,7 @@ export default function Header() {
                     </AnimatePresence>
                   </div>
 
-                  {/* اکانت‌های پرمیوم */}
+                  {/* اکانت های پرمیوم */}
                   <div className="bg-white border-[2.5px] border-black rounded-xl overflow-hidden shadow-[-3px_3px_0_0_rgba(0,0,0,1)]">
                     <button
                       onClick={() =>
@@ -299,7 +299,7 @@ export default function Header() {
                     >
                       <div className="flex items-center gap-2">
                         <Crown className="w-4 h-4" />
-                        <span>اشتراک‌ها و اکانت‌های پرمیوم</span>
+                        <span>اشتراک ها و اکانت های پرمیوم</span>
                       </div>
                       <ChevronDown
                         className={`w-4 h-4 stroke-[3] transition-transform ${
@@ -429,7 +429,7 @@ export default function Header() {
                     className="w-full bg-[#ff8f1f] border-[3px] border-black p-3.5 rounded-xl font-black text-center text-sm shadow-[-4px_4px_0_0_rgba(0,0,0,1)] flex items-center justify-center gap-2 no-underline text-black shrink-0 active:translate-x-[-1px] active:translate-y-[1px] active:shadow-none transition-all"
                   >
                     <User className="w-5 h-5 stroke-[2.5]" />
-                    <span>ورود | ثبت‌نام</span>
+                    <span>ورود | ثبت نام</span>
                   </Link>
                 )}
               </div>

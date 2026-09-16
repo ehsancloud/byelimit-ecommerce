@@ -24,13 +24,13 @@ const SEO_PREFIXES = {
 };
 
 const DISPLAY_NAMES = {
-  chatgpt: "ChatGPT (چت‌جی‌پی‌تی)",
+  chatgpt: "ChatGPT (چت جی پی تی)",
   claude: "Claude (کلود)",
   gemini: "Gemini (جمینی)",
   grok: "Grok (گراک)",
   perplexity: "Perplexity AI (پرپلکسیتی)",
   gamma: "Gamma (گاما)",
-  quillbot: "QuillBot (کوئیل‌بات)",
+  quillbot: "QuillBot (کوئیل بات)",
   copilot: "GitHub Copilot",
   cursor: "Cursor",
   windsurf: "Windsurf (Devin)",
@@ -120,7 +120,7 @@ async function main() {
         mainImage: `/images/products/${svc.slug}.png`,
         requiresVpn: svc.category !== "vps" && svc.category !== "test",
         vpnNote: (svc.category !== "vps" && svc.category !== "test")
-          ? "برای استفاده از این سرویس نیازمند تحریم‌شکن با IP ثابت و معتبر هستید."
+          ? "برای استفاده از این سرویس نیازمند تحریم شکن با IP ثابت و معتبر هستید."
           : null,
         longDescription: `اشتراک ${fullSeoTitle} با بهترین قیمت، تحویل سریع و پشتیبانی اختصاصی.`,
       },

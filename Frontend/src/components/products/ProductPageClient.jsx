@@ -74,7 +74,7 @@ export default function ProductPageClient({ product }) {
           claudeAddonPrice={CLAUDE_SECURE_ADDON_TOMAN}
         />
 
-        {/* تب‌ها */}
+        {/* تب ها */}
         <div className="bg-white border-[3.5px] border-black rounded-2xl overflow-hidden shadow-[-8px_8px_0_0_rgba(0,0,0,1)] mb-10">
           <div className="flex items-stretch overflow-x-auto border-b-[3.5px] border-black bg-gray-100 scrollbar-none">
             <button
@@ -91,7 +91,7 @@ export default function ProductPageClient({ product }) {
                 activeTab === "comparison" ? "bg-[#12e2a3]" : "hover:bg-gray-200"
               }`}
             >
-              مقایسه شفاف پلن‌ها
+              مقایسه شفاف پلن ها
             </button>
             <button
               onClick={() => setActiveTab("faq")}
@@ -167,7 +167,7 @@ export default function ProductPageClient({ product }) {
                 نیاز به راهنمایی قبل از خرید دارید؟
               </h4>
               <p className="text-xs font-bold text-gray-800">
-                پشتیبان‌های بای لیمیت هرروز ساعت ۱۰ تا ۲۲ پاسخگوی شما هستند.
+                پشتیبان های بای لیمیت هرروز ساعت ۱۰ تا ۲۲ پاسخگوی شما هستند.
               </p>
             </div>
           </div>

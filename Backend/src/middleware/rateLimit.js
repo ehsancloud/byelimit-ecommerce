@@ -1,7 +1,7 @@
 // src/middleware/rateLimit.js
 const rateLimit = require("express-rate-limit");
 
-// اندپوینت‌های مالی (ساخت فاکتور / وریفای پرداخت) - محدودیت شدید طبق چک‌لیست:
+// اندپوینت های مالی (ساخت فاکتور / وریفای پرداخت) - محدودیت شدید طبق چک لیست:
 // «۳ درخواست در دقیقه» برای جلوگیری از Brute-force و اسپم تراکنش.
 const paymentRateLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -9,7 +9,7 @@ const paymentRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: {
-    error: "تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً کمی صبر کنید.",
+    error: "تعداد درخواست های شما بیش از حد مجاز است. لطفاً کمی صبر کنید.",
   },
 });
 
@@ -22,7 +22,7 @@ const otpRateLimiter = rateLimit({
   message: { error: "تعداد درخواست کد تایید بیش از حد مجاز است." },
 });
 
-// محدودیت عمومی‌تر برای بقیه API (سبد خرید، مشاهده محصولات و ...)
+// محدودیت عمومی تر برای بقیه API (سبد خرید، مشاهده محصولات و ...)
 const generalApiRateLimiter = rateLimit({
   windowMs: 60 * 1000,
   limit: 100,

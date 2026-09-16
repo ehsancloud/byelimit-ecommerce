@@ -11,7 +11,7 @@ export default function DashboardProfilePage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
-  // ✅ FIX: دریافت واقعی پروفایل از بک‌اند
+  // ✅ FIX: دریافت واقعی پروفایل از بک اند
   useEffect(() => {
     apiFetch("/api/auth/me")
       .then((data) => {
@@ -26,7 +26,7 @@ export default function DashboardProfilePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // ✅ FIX: ذخیره واقعی پروفایل در بک‌اند (به‌جای setSaved تقلبی)
+  // ✅ FIX: ذخیره واقعی پروفایل در بک اند (به جای setSaved تقلبی)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -42,7 +42,7 @@ export default function DashboardProfilePage() {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
-      setError(err.message || "خطا در ذخیره‌سازی پروفایل.");
+      setError(err.message || "خطا در ذخیره سازی پروفایل.");
     } finally {
       setSaving(false);
     }
@@ -61,7 +61,7 @@ export default function DashboardProfilePage() {
       <div className="border-b-[3px] border-black pb-4">
         <h1 className="text-xl md:text-2xl font-black">تنظیمات پروفایل و حساب کاربری</h1>
         <p className="text-xs font-bold text-gray-600 mt-1">
-          ویرایش مشخصات شخصی جهت دریافت اطلاعیه‌ها و تحویل اشتراک‌ها.
+          ویرایش مشخصات شخصی جهت دریافت اطلاعیه ها و تحویل اشتراک ها.
         </p>
       </div>
 

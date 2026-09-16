@@ -19,11 +19,11 @@ const fontFarsi = localFont({
 export const metadata = {
   metadataBase: new URL("https://byelimit.ir"),
   title: {
-    default: "بای لیمیت | فروشگاه اکانت‌های هوش مصنوعی",
+    default: "بای لیمیت | فروشگاه اکانت های هوش مصنوعی",
     template: "%s | بای لیمیت",
   },
   description:
-    "خرید اکانت‌های اختصاصی و قانونی هوش مصنوعی (ChatGPT، Claude، Midjourney و...) با تحویل سریع و ضمانت ۱۰۰٪.",
+    "خرید اکانت های اختصاصی و قانونی هوش مصنوعی (ChatGPT، Claude، Midjourney و...) با تحویل سریع و ضمانت ۱۰۰٪.",
   other: { google: "notranslate" },
 };
 
@@ -35,7 +35,7 @@ const organizationSchema = {
   url: "https://byelimit.ir",
   logo: "https://byelimit.ir/images/logo.png",
   description:
-    "فروشگاه تخصصی اکانت‌های اختصاصی هوش مصنوعی، اشتراک‌های پرمیوم بین‌المللی و سرور مجازی در ایران.",
+    "فروشگاه تخصصی اکانت های اختصاصی هوش مصنوعی، اشتراک های پرمیوم بین المللی و سرور مجازی در ایران.",
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "customer support",
@@ -76,12 +76,12 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="font-[family-name:var(--font-farsi)] antialiased bg-[#f3f3f3] text-black">
-        {/* AuthProvider باید بیرونی‌ترین provider باشد تا useAuth در همه صفحات کار کند */}
+        {/* AuthProvider باید بیرونی ترین provider باشد تا useAuth در همه صفحات کار کند */}
         <AuthProvider>
           <CartProvider>
             <Header />
-            {/* باکس نرخ دلار در موبایل به صورت استیکی */}
-            <div className="md:hidden sticky top-14 sm:top-16 z-30 px-4 py-2 bg-[#f3f3f3]/90 backdrop-blur-xs">
+            {/* باکس نرخ دلار در موبایل به صورت استیکی با فاصله مناسب از هدر */}
+            <div className="md:hidden sticky top-[62px] sm:top-[70px] z-30 px-4 pt-2.5 pb-2 bg-[#f3f3f3]/90 backdrop-blur-xs">
               <DollarBox variant="mobile" />
             </div>
             {children}

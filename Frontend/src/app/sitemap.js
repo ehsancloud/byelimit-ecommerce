@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://byelimit.ir";
 
 export default async function sitemap() {
-  // آدرس‌های ثابت سایت (فقط صفحاتی که واقعاً وجود دارند)
+  // آدرس های ثابت سایت (فقط صفحاتی که واقعاً وجود دارند)
   const staticRoutes = ["", "/products", "/blog"].map((route) => ({
     url: `${BASE_URL}${route}`,
     lastModified: new Date().toISOString(),
@@ -29,7 +29,7 @@ export default async function sitemap() {
   try {
     products = await getAllProducts();
   } catch (err) {
-    console.error("sitemap: عدم دسترسی به بک‌اند:", err.message);
+    console.error("sitemap: عدم دسترسی به بک اند:", err.message);
   }
   const productRoutes = products.map((product) => ({
     url: `${BASE_URL}/products/${product.slug}`,
@@ -38,7 +38,7 @@ export default async function sitemap() {
     priority: 0.9,
   }));
 
-  // صفحات دسته‌بندی - قبلاً اصلاً در sitemap نبودند
+  // صفحات دسته بندی - قبلاً اصلاً در sitemap نبودند
   const categoryRoutes = Object.keys(categoriesData).map((slug) => ({
     url: `${BASE_URL}/products/category/${slug}`,
     lastModified: new Date().toISOString(),

@@ -124,7 +124,7 @@ router.patch("/profile", requireAuth, async (req, res) => {
 router.post("/logout", (req, res) => {
   res.clearCookie("auth_token", { path: "/" });
   res.clearCookie("token", { path: "/" });
-  return res.json({ success: true, message: "خروج موفقیت‌آمیز بود." });
+  return res.json({ success: true, message: "خروج موفقیت آمیز بود." });
 });
 
 module.exports = router;

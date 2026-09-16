@@ -42,7 +42,7 @@ export function AuthProvider({ children }) {
         return null;
       }
     } catch (err) {
-      // اگر توکن منقضی شده بود (خطای 401/403)، اطلاعات سشن پاکسازی می‌شود
+      // اگر توکن منقضی شده بود (خطای 401/403)، اطلاعات سشن پاکسازی می شود
       if (err.status === 401 || err.status === 403) {
         clearLocalAuth();
       }

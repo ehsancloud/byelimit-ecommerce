@@ -13,8 +13,8 @@ const STATUS_COLOR = {
   REFUNDED:  "bg-gray-200 border-black text-black",
 };
 const STATUS_LABEL = {
-  PAID:      "پرداخت‌شده",
-  DELIVERED: "تحویل‌شده",
+  PAID:      "پرداخت شده",
+  DELIVERED: "تحویل شده",
   REFUNDED:  "مسترد شده",
 };
 
@@ -50,14 +50,14 @@ export default function DashboardHomePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* پیام خوش‌آمدگویی */}
+      {/* پیام خوش آمدگویی */}
       <div className="bg-[#ccff00] border-[3.5px] border-black rounded-[24px] p-6 shadow-[-8px_8px_0_0_rgba(0,0,0,1)] flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <span className="bg-white border border-black px-2.5 py-0.5 rounded text-xs font-black mb-1 inline-block">پنل کاربری خریدار</span>
           <h1 className="text-xl md:text-2xl font-black text-black">
             خوش آمدید، {user?.fullName || user?.mobile || "کاربر عزیز"}!
           </h1>
-          <p className="text-xs font-bold text-gray-800 mt-1">از این بخش می‌توانید سفارش‌ها و کدهای تحویل خود را مدیریت کنید.</p>
+          <p className="text-xs font-bold text-gray-800 mt-1">از این بخش می توانید سفارش ها و کدهای تحویل خود را مدیریت کنید.</p>
         </div>
         <Link href="/products"
           className="bg-black text-white hover:bg-gray-800 border-[2.5px] border-black px-5 py-3 rounded-xl font-black text-xs shadow-[-3px_3px_0_0_rgba(0,0,0,1)] flex items-center gap-1.5 shrink-0 no-underline">
@@ -70,7 +70,7 @@ export default function DashboardHomePage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-white border-[2.5px] border-black p-5 rounded-2xl shadow-[-4px_4px_0_0_rgba(0,0,0,1)] flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold text-gray-500 block">اشتراک‌های فعال</span>
+            <span className="text-xs font-bold text-gray-500 block">اشتراک های فعال</span>
             <span className="text-2xl font-black text-black mt-1 block">{finalOrders.length.toLocaleString("fa-IR")} عدد</span>
           </div>
           <div className="p-3 bg-[#12e2a3] border-[2px] border-black rounded-xl">
@@ -79,7 +79,7 @@ export default function DashboardHomePage() {
         </div>
         <div className="bg-white border-[2.5px] border-black p-5 rounded-2xl shadow-[-4px_4px_0_0_rgba(0,0,0,1)] flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold text-gray-500 block">مجموع سفارشات تکمیل‌شده</span>
+            <span className="text-xs font-bold text-gray-500 block">مجموع سفارشات تکمیل شده</span>
             <span className="text-2xl font-black text-black mt-1 block">{finalOrders.length.toLocaleString("fa-IR")} عدد</span>
           </div>
           <div className="p-3 bg-[#ff8f1f] border-[2px] border-black rounded-xl">
@@ -93,7 +93,7 @@ export default function DashboardHomePage() {
         <div className="flex items-center justify-between border-b-[2px] border-black pb-3">
           <h2 className="font-black text-base flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-purple-600" />
-            <span>آخرین سفارش تکمیل‌شده</span>
+            <span>آخرین سفارش تکمیل شده</span>
           </h2>
           <Link href="/dashboard/orders" className="text-xs font-black text-gray-600 hover:underline">مشاهده همه</Link>
         </div>
@@ -134,7 +134,7 @@ export default function DashboardHomePage() {
         ) : (
           <div className="text-center py-8 text-gray-500">
             <ShoppingBag className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p className="font-bold text-sm">هنوز سفارش نهایی‌شده‌ای وجود ندارد.</p>
+            <p className="font-bold text-sm">هنوز سفارش نهایی شده ای وجود ندارد.</p>
             <Link href="/products" className="mt-3 inline-block text-xs font-black text-[#12e2a3] border-b-2 border-[#12e2a3]">همین حالا خرید کنید</Link>
           </div>
         )}

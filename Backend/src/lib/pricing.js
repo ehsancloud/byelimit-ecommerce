@@ -40,7 +40,7 @@ async function resolveDiscountCode(code, baseAmountRial, tx = prisma) {
 
   if (discount.minCartAmountRial && baseAmountRial < discount.minCartAmountRial) {
     const minToman = rialToToman(discount.minCartAmountRial).toLocaleString("fa-IR");
-    const err = new Error(`این کد تخفیف برای سفارش‌های بالای ${minToman} تومان معتبر است.`);
+    const err = new Error(`این کد تخفیف برای سفارش های بالای ${minToman} تومان معتبر است.`);
     err.code = "DISCOUNT_MIN_CART";
     throw err;
   }

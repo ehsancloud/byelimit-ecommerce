@@ -6,8 +6,8 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 /**
- * گرد کردن قیمت به شکل بازاریابی‌پسند
- * قیمت (به تومان) را به نزدیک‌ترین عدد ending in 5000 یا 9000 گرد می‌کند
+ * گرد کردن قیمت به شکل بازاریابی پسند
+ * قیمت (به تومان) را به نزدیک ترین عدد ending in 5000 یا 9000 گرد می کند
  * @param {number} toman
  * @returns {number}
  */

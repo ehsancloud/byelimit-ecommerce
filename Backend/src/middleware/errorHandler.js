@@ -4,14 +4,14 @@
 function errorHandler(err, req, res, next) {
   console.error("[UNHANDLED ERROR]", err);
 
-  // BigInt نمی‌تواند مستقیم JSON.stringify شود - اگر جایی سرریز کرد اینجا مدیریت شود
+  // BigInt نمی تواند مستقیم JSON.stringify شود - اگر جایی سرریز کرد اینجا مدیریت شود
   if (err instanceof TypeError && String(err.message).includes("BigInt")) {
     return res.status(500).json({ error: "خطای داخلی محاسبات مالی." });
   }
 
   res.status(err.status || 500).json({
     error: process.env.NODE_ENV === "production"
-      ? "خطای غیرمنتظره‌ای رخ داد. لطفاً بعداً دوباره تلاش کنید."
+      ? "خطای غیرمنتظره ای رخ داد. لطفاً بعداً دوباره تلاش کنید."
       : err.message,
   });
 }

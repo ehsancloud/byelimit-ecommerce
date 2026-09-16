@@ -15,7 +15,7 @@ export default function InvoiceView({ invoiceData }) {
     totalToman = invoiceData?.price || 0,
   } = invoiceData || {};
 
-  // پشتیبانی همزمان از سفارش‌های چندمحصولی و تک‌محصولی
+  // پشتیبانی همزمان از سفارش های چندمحصولی و تک محصولی
   const resolvedItems = items.length > 0
     ? items
     : [{
@@ -39,7 +39,7 @@ export default function InvoiceView({ invoiceData }) {
       {/* سربرگ فاکتور */}
       <div className="flex items-center justify-between border-b-[3px] border-black pb-4 mb-6">
         <div>
-          <h2 className="text-xl font-black">صورت‌حساب رسمی سفارش</h2>
+          <h2 className="text-xl font-black">صورت حساب رسمی سفارش</h2>
           <p className="text-xs font-bold text-gray-500 mt-0.5">
             فروشگاه تخصصی ابزارهای هوش مصنوعی بای لیمیت
           </p>
@@ -79,7 +79,7 @@ export default function InvoiceView({ invoiceData }) {
                 : "text-amber-600"
             }`}
           >
-            {status === "PAID" || status === "DELIVERED" ? "پرداخت‌شده و معتبر" : "در انتظار پرداخت"}
+            {status === "PAID" || status === "DELIVERED" ? "پرداخت شده و معتبر" : "در انتظار پرداخت"}
           </span>
         </div>
       </div>
@@ -125,7 +125,7 @@ export default function InvoiceView({ invoiceData }) {
         </div>
         {discountToman > 0 && (
           <div className="flex justify-between w-56 text-emerald-700">
-            <span>تخفیف اعمال‌شده:</span>
+            <span>تخفیف اعمال شده:</span>
             <span>- {discountToman.toLocaleString("fa-IR")} تومان</span>
           </div>
         )}

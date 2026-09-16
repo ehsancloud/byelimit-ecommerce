@@ -67,7 +67,7 @@ model Product {
   /// فیلدهای داینامیک سئو و محتوا - قابل ویرایش از Prisma Studio
   faqs              Json?    // ساختار: [{ question: "...", answer: "..." }]
   comparisonTable   Json?    // ساختار: [{ feature: "...", shared: "...", exclusive: "..." }]
-  features          Json?    // لیست ویژگی‌ها: ["...", "..."]
+  features          Json?    // لیست ویژگی ها: ["...", "..."]
 
   ratingAverage     Float?
   ratingCount       Int      @default(0)
@@ -240,7 +240,7 @@ model CartItem {
   quantity       Int      @default(1)
   unitPriceRial  BigInt
 
-  /// پشتیبانی از سرویس ویژه پرداخت بین‌المللی
+  /// پشتیبانی از سرویس ویژه پرداخت بین المللی
   hasSecureAddon Boolean  @default(false)
   addonPriceRial BigInt   @default(0)
 
@@ -340,7 +340,7 @@ model OrderItem {
   unitPriceRial        BigInt
   quantity             Int      @default(1)
 
-  /// ثبت دائمی وضعیت سرویس پرداخت بین‌المللی برای ادمین
+  /// ثبت دائمی وضعیت سرویس پرداخت بین المللی برای ادمین
   hasSecureAddon       Boolean  @default(false)
   addonPriceRial       BigInt   @default(0)
 
@@ -449,4 +449,16 @@ model FlashDeal {
   updatedAt DateTime  @updatedAt
 
   @@map("flash_deals")
+}
+
+// ===================== اطلاعیه سراسری سایت =====================
+
+model SiteAnnouncement {
+  id        String   @id @default(uuid())
+  text      String?  // متن اطلاعیه قرمز رنگ - در صورت خالی یا null بودن کادر قرمز نمایش داده نمی شود
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("site_announcements")
 }

@@ -9,7 +9,7 @@ let cachedDisplayPrice = null;
 let cachedRoundedRate = null;
 
 // ───────────────────────────────────────────
-// توابع فرمول قیمت‌گذاری بای‌لیمیت
+// توابع فرمول قیمت گذاری بای لیمیت
 // ───────────────────────────────────────────
 
 function calcDisplayPrice(rawBuy) {
@@ -56,7 +56,7 @@ function roundToBeauty(toman) {
 }
 
 // ───────────────────────────────────────────
-// زنجیره استعلام ۴ گانه صرافی‌های داخلی
+// زنجیره استعلام ۴ گانه صرافی های داخلی
 // ───────────────────────────────────────────
 
 const REQUEST_HEADERS = {
@@ -65,7 +65,7 @@ const REQUEST_HEADERS = {
 };
 
 async function fetchUsdtRate() {
-  // منبع ۱: آبان‌تتر
+  // منبع ۱: آبان تتر
   try {
     const res = await fetch("https://api.abantether.com/api/v1/manager/otc/ticker", {
       headers: REQUEST_HEADERS,
@@ -132,7 +132,7 @@ async function fetchAndUpdatePrices() {
     const rawBuy = await fetchUsdtRate();
 
     if (!rawBuy || rawBuy < 10000) {
-      console.warn("[usd-rate-job] ⚠️ وب‌سرویس‌ها موقتاً پاسخ ندادند؛ آخرین نرخ معتبر حفظ شد.");
+      console.warn("[usd-rate-job] ⚠️ وب سرویس ها موقتاً پاسخ ندادند؛ آخرین نرخ معتبر حفظ شد.");
       return;
     }
 
@@ -207,7 +207,7 @@ async function fetchAndUpdatePrices() {
       updatedCount++;
     }
 
-    console.log(`[usd-rate-job] ✅ تتر لحظه‌ای: ${rawBuy.toLocaleString("fa-IR")} ت | نمایش هدر: ${displayPrice.toLocaleString("fa-IR")} ت | بروزرسانی ${updatedCount} پلن`);
+    console.log(`[usd-rate-job] ✅ تتر لحظه ای: ${rawBuy.toLocaleString("fa-IR")} ت | نمایش هدر: ${displayPrice.toLocaleString("fa-IR")} ت | بروزرسانی ${updatedCount} پلن`);
   } catch (err) {
     console.error("[usd-rate-job] ❌ خطا در جاب نرخ دلار:", err.message);
   }

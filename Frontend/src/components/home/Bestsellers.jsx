@@ -21,7 +21,7 @@ export default function Bestsellers() {
             .slice(0, 4);
           setBestProducts(filtered.map(toProductCardProps));
         } else {
-          // فال‌بک به getAllProducts با مرتب‌سازی orderItemsCount
+          // فال بک به getAllProducts با مرتب سازی orderItemsCount
           return getAllProducts().then((allProds) => {
             if (cancelled) return;
             const top = (allProds || [])
@@ -45,7 +45,7 @@ export default function Bestsellers() {
         <div className="flex items-center gap-2">
           <Flame className="w-6 h-6 stroke-[2.5] text-orange-500 fill-orange-500" />
           <h2 className="text-xl sm:text-2xl font-black">
-            پرفروش‌ترین و محبوب‌ترین اکانت‌ها
+            پرفروش ترین و محبوب ترین اکانت ها
           </h2>
         </div>
       </div>

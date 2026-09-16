@@ -8,26 +8,26 @@ import { BookOpen, Sparkles, SlidersHorizontal } from "lucide-react";
 export const metadata = {
   title: "مجله تخصصی و وبلاگ هوش مصنوعی",
   description:
-    "جدیدترین مقالات آموزشی، راهنمای خرید اکانت‌های پرمیوم، بررسی مدل‌های GPT-4o، Midjourney v6، راهنمای پرامپت‌نویسی و اخبار روز AI.",
+    "جدیدترین مقالات آموزشی، راهنمای خرید اکانت های پرمیوم، بررسی مدل های GPT-4o، Midjourney v6، راهنمای پرامپت نویسی و اخبار روز AI.",
   alternates: {
     canonical: "https://byelimit.ir/blog",
   },
   openGraph: {
     title: "مجله تخصصی و وبلاگ هوش مصنوعی",
     description:
-      "جدیدترین مقالات آموزشی، راهنمای خرید اکانت‌های پرمیوم و بررسی تخصصی مدل‌های جدید AI.",
+      "جدیدترین مقالات آموزشی، راهنمای خرید اکانت های پرمیوم و بررسی تخصصی مدل های جدید AI.",
     url: "https://byelimit.ir/blog",
     type: "website",
   },
 };
 
 export default function BlogListPage() {
-  // ۳ مقاله اول برای بخش هیرو سکشن شبکه‌ای
+  // ۳ مقاله اول برای بخش هیرو سکشن شبکه ای
   const heroPosts = BLOG_POSTS.slice(0, 3);
   // مابقی مقالات برای لیست اصلی
   const regularPosts = BLOG_POSTS.slice(3);
 
-  // استخراج دسته‌بندی‌های یکتا برای منوی فیلتر سریع
+  // استخراج دسته بندی های یکتا برای منوی فیلتر سریع
   const categories = Array.from(
     new Set(BLOG_POSTS.map((post) => post.category?.title))
   ).filter(Boolean);
@@ -46,18 +46,18 @@ export default function BlogListPage() {
           </h1>
           <p className="text-gray-700 font-bold text-sm md:text-base max-w-2xl">
             بررسی تخصصی ابزارهای مولد متن، تصویر، کد و صوت، راهنمای کاربردی
-            پرامپت‌نویسی و آموزش‌های گام به گام جهت افزایش بهره‌وری.
+            پرامپت نویسی و آموزش های گام به گام جهت افزایش بهره وری.
           </p>
         </header>
 
-        {/* ۱. هیرو سکشن شبکه‌ای نئوبروتالیسم (مقالات منتخب) */}
+        {/* ۱. هیرو سکشن شبکه ای نئوبروتالیسم (مقالات منتخب) */}
         <BlogHero posts={heroPosts} />
 
-        {/* ۲. نوار فیلتر سریع دسته‌بندی‌ها */}
+        {/* ۲. نوار فیلتر سریع دسته بندی ها */}
         <section className="mb-8 bg-white border-[3px] border-black rounded-[20px] p-4 shadow-[-6px_6px_0_0_rgba(0,0,0,1)] flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-2 font-black text-sm md:text-base">
             <SlidersHorizontal className="w-5 h-5 stroke-[2.5]" />
-            <span>دسته‌بندی مقالات:</span>
+            <span>دسته بندی مقالات:</span>
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
@@ -94,7 +94,7 @@ export default function BlogListPage() {
             </div>
           ) : (
             <div className="bg-white border-[3px] border-black rounded-[16px] p-12 text-center font-black text-lg shadow-[-6px_6px_0_0_rgba(0,0,0,1)]">
-              هنوز مقاله‌ای در این بخش منتشر نشده است.
+              هنوز مقاله ای در این بخش منتشر نشده است.
             </div>
           )}
         </section>

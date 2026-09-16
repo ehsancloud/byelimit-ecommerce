@@ -78,7 +78,7 @@ export default function ProductCard({
           <div className="mt-1 sm:mt-3 flex flex-col items-center justify-center">
             {priceTBD ? (
               <span className="bg-[#fff9c4] border-[1.5px] border-black text-black text-xs sm:text-sm font-black px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg">
-                قیمت به‌زودی اعلام می‌شود
+                قیمت به زودی اعلام می شود
               </span>
             ) : (
               <>
@@ -101,7 +101,7 @@ export default function ProductCard({
 
       {/* دکمه اکشن */}
       <div className="w-full mt-3 sm:mt-4 bg-[#ccff00] border-[2px] sm:border-[3px] border-black rounded-[10px] py-2 sm:py-2.5 px-3 sm:px-4 flex items-center justify-between font-black text-sm sm:text-base shadow-[-3px_3px_0px_0px_rgba(0,0,0,1)]">
-        <span className="text-[10px] sm:text-sm">{priceTBD ? "مشاهده جزئیات" : "مشاهده گزینه‌ها و خرید"}</span>
+        <span className="text-[10px] sm:text-sm">{priceTBD ? "مشاهده جزئیات" : "مشاهده گزینه ها و خرید"}</span>
         <ArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3]" />
       </div>
     </Link>

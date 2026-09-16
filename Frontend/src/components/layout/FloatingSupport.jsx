@@ -6,7 +6,7 @@ import { MessageCircle, Phone, Send, X, Clock } from "lucide-react";
 
 import { usePathname } from "next/navigation";
 
-const SUPPORT_PHONE_DISPLAY = "0918 0100 290";
+const SUPPORT_PHONE_DISPLAY = "290 0100 0918";
 const SUPPORT_PHONE_TEL = "+989180100290";
 const SUPPORT_TELEGRAM_URL = "tg://resolve?domain=byelimit_support";
 const WORKING_HOURS_LABEL = "پاسخگویی و تحویل: هرروز ساعت ۱۰ تا ۲۲";
@@ -26,8 +26,14 @@ export default function FloatingSupport() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const isProductDetail = pathname?.startsWith("/products/") && pathname.length > 10;
-  // در حالت موبایل هم‌راستا با دکمه فیلتر (bottom-6) و در صفحه تک محصول بالاتر (bottom-28)
+  // فقط در صفحه تک محصول بالاتر باشد تا روی نوار ثبت سفارش نیفتد، در صفحه فروشگاه و دسته بندی ها هم راستا با فیلتر (bottom-6) است
+  const isProductDetail = Boolean(
+    pathname &&
+    pathname.startsWith("/products/") &&
+    !pathname.startsWith("/products/category") &&
+    pathname !== "/products" &&
+    pathname !== "/products/"
+  );
   const bottomClass = isProductDetail ? "bottom-28 sm:bottom-6" : "bottom-6";
 
   return (
@@ -42,12 +48,12 @@ export default function FloatingSupport() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 15, scale: 0.95 }}
             transition={{ duration: 0.18 }}
-            // ✅ FIX: right-0 به جای left-0 تا پاپ‌آپ از سمت راست باز بشه و از صفحه بیرون نرود.
-            // باگ قبلی: left-0 باعث می‌شد پاپ‌آپ به سمت راست گسترش پیدا کند و از صفحه خارج شود.
+            // ✅ FIX: right-0 به جای left-0 تا پاپ آپ از سمت راست باز بشه و از صفحه بیرون نرود.
+            // باگ قبلی: left-0 باعث می شد پاپ آپ به سمت راست گسترش پیدا کند و از صفحه خارج شود.
             className="absolute bottom-[72px] right-0 w-64 bg-white border-[3px] border-black rounded-2xl shadow-[-6px_6px_0_0_rgba(0,0,0,1)] overflow-hidden"
           >
             <div className="bg-[#12e2a3] border-b-[2.5px] border-black p-3 flex items-center justify-between">
-              <span className="font-black text-sm text-black">راه‌های ارتباطی</span>
+              <span className="font-black text-sm text-black">راه های ارتباطی</span>
               <button
                 onClick={() => setIsOpen(false)}
                 className="p-1 bg-white border-[1.5px] border-black rounded-md hover:bg-gray-100 cursor-pointer"
@@ -70,7 +76,7 @@ export default function FloatingSupport() {
                 <div>
                   <span className="block">پشتیبانی تلگرام</span>
                   <span className="block text-[10px] font-bold text-gray-500">
-                    سریع‌ترین راه ارتباطی
+                    سریع ترین راه ارتباطی
                   </span>
                 </div>
               </a>

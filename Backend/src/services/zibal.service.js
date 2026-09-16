@@ -1,5 +1,5 @@
 // Backend/src/services/zibal.service.js
-// پیاده‌سازی سرویس درگاه زیبال با Fallback امن
+// پیاده سازی سرویس درگاه زیبال با Fallback امن
 
 const BASE_URL = "https://gateway.zibal.ir";
 const DEFAULT_MERCHANT = "6a97e1c9a9eb8b31692e4c28"; // مرچنت اختصاصی فعال بای لیمیت

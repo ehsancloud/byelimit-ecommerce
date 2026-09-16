@@ -60,7 +60,7 @@ export function CartProvider({ children }) {
     refetchCart().finally(() => setIsHydrated(true));
   }, [refetchCart, user?.id]);
 
-  // تخلیه خودکار حافظه سبد در فرانت‌اند هنگام تکمیل پرداخت
+  // تخلیه خودکار حافظه سبد در فرانت اند هنگام تکمیل پرداخت
   useEffect(() => {
     if (pathname && pathname.includes("/checkout/success")) {
       setItems([]);
@@ -110,7 +110,7 @@ export function CartProvider({ children }) {
       await apiFetch("/api/cart", { method: "DELETE" });
       setItems([]);
     } catch (err) {
-      console.error("خطا در خالی‌کردن سبد خرید:", err);
+      console.error("خطا در خالی کردن سبد خرید:", err);
       throw err;
     }
   }, []);

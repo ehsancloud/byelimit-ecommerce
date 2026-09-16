@@ -29,7 +29,7 @@ const FOCUS_CLASS = {
 export default function HeroBento() {
   return (
     <section className="mt-2 dir-rtl">
-      {/* ارتفاع ردیف‌ها در موبایل بیشتر شد تا کارت‌ها فشرده نشن */}
+      {/* ارتفاع ردیف ها در موبایل بیشتر شد تا کارت ها فشرده نشن */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4 auto-rows-[220px] sm:auto-rows-[200px] md:auto-rows-[180px]">
         {/* کارت ۱ - هیرو اصلی */}
         <div className="sm:col-span-2 md:col-span-8 md:row-span-2 relative bg-black border-[3.5px] border-black rounded-[24px] overflow-hidden shadow-[-8px_8px_0_0_rgba(0,0,0,1)] group p-6 md:p-8 flex flex-col justify-end">
@@ -45,7 +45,7 @@ export default function HeroBento() {
           <div className="relative z-20">
             <div className="flex items-center gap-2 mb-2">
               <span className="bg-[#ff4757] text-white border-[1.5px] border-black px-3 py-1 rounded-md text-xs font-black shadow-[-2px_2px_0_0_rgba(0,0,0,1)]">
-                پرفروش‌ترین ماه
+                پرفروش ترین ماه
               </span>
               <span className="bg-[#ccff00] text-black border-[1.5px] border-black px-2.5 py-1 rounded-md text-xs font-black">
                 تحویل سریع
@@ -53,7 +53,7 @@ export default function HeroBento() {
             </div>
 
             <h1 className="sr-only">
-              خرید اکانت هوش مصنوعی و ابزارهای پرمیوم با پرداخت امن بین‌المللی
+              خرید اکانت هوش مصنوعی و ابزارهای پرمیوم با پرداخت امن بین المللی
             </h1>
             <div className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight mb-2">
               اشتراک اختصاصی{" "}
@@ -61,14 +61,14 @@ export default function HeroBento() {
             </div>
 
             <p className="text-xs md:text-sm font-bold text-gray-200 mb-5 max-w-lg leading-relaxed">
-              دسترسی نامحدود به تمامی ابزارها و مدل‌های Google AI Pro
+              دسترسی نامحدود به تمامی ابزارها و مدل های Google AI Pro
             </p>
 
             <Link
               href="/products/gemini"
               className="inline-flex items-center gap-2 bg-[#12e2a3] hover:bg-[#0fd196] border-[3px] border-black px-6 py-3 rounded-xl font-black text-sm text-black shadow-[-4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-[-2px] active:translate-y-[2px] active:shadow-none transition-all no-underline"
             >
-              <span>مشاهده گزینه‌ها و خرید</span>
+              <span>مشاهده گزینه ها و خرید</span>
               <ArrowLeft className="w-4 h-4 stroke-[3]" />
             </Link>
           </div>
@@ -170,7 +170,7 @@ export default function HeroBento() {
                 سرور مجازی (VPS)
               </h3>
               <p className="text-[11px] font-bold text-gray-300 mt-0.5">
-                مناسب ترید و AI با آی‌پی ثابت
+                مناسب ترید و AI با آی پی ثابت
               </p>
             </div>
             <Link
@@ -195,7 +195,7 @@ export default function HeroBento() {
           <div className="relative z-20 flex items-end justify-between">
             <div>
               <div className="inline-block bg-[#ff8f1f] text-black text-[10px] font-black px-2 py-0.5 rounded mb-1 border border-black">
-                ویژه برنامه‌نویسان
+                ویژه برنامه نویسان
               </div>
               <h3 className="text-lg font-black text-white">Cursor & Copilot</h3>
               <p className="text-[11px] font-bold text-gray-300 mt-0.5">

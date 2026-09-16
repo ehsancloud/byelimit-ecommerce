@@ -9,20 +9,20 @@ export default function TrustTicker() {
     { icon: Zap, text: "+۵۰,۰۰۰ تحویل موفق زیر ۵ دقیقه" },
     { icon: ShieldCheck, text: "ضمانت ۱۰۰٪ بازگشت وجه و تعویض" },
     { icon: Headphones, text: "پشتیبانی هر روز ۱۰ تا ۲۲ در تلگرام" },
-    { icon: Award, text: "اشتراک‌های کاملاً قانونی و اختصاصی" },
+    { icon: Award, text: "اشتراک های کاملاً قانونی و اختصاصی" },
   ];
 
-  // برای لوپ بی‌نهایت، آرایه رو دو بار تکرار می‌کنیم
+  // برای لوپ بی نهایت، آرایه رو دو بار تکرار می کنیم
   const duplicatedStats = [...stats, ...stats];
 
   return (
     <section className="bg-[#ccff00] border-[3.5px] border-black rounded-[20px] p-4 shadow-[-6px_6px_0_0_rgba(0,0,0,1)] overflow-hidden dir-rtl">
       <div className="relative overflow-hidden" dir="ltr">
-        {/* گرادیانت محو شونده در لبه‌ها برای زیبایی بیشتر */}
+        {/* گرادیانت محو شونده در لبه ها برای زیبایی بیشتر */}
         <div className="absolute left-0 top-0 bottom-0 w-12 md:w-16 bg-gradient-to-r from-[#ccff00] to-transparent z-10 pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-12 md:w-16 bg-gradient-to-l from-[#ccff00] to-transparent z-10 pointer-events-none" />
 
-        {/* انیمیشن مارکی: از ۰ به -۵۰٪ حرکت می‌کنه و چون دو کپی داریم، لوپ بی‌نهایت ایجاد میشه */}
+        {/* انیمیشن مارکی: از ۰ به -۵۰٪ حرکت می کنه و چون دو کپی داریم، لوپ بی نهایت ایجاد میشه */}
         <motion.div
           animate={{ x: ["0%", "-50%"] }}
           transition={{

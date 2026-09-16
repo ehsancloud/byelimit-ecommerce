@@ -24,10 +24,10 @@ import {
   Flame,
 } from "lucide-react";
 
-// دسته‌بندی‌های زیرمجموعه هر تب مگامنو - ترتیب دقیقاً مطابق خواسته:
-// ۱. ابزارهای هوش مصنوعی  ۲. اشتراک‌ها و اکانت‌های پرمیوم  ۳. سرور مجازی
+// دسته بندی های زیرمجموعه هر تب مگامنو - ترتیب دقیقاً مطابق خواسته:
+// ۱. ابزارهای هوش مصنوعی  ۲. اشتراک ها و اکانت های پرمیوم  ۳. سرور مجازی
 const AI_TOOLS_ITEMS = [
-  { href: "/products/category/text", icon: FileText, color: "bg-purple-200", title: "تولید محتوا و متن", desc: "نگارش مقاله، چت‌بات، بازنویسی متون و خلاصه‌نویسی" },
+  { href: "/products/category/text", icon: FileText, color: "bg-purple-200", title: "تولید محتوا و متن", desc: "نگارش مقاله، چت بات، بازنویسی متون و خلاصه نویسی" },
   { href: "/products/category/code", icon: Code2, color: "bg-emerald-200", title: "برنامه نویسی و توسعه نرم افزار", desc: "کدنویسی هوشمند، رفع باگ و بازسازی کد" },
   { href: "/products/category/image", icon: ImageIcon, color: "bg-amber-200", title: "ساخت و ادیت عکس", desc: "تولید تصویر، طراحی گرافیکی، ویرایش تصویر و پوستر" },
   { href: "/products/category/video", icon: Video, color: "bg-rose-200", title: "ساخت و ادیت ویدیو", desc: "تولید فیلم، تدوین هوشمند ویدیو و انیمیشن" },
@@ -36,17 +36,17 @@ const AI_TOOLS_ITEMS = [
 ];
 
 const PREMIUM_ITEMS = [
-  { href: "/products/category/film-music", icon: Clapperboard, color: "bg-red-200", title: "فیلم و موسیقی", desc: "اشتراک Netflix، Spotify و پلتفرم‌های پخش آنلاین" },
+  { href: "/products/category/film-music", icon: Clapperboard, color: "bg-red-200", title: "فیلم و موسیقی", desc: "اشتراک Netflix، Spotify و پلتفرم های پخش آنلاین" },
   { href: "/products/category/gaming", icon: Gamepad2, color: "bg-violet-200", title: "گیمینگ و بازی", desc: "اشتراک Xbox Game Pass، PlayStation Plus" },
-  { href: "/products/category/design-graphics", icon: Palette, color: "bg-pink-200", title: "طراحی و گرافیک", desc: "اشتراک Figma و ابزارهای طراحی حرفه‌ای" },
+  { href: "/products/category/design-graphics", icon: Palette, color: "bg-pink-200", title: "طراحی و گرافیک", desc: "اشتراک Figma و ابزارهای طراحی حرفه ای" },
   { href: "/products/category/seo-marketing", icon: TrendingUp, color: "bg-lime-200", title: "سئو و مارکتینگ", desc: "اشتراک Ahrefs، Semrush و LinkedIn Premium" },
-  { href: "/products/category/education-utility", icon: BookOpen, color: "bg-orange-200", title: "آموزش و کاربردی", desc: "اشتراک پلتفرم‌های آموزشی و ابزارهای کاربردی" },
+  { href: "/products/category/education-utility", icon: BookOpen, color: "bg-orange-200", title: "آموزش و کاربردی", desc: "اشتراک پلتفرم های آموزشی و ابزارهای کاربردی" },
   { href: "/products/category/telegram", icon: Send, color: "bg-sky-200", title: "تلگرام", desc: "خرید تلگرام پرمیوم و استارز تلگرام" },
 ];
 
 const VPS_ITEMS = [
-  { href: "/products/vps-germany", emoji: "🇩🇪", color: "bg-blue-200", title: "سرور مجازی آلمان (Germany VPS)", desc: "آی‌پی ثابت اختصاصی، پینگ پایین و مناسب ترید" },
-  { href: "/products/vps-finland", emoji: "🇫🇮", color: "bg-indigo-200", title: "سرور مجازی فنلاند (Finland VPS)", desc: "سرعت بالا مناسب حساب‌های بین‌المللی و پی‌پال" },
+  { href: "/products/vps-germany", emoji: "🇩🇪", color: "bg-blue-200", title: "سرور مجازی آلمان (Germany VPS)", desc: "آی پی ثابت اختصاصی، پینگ پایین و مناسب ترید" },
+  { href: "/products/vps-finland", emoji: "🇫🇮", color: "bg-indigo-200", title: "سرور مجازی فنلاند (Finland VPS)", desc: "سرعت بالا مناسب حساب های بین المللی و پی پال" },
   { href: "/products/vps-usa", emoji: "🇺🇸", color: "bg-red-200", title: "سرور مجازی آمریکا (USA VPS)", desc: "آی پی اختصاصی آمریکا، مناسب یوتیوب و AI" },
 ];
 
@@ -62,7 +62,7 @@ const TABS = [
   },
   {
     key: "premium",
-    label: "اشتراک‌ها و اکانت‌های پرمیوم",
+    label: "اشتراک ها و اکانت های پرمیوم",
     desc: "فیلم، موسیقی، گیمینگ، طراحی، سئو و آموزش",
     icon: Crown,
     activeClass: "bg-[#ffd166]",
@@ -72,7 +72,7 @@ const TABS = [
   {
     key: "vps",
     label: "سرور مجازی (VPS)",
-    desc: "آی‌پی ثابت اختصاصی کشورهای مختلف برای ترید و وب‌گردی",
+    desc: "آی پی ثابت اختصاصی کشورهای مختلف برای ترید و وب گردی",
     icon: Server,
     activeClass: "bg-[#12e2a3]",
     items: VPS_ITEMS,
@@ -117,7 +117,7 @@ export default function CategoryDropdown({
       {/* مگامنو و پل نامرئی */}
       {activeMenu === "products" && (
         <>
-          {/* ناچ متصل‌کننده (Triangle Notch) */}
+          {/* ناچ متصل کننده (Triangle Notch) */}
           <div className="absolute top-full left-1/2 -translate-x-1/2 z-50 pointer-events-none -mt-[3.5px]">
             <svg width="24" height="14" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2L22 14H2L12 2Z" fill="#12e2a3" stroke="black" strokeWidth="3.5" strokeLinejoin="round" />
@@ -135,7 +135,7 @@ export default function CategoryDropdown({
 
             {/* بدنه اصلی کارت مگامنو */}
             <div className="bg-white border-[3.5px] border-black rounded-[20px] shadow-[-10px_10px_0_0_rgba(0,0,0,1)] p-6 grid grid-cols-12 gap-6 relative">
-              {/* ستون راست: تب‌ها - ترتیب: ابزار هوش مصنوعی، اشتراک پرمیوم، سرور مجازی */}
+              {/* ستون راست: تب ها - ترتیب: ابزار هوش مصنوعی، اشتراک پرمیوم، سرور مجازی */}
               <div className="col-span-4 flex flex-col gap-3 border-l-[2.5px] border-black pl-4">
                 {TABS.map((tab) => {
                   const TabIcon = tab.icon;
@@ -161,7 +161,7 @@ export default function CategoryDropdown({
                 })}
               </div>
 
-              {/* ستون وسط: دسته‌بندی‌های تب فعال */}
+              {/* ستون وسط: دسته بندی های تب فعال */}
               <div className="col-span-5 grid grid-cols-1 gap-2 border-l-[2.5px] border-black pl-4 max-h-[420px] overflow-y-auto pr-1">
                 {currentTab.items.map((item) => {
                   const ItemIcon = item.icon;
@@ -193,7 +193,7 @@ export default function CategoryDropdown({
                 <div>
                   <div className="inline-flex items-center gap-1 bg-[#ff8f1f] border border-black text-[11px] font-black px-2 py-0.5 rounded text-black mb-2">
                     <Flame className="w-3.5 h-3.5 fill-black" />
-                    <span>پرفروش‌ترین ماه</span>
+                    <span>پرفروش ترین ماه</span>
                   </div>
                   <h4 className="font-black text-base mt-1">اکانت ChatGPT Plus</h4>
                   <p className="text-xs font-bold text-gray-700 mt-2 leading-relaxed">

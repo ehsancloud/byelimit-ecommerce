@@ -18,7 +18,7 @@ export default function AuthorBox({ author }) {
         />
       </div>
 
-      {/* اطلاعات و شبکه‌های اجتماعی */}
+      {/* اطلاعات و شبکه های اجتماعی */}
       <div className="flex-1 text-center sm:text-right">
         <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
           <UserCheck className="w-5 h-5 text-black" />
@@ -37,7 +37,7 @@ export default function AuthorBox({ author }) {
           {author.bio}
         </p>
 
-        {/* لینک‌های شبکه‌های اجتماعی با SVG مستقیم */}
+        {/* لینک های شبکه های اجتماعی با SVG مستقیم */}
         {author.socialLinks && (
           <div className="flex items-center justify-center sm:justify-start gap-3">
             {author.socialLinks.linkedin && (

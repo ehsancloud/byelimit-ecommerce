@@ -29,7 +29,7 @@ export default function MobileFilterDrawer({ isOpen, setIsOpen, filterProps }) {
         <SlidersHorizontal className="w-7 h-7 stroke-[2.5] text-black" />
       </button>
 
-      {/* بک‌دراپ تاریک */}
+      {/* بک دراپ تاریک */}
       {isOpen && (
         <div
           onClick={() => setIsOpen(false)}

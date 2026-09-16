@@ -21,7 +21,7 @@ export default function StickyMobileBar({
         {isPriceTBD ? (
           <div className="flex items-center gap-1 text-xs font-black text-amber-700">
             <Clock className="w-3.5 h-3.5" />
-            <span>قیمت به‌زودی</span>
+            <span>قیمت به زودی</span>
           </div>
         ) : (
           <div className="flex items-center gap-1.5">
@@ -44,7 +44,7 @@ export default function StickyMobileBar({
         }`}
       >
         <ShoppingBag className="w-4 h-4" />
-        <span>{isPriceTBD ? "به‌زودی" : isAddingToCart ? "..." : "ثبت سفارش"}</span>
+        <span>{isPriceTBD ? "به زودی" : isAddingToCart ? "..." : "ثبت سفارش"}</span>
       </button>
     </div>
   );

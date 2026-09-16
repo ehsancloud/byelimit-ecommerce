@@ -12,7 +12,7 @@ const router = express.Router();
 
 const STATUS_LABEL = {
   PENDING_PAYMENT: "در انتظار پرداخت",
-  PAID: "پرداخت‌شده و فعال",
+  PAID: "پرداخت شده و فعال",
   DELIVERED: "تحویل داده شده",
   FAILED: "ناموفق",
   REFUNDED: "مسترد شده",
@@ -74,7 +74,7 @@ router.post("/quote", optionalAuth, async (req, res) => {
     });
   } catch (err) {
     return res.status(400).json({
-      error: err.message || "خطا در محاسبه پیش‌فاکتور.",
+      error: err.message || "خطا در محاسبه پیش فاکتور.",
       code: err.code || "QUOTE_FAILED",
     });
   }
@@ -203,7 +203,7 @@ router.post("/", optionalAuth, async (req, res) => {
         });
       }
 
-      // در صورت رایگان بودن سفارش با کد تخفیف ۱۰۰٪، سبد خرید بلافاصله خالی می‌شود
+      // در صورت رایگان بودن سفارش با کد تخفیف ۱۰۰٪، سبد خرید بلافاصله خالی می شود
       if (totals.totalRial === 0n) {
         for (const item of targetOrder.items) {
           const availableAccount = await tx.accountInventory.findFirst({

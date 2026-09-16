@@ -4,13 +4,13 @@ import { Send, Clock, Ticket } from "lucide-react";
 export const metadata = {
   title: "تماس با ما",
   description:
-    "راه‌های ارتباط با پشتیبانی بای لیمیت؛ تیکت آنلاین و پشتیبانی تلگرام، هرروز از ساعت ۱۰ تا ۲۲.",
+    "راه های ارتباط با پشتیبانی بای لیمیت؛ تیکت آنلاین و پشتیبانی تلگرام، هرروز از ساعت ۱۰ تا ۲۲.",
   alternates: {
     canonical: "https://byelimit.ir/contact",
   },
   openGraph: {
     title: "تماس با بای لیمیت",
-    description: "راه‌های ارتباط با پشتیبانی بای لیمیت.",
+    description: "راه های ارتباط با پشتیبانی بای لیمیت.",
     url: "https://byelimit.ir/contact",
     type: "website",
   },
@@ -58,7 +58,7 @@ export default function ContactPage() {
           <h1 className="text-3xl md:text-4xl font-black mb-3">تماس با بای لیمیت</h1>
           <p className="text-gray-700 font-bold text-sm md:text-base">
             پیش از خرید سوالی دارید یا بعد از خرید به راهنمایی نیاز دارید؟
-            از یکی از راه‌های زیر با تیم پشتیبانی در ارتباط باشید.
+            از یکی از راه های زیر با تیم پشتیبانی در ارتباط باشید.
           </p>
         </header>
 
@@ -76,7 +76,7 @@ export default function ContactPage() {
               <h2 className="font-black text-base">پشتیبانی تلگرام</h2>
               <p className="text-sm font-bold text-gray-700 dir-ltr text-right">@byelimit_support</p>
               <p className="text-xs font-bold text-gray-500 mt-1">
-                سریع‌ترین راه برای دریافت پاسخ و پیگیری سفارش
+                سریع ترین راه برای دریافت پاسخ و پیگیری سفارش
               </p>
             </div>
           </a>
@@ -88,8 +88,8 @@ export default function ContactPage() {
             <div>
               <h2 className="font-black text-base">تیکت پشتیبانی</h2>
               <p className="text-sm font-bold text-gray-700">
-                از طریق «پنل کاربری» بخش تیکت‌ها می‌توانید سوالات مربوط به
-                سفارش‌های خود را ثبت کنید.
+                از طریق «پنل کاربری» بخش تیکت ها می توانید سوالات مربوط به
+                سفارش های خود را ثبت کنید.
               </p>
             </div>
           </div>

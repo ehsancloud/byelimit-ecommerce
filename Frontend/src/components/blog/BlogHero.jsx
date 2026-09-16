@@ -102,7 +102,7 @@ export default function BlogHero({ posts }) {
             <div>
               <div className="flex items-center gap-1.5 font-black text-sm mb-1">
                 <Sparkles className="w-4 h-4" />
-                <span>به‌روزرسانی‌های هوش مصنوعی</span>
+                <span>به روزرسانی های هوش مصنوعی</span>
               </div>
               <p className="text-xs font-bold text-gray-800">
                 جدیدترین ابزارهای AI را در وبلاگ ما دنبال کنید.

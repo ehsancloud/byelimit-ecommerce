@@ -60,7 +60,7 @@ export default function FlashDeals() {
     setCurrentIndex((i) => (i === deals.length - 1 ? 0 : i + 1));
   }, [deals.length]);
 
-  // اصلاح تداخل تایمر: currentIndex اضافه شد تا با هر کلیک یا تغییر، تایمر ۵ ثانیه‌ای ریست بشه
+  // اصلاح تداخل تایمر: currentIndex اضافه شد تا با هر کلیک یا تغییر، تایمر ۵ ثانیه ای ریست بشه
   useEffect(() => {
     if (deals.length <= 1) return;
     const timer = setInterval(next, 5000);

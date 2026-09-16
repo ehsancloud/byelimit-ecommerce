@@ -13,7 +13,7 @@ function extractToken(req) {
 }
 
 /**
- * محافظت از روت‌هایی که دسترسی الزامی به لاگین دارند (داشبورد، سفارش‌های من و...)
+ * محافظت از روت هایی که دسترسی الزامی به لاگین دارند (داشبورد، سفارش های من و...)
  */
 function requireAuth(req, res, next) {
   const token = extractToken(req);
@@ -39,7 +39,7 @@ function requireAuth(req, res, next) {
 }
 
 /**
- * برای روت‌هایی مانند سبد خرید و چک‌اوت که هم کاربران مهمان و هم کاربران عضو مجاز هستند
+ * برای روت هایی مانند سبد خرید و چک اوت که هم کاربران مهمان و هم کاربران عضو مجاز هستند
  */
 function optionalAuth(req, res, next) {
   const token = extractToken(req);

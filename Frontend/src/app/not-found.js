@@ -11,7 +11,7 @@ export default function NotFound() {
         <h2 className="text-xl md:text-2xl font-black mb-4">صفحه مورد نظر پیدا نشد</h2>
         
         <p className="text-sm font-bold text-gray-600 mb-8 leading-relaxed">
-          متأسفانه صفحه‌ای که به دنبال آن بودید وجود ندارد یا آدرس آن تغییر کرده است.
+          متأسفانه صفحه ای که به دنبال آن بودید وجود ندارد یا آدرس آن تغییر کرده است.
         </p>
 
         <Link

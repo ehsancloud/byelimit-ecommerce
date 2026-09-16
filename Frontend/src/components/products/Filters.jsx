@@ -1,15 +1,15 @@
 "use client";
 // components/products/Filters.jsx
-// ✅ FIX: بخش "کاربرد و حوزه" (رادیوباتن‌های دسته‌بندی) حذف شد
-// فقط مرتب‌سازی و بازه قیمت باقی مانده
+// ✅ FIX: بخش "کاربرد و حوزه" (رادیوباتن های دسته بندی) حذف شد
+// فقط مرتب سازی و بازه قیمت باقی مانده
 import { useState, useRef, useEffect } from "react";
 import { SlidersHorizontal, RotateCcw, ChevronDown } from "lucide-react";
 
 const SORT_OPTIONS = [
-  { value: "popular",    label: "محبوب‌ترین‌ها" },
-  { value: "newest",     label: "جدیدترین‌ها"   },
-  { value: "price-asc",  label: "ارزان‌ترین"     },
-  { value: "price-desc", label: "گران‌ترین"       },
+  { value: "popular",    label: "محبوب ترین ها" },
+  { value: "newest",     label: "جدیدترین ها"   },
+  { value: "price-asc",  label: "ارزان ترین"     },
+  { value: "price-desc", label: "گران ترین"       },
 ];
 
 export default function Filters({
@@ -63,9 +63,9 @@ export default function Filters({
         </button>
       </div>
 
-      {/* مرتب‌سازی */}
+      {/* مرتب سازی */}
       <div ref={sortRef} className="relative">
-        <label className="block font-black text-sm mb-2">مرتب‌سازی:</label>
+        <label className="block font-black text-sm mb-2">مرتب سازی:</label>
         <button
           onClick={() => setSortOpen((p) => !p)}
           className="w-full flex items-center justify-between bg-[#f8f9fa] border-[2.5px] border-black rounded-xl px-4 py-2.5 font-black text-sm hover:bg-white transition-colors"

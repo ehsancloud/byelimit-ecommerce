@@ -24,7 +24,7 @@ export default function ProductReviews({ reviews: initialReviews = [], average =
     try {
       const liveReviews = await apiFetch(`/api/reviews/${productId}`, { silent404: true });
       if (Array.isArray(liveReviews) && liveReviews.length > 0) {
-        // ادغام نظرات اولیه و نظرات جدید سرور با حذف شناسه‌های تکراری
+        // ادغام نظرات اولیه و نظرات جدید سرور با حذف شناسه های تکراری
         const combined = [...liveReviews];
         initialReviews.forEach((initRev) => {
           if (!combined.some((c) => c.id === initRev.id)) {
@@ -34,7 +34,7 @@ export default function ProductReviews({ reviews: initialReviews = [], average =
         setReviewsList(combined);
       }
     } catch {
-      /* در صورت بروز خطا لیست اولیه نمایش داده می‌شود */
+      /* در صورت بروز خطا لیست اولیه نمایش داده می شود */
     }
   }, [productId, initialReviews]);
 
@@ -89,7 +89,7 @@ export default function ProductReviews({ reviews: initialReviews = [], average =
         <div>
           <h3 className="text-base md:text-lg font-black">نظرات و تجربیات خریداران</h3>
           <p className="text-xs font-bold text-gray-600 mt-1">
-            میانگین امتیاز: <span className="font-black text-black">{average} از ۵</span> (ثبت‌شده توسط{" "}
+            میانگین امتیاز: <span className="font-black text-black">{average} از ۵</span> (ثبت شده توسط{" "}
             {totalReviewsCount.toLocaleString("fa-IR")} کاربر)
           </p>
         </div>
@@ -123,7 +123,7 @@ export default function ProductReviews({ reviews: initialReviews = [], average =
           </div>
         ) : (
           <form onSubmit={handleSubmitReview} className="flex flex-col gap-4">
-            {/* انتخاب امتیاز ستاره‌ای */}
+            {/* انتخاب امتیاز ستاره ای */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
               <span className="text-xs font-black text-gray-700">امتیاز شما به کیفیت سرویس:</span>
               <div className="flex items-center gap-1.5" dir="ltr">
@@ -203,12 +203,12 @@ export default function ProductReviews({ reviews: initialReviews = [], average =
         )}
       </div>
 
-      {/* لیست نظرات ثبت‌شده */}
+      {/* لیست نظرات ثبت شده */}
       <div className="flex flex-col gap-4">
         {reviewsList.length === 0 ? (
           <div className="bg-white border-[2.5px] border-black p-8 rounded-2xl text-center shadow-[-4px_4px_0_0_rgba(0,0,0,1)]">
             <p className="font-black text-sm text-gray-700">
-              هنوز نظری برای این محصول ثبت نشده است. اولین نفری باشید که تجربه خود را به اشتراک می‌گذارد!
+              هنوز نظری برای این محصول ثبت نشده است. اولین نفری باشید که تجربه خود را به اشتراک می گذارد!
             </p>
           </div>
         ) : (

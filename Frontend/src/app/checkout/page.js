@@ -16,7 +16,7 @@ import { apiFetch } from "../../lib/apiClient";
 const STEPS = [
   { key: "cart",    label: "سبد خرید"         },
   { key: "info",    label: "اطلاعات خریدار"    },
-  { key: "invoice", label: "پیش‌فاکتور و پرداخت" },
+  { key: "invoice", label: "پیش فاکتور و پرداخت" },
 ];
 
 function StepIndicator({ currentKey }) {
@@ -139,7 +139,7 @@ export default function CheckoutPage() {
         setPendingOrderId(orderId);
       }
 
-      // اگر فاکتور ۱۰۰٪ رایگان باشد، بدون مراجعه به درگاه نهایی می‌شود
+      // اگر فاکتور ۱۰۰٪ رایگان باشد، بدون مراجعه به درگاه نهایی می شود
       if (isFreeOrder || totalPrice === 0) {
         await clearCart();
         router.replace(`/checkout/success?orderId=${finalOrderNumber || orderId}&mobile=${encodeURIComponent(formData.mobile)}`);
@@ -198,7 +198,7 @@ export default function CheckoutPage() {
               <div className="bg-white border-[3.5px] border-black rounded-[24px] p-6 md:p-8 shadow-[-8px_8px_0_0_rgba(0,0,0,1)]">
                 <div className="border-b-[3px] border-black pb-4 mb-6">
                   <h1 className="text-xl md:text-2xl font-black">اطلاعات خریدار</h1>
-                  <p className="text-xs font-bold text-gray-600 mt-1">جهت صدور پیش‌فاکتور و تحویل اکانت، مشخصات را تکمیل نمایید.</p>
+                  <p className="text-xs font-bold text-gray-600 mt-1">جهت صدور پیش فاکتور و تحویل اکانت، مشخصات را تکمیل نمایید.</p>
                 </div>
 
                 <form onSubmit={handleContinueToInvoice} className="flex flex-col gap-5">
@@ -223,7 +223,7 @@ export default function CheckoutPage() {
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-black text-black flex items-center gap-1.5">
                       <Send className="w-4 h-4 text-blue-500 stroke-[2.5]" />
-                      <span>آیدی یا شماره تلگرام (اختیاری - جهت تحویل سریع‌تر)</span>
+                      <span>آیدی یا شماره تلگرام (اختیاری - جهت تحویل سریع تر)</span>
                     </label>
                     <input type="text" dir="ltr" placeholder="@username یا 0912..."
                       value={formData.telegramId}
@@ -247,7 +247,7 @@ export default function CheckoutPage() {
                   <button type="submit"
                     className="mt-3 w-full bg-[#ccff00] hover:bg-[#b5e600] border-[3px] border-black rounded-xl py-4 font-black text-base shadow-[-4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-[-2px] active:translate-y-[2px] active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <span>تایید مشخصات و مشاهده پیش‌فاکتور</span>
+                    <span>تایید مشخصات و مشاهده پیش فاکتور</span>
                     <ArrowRight className="w-5 h-5 rotate-180 stroke-[3]" />
                   </button>
                 </form>
@@ -256,8 +256,8 @@ export default function CheckoutPage() {
               <div className="bg-white border-[3.5px] border-black rounded-[24px] p-6 md:p-8 shadow-[-8px_8px_0_0_rgba(0,0,0,1)] flex flex-col gap-6">
                 <div className="flex items-center justify-between border-b-[3px] border-black pb-4">
                   <div>
-                    <span className="inline-block bg-[#12e2a3] border-[1.5px] border-black px-2.5 py-0.5 rounded text-[11px] font-black mb-1">پیش‌فاکتور آماده پرداخت</span>
-                    <h2 className="text-xl font-black">پیش‌فاکتور خرید</h2>
+                    <span className="inline-block bg-[#12e2a3] border-[1.5px] border-black px-2.5 py-0.5 rounded text-[11px] font-black mb-1">پیش فاکتور آماده پرداخت</span>
+                    <h2 className="text-xl font-black">پیش فاکتور خرید</h2>
                   </div>
                   {!pendingOrderId && (
                     <button onClick={() => setStep("info")}
@@ -384,7 +384,7 @@ export default function CheckoutPage() {
                 </div>
                 {appliedOrderDiscount > 0 && (
                   <div className="flex justify-between text-emerald-700">
-                    <span>تخفیف اعمال‌شده:</span>
+                    <span>تخفیف اعمال شده:</span>
                     <span className="font-black">- {appliedOrderDiscount.toLocaleString("fa-IR")} تومان</span>
                   </div>
                 )}

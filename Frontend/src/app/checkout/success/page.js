@@ -65,7 +65,7 @@ function CheckoutSuccessInner() {
   const readyMessage = `سلام، کد سفارش: ${orderNumber}
 شماره: ${mobile || order?.mobile || "—"}`;
 
-  // لینک‌های باز شدن مستقیم در اپلیکیشن تلگرام
+  // لینک های باز شدن مستقیم در اپلیکیشن تلگرام
   const telegramDirectUrl = `tg://resolve?domain=${SUPPORT_TELEGRAM_USERNAME}`;
   const telegramShareUrl = `tg://msg_url?url=${encodeURIComponent(readyMessage)}`;
 
@@ -142,7 +142,7 @@ function CheckoutSuccessInner() {
               </pre>
             </div>
 
-            {/* دکمه‌های تلگرام */}
+            {/* دکمه های تلگرام */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <a
                 href={telegramDirectUrl}

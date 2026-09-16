@@ -5,8 +5,8 @@ import { useState, useEffect, useCallback } from "react";
 import { apiFetch } from "../lib/apiClient";
 
 /**
- * کوکی auth_token عمداً httpOnly است (محافظت XSS)، پس فرانت‌اند نمی‌تواند مستقیم
- * document.cookie آن را بخواند. این هوک وضعیت لاگین را از بک‌اند استعلام می‌کند.
+ * کوکی auth_token عمداً httpOnly است (محافظت XSS)، پس فرانت اند نمی تواند مستقیم
+ * document.cookie آن را بخواند. این هوک وضعیت لاگین را از بک اند استعلام می کند.
  */
 export function useAuthStatus() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

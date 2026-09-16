@@ -13,7 +13,7 @@ const createReviewSchema = z.object({
   authorName: z.string().max(60).optional().nullable(),
 });
 
-// ارسال نظر توسط کاربر (پیش‌فرض: در انتظار تایید ادمین)
+// ارسال نظر توسط کاربر (پیش فرض: در انتظار تایید ادمین)
 router.post("/", optionalAuth, async (req, res) => {
   const parsed = createReviewSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -23,7 +23,7 @@ router.post("/", optionalAuth, async (req, res) => {
   const { productId, rating, comment } = parsed.data;
   const user = req.user;
 
-  // اگر کاربر نام وارد نکرده باشد یا لاگین نباشد، «کاربر بای لیمیت» درج می‌شود
+  // اگر کاربر نام وارد نکرده باشد یا لاگین نباشد، «کاربر بای لیمیت» درج می شود
   const finalName =
     parsed.data.authorName?.trim() ||
     user?.fullName ||
@@ -50,7 +50,7 @@ router.post("/", optionalAuth, async (req, res) => {
     });
 
     return res.status(201).json({
-      message: "نظر شما با موفقیت ثبت شد و پس از بررسی تیم پشتیبانی نمایش داده می‌شود.",
+      message: "نظر شما با موفقیت ثبت شد و پس از بررسی تیم پشتیبانی نمایش داده می شود.",
       reviewId: newReview.id,
     });
   } catch (err) {

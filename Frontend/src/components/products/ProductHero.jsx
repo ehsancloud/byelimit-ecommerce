@@ -47,7 +47,7 @@ export default function ProductHero({
   return (
     <div className="bg-white border-[3.5px] border-black rounded-2xl p-4 md:p-8 shadow-[-8px_8px_0_0_rgba(0,0,0,1)] mb-10">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* تصویر محصول (لبه‌به‌لبه، بدون کادر بنفش و با شفافیت بالا) */}
+        {/* تصویر محصول (لبه به لبه، بدون کادر بنفش و با شفافیت بالا) */}
         <div className="lg:col-span-5 flex flex-col gap-4">
           <div className="relative w-full aspect-[4/3] sm:h-[320px] md:h-[360px] bg-gray-100 border-[3.5px] border-black rounded-2xl overflow-hidden shadow-[-6px_6px_0_0_rgba(0,0,0,1)]">
             {discountPercent > 0 && (
@@ -71,16 +71,16 @@ export default function ProductHero({
               <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5 stroke-[2.5]" />
               <div className="text-xs font-bold leading-relaxed">
                 <span className="font-black text-black block mb-0.5">
-                  پیش‌نیاز استفاده از این ابزار:
+                  پیش نیاز استفاده از این ابزار:
                 </span>
                 {product.vpnNote ||
-                  "برای استفاده از این سرویس نیازمند تحریم‌شکن با IP ثابت و معتبر هستید."}
+                  "برای استفاده از این سرویس نیازمند تحریم شکن با IP ثابت و معتبر هستید."}
               </div>
             </div>
           )}
         </div>
 
-        {/* اطلاعات، قیمت و پلن‌ها */}
+        {/* اطلاعات، قیمت و پلن ها */}
         <div className="lg:col-span-7 flex flex-col gap-5">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -101,7 +101,7 @@ export default function ProductHero({
               )}
             </div>
 
-            {/* تفکیک پیشوند و عنوان در صفحه تک‌محصول */}
+            {/* تفکیک پیشوند و عنوان در صفحه تک محصول */}
             <h1 className="flex flex-col mb-1">
               <span className="text-xs sm:text-sm font-bold text-gray-600 block mb-0.5">
                 {product.titlePrefix || "خرید اشتراک"}
@@ -118,7 +118,7 @@ export default function ProductHero({
             )}
           </div>
 
-          {/* انتخاب پلن‌ها */}
+          {/* انتخاب پلن ها */}
           <div className="flex flex-col gap-2">
             <span className="text-xs font-black text-black block">
               نوع پلن و مدت زمان اشتراک را انتخاب کنید:
@@ -141,7 +141,7 @@ export default function ProductHero({
                   >
                     {variant.isPopular && (
                       <span className="absolute -top-2.5 left-3 bg-[#ff8f1f] text-black border-[1.5px] border-black px-2 py-0.5 rounded text-[10px] font-black">
-                        محبوب‌ترین
+                        محبوب ترین
                       </span>
                     )}
                     <div className="font-black text-xs md:text-sm mb-1 flex items-center gap-1.5 flex-wrap">
@@ -169,7 +169,7 @@ export default function ProductHero({
                       </span>
                       <span className="font-black text-black">
                         {variantTBD
-                          ? "به‌زودی"
+                          ? "به زودی"
                           : `${variant.price.toLocaleString("fa-IR")} تومان`}
                       </span>
                     </div>
@@ -192,7 +192,7 @@ export default function ProductHero({
                 <span className="font-black text-black">
                   {salesDisplayCount} کاربر
                 </span>{" "}
-                این محصول را خریده‌اند.
+                این محصول را خریده اند.
               </div>
             </div>
           )}
@@ -207,7 +207,7 @@ export default function ProductHero({
                 <div className="flex items-center gap-1.5 mt-1">
                   <Clock className="w-4 h-4 text-amber-600" />
                   <span className="text-sm font-black text-black">
-                    قیمت این پلن به‌زودی اعلام می‌شود
+                    قیمت این پلن به زودی اعلام می شود
                   </span>
                 </div>
               ) : (
@@ -240,12 +240,12 @@ export default function ProductHero({
             >
               <ShoppingBag className="w-5 h-5 stroke-[2.5]" />
               <span>
-                {isPriceTBD ? "به‌زودی قابل خرید" : isAddingToCart ? "در حال افزودن..." : "ثبت سفارش"}
+                {isPriceTBD ? "به زودی قابل خرید" : isAddingToCart ? "در حال افزودن..." : "ثبت سفارش"}
               </span>
             </button>
           </div>
 
-          {/* سرویس پرداخت فوق امن بین‌المللی */}
+          {/* سرویس پرداخت فوق امن بین المللی */}
           {isClaude && (
             <div
               onClick={() => onToggleClaudeAddon && onToggleClaudeAddon(!claudeSecureAddon)}
@@ -263,7 +263,7 @@ export default function ProductHero({
                     {claudeSecureAddon && <CheckCircle2 className="w-3.5 h-3.5 text-black stroke-[2.5]" />}
                   </div>
                   <div>
-                    <p className="font-black text-xs text-black">پرداخت فوق امن و مطمئن بین‌المللی</p>
+                    <p className="font-black text-xs text-black">پرداخت فوق امن و مطمئن بین المللی</p>
                     <p className="text-[10px] font-bold text-gray-600 mt-0.5">
                       تضمین تحویل فوری با پشتیبانی اختصاصی ۲۴/۷
                     </p>
@@ -282,7 +282,7 @@ export default function ProductHero({
 
           {isPriceTBD && (
             <p className="text-[11px] font-bold text-gray-500 -mt-3">
-              برای اطلاع از قیمت نهایی و زمان فعال‌سازی خرید این پلن، از طریق دکمه‌ی پشتیبانی گوشه صفحه با ما در تماس باشید.
+              برای اطلاع از قیمت نهایی و زمان فعال سازی خرید این پلن، از طریق دکمه ی پشتیبانی گوشه صفحه با ما در تماس باشید.
             </p>
           )}
 

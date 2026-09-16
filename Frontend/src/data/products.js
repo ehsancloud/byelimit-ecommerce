@@ -3,18 +3,18 @@ import { apiFetch } from "../lib/apiClient";
 
 export const GROUPS = [
   { id: "ai-tools", label: "ابزارهای هوش مصنوعی" },
-  { id: "premium-subscriptions", label: "اشتراک‌ها و اکانت‌های پرمیوم" },
+  { id: "premium-subscriptions", label: "اشتراک ها و اکانت های پرمیوم" },
   { id: "vps", label: "سرور مجازی (VPS)" },
 ];
 
 export const CATEGORIES = [
   { id: "all", name: "همه محصولات" },
-  { id: "text", name: "تولید متن و چت‌بات", group: "ai-tools" },
-  { id: "code", name: "کدنویسی و برنامه‌نویسی", group: "ai-tools" },
+  { id: "text", name: "تولید متن و چت بات", group: "ai-tools" },
+  { id: "code", name: "کدنویسی و برنامه نویسی", group: "ai-tools" },
   { id: "image", name: "تولید تصویر و طراحی", group: "ai-tools" },
   { id: "video", name: "ساخت و ادیت ویدیو", group: "ai-tools" },
   { id: "audio", name: "صدا و تولید موسیقی", group: "ai-tools" },
-  { id: "research", name: "تحقیق و مقاله‌نویسی", group: "ai-tools" },
+  { id: "research", name: "تحقیق و مقاله نویسی", group: "ai-tools" },
   { id: "film-music", name: "فیلم و موسیقی", group: "premium-subscriptions" },
   { id: "gaming", name: "گیمینگ و بازی", group: "premium-subscriptions" },
   { id: "design-graphics", name: "طراحی و گرافیک", group: "premium-subscriptions" },

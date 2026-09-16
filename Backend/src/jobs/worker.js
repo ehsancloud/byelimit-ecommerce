@@ -1,6 +1,6 @@
 // src/jobs/worker.js
-// این فایل یک پروسه جدا است - جداگانه با `npm run worker` اجرا می‌شود
-// (نه بخشی از سرور Express اصلی)، دقیقاً طبق الگوی توصیه‌شده در چک‌لیست شما.
+// این فایل یک پروسه جدا است - جداگانه با `npm run worker` اجرا می شود
+// (نه بخشی از سرور Express اصلی)، دقیقاً طبق الگوی توصیه شده در چک لیست شما.
 require("dotenv").config();
 const { Worker } = require("bullmq");
 const { connection } = require("../lib/queue");
@@ -11,7 +11,7 @@ const worker = new Worker(
     const { orderId, orderNumber, mobile } = job.data;
 
     // TODO: اینجا کارهای کند/جانبی پس از تحویل موفق انجام شود، مثلاً:
-    // - ارسال پیامک تاییدیه نهایی به مشتری (از طریق کاوه‌نگار)
+    // - ارسال پیامک تاییدیه نهایی به مشتری (از طریق کاوه نگار)
     // - ثبت رویداد در ابزار آنالیتیکس
     // - هر کار دیگری که نباید داخل ریکوئست وریفای پرداخت کاربر را معطل نگه دارد
     console.log(`[worker] پردازش سفارش ${orderNumber} (${mobile}) - orderId: ${orderId}`);
@@ -27,4 +27,4 @@ worker.on("failed", (job, err) => {
   console.error(`[worker] job ${job?.id} شکست خورد:`, err.message);
 });
 
-console.log("✅ Worker پس‌پردازش سفارشات فعال شد.");
+console.log("✅ Worker پس پردازش سفارشات فعال شد.");

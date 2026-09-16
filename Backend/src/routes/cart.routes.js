@@ -209,7 +209,7 @@ router.post("/items", optionalAuth, async (req, res) => {
     }
 
     if (variant.priceRial === null || variant.priceRial === undefined) {
-      return res.status(409).json({ error: "قیمت‌گذاری این پلن هنوز انجام نشده است." });
+      return res.status(409).json({ error: "قیمت گذاری این پلن هنوز انجام نشده است." });
     }
 
     const cart = await resolveCart(req, res);

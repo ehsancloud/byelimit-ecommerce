@@ -21,7 +21,7 @@ export default function MostViewed() {
             .slice(0, 4);
           setProducts(filtered.map(toProductCardProps));
         } else {
-          // فال‌بک به getAllProducts با مرتب‌سازی cartItemsCount
+          // فال بک به getAllProducts با مرتب سازی cartItemsCount
           return getAllProducts().then((allProds) => {
             if (cancelled) return;
             const top = (allProds || [])
@@ -45,7 +45,7 @@ export default function MostViewed() {
         <div className="flex items-center gap-2">
           <Eye className="w-6 h-6 stroke-[2.5] text-cyan-600" />
           <h2 className="text-xl sm:text-2xl font-black">
-            پربازدیدترین و داغ‌ترین محصولات
+            پربازدیدترین و داغ ترین محصولات
           </h2>
         </div>
       </div>

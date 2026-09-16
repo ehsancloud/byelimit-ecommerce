@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }) {
 
   const menuItems = [
     { name: "پیشخوان",          href: "/dashboard",         icon: LayoutDashboard },
-    { name: "سفارش‌ها و کدها", href: "/dashboard/orders",  icon: ShoppingBag     },
+    { name: "سفارش ها و کدها", href: "/dashboard/orders",  icon: ShoppingBag     },
     { name: "پروفایل من",       href: "/dashboard/profile", icon: User            },
   ];
 
@@ -38,7 +38,7 @@ export default function DashboardLayout({ children }) {
     );
   }
 
-  if (!user) return null; // redirect در useEffect اجرا می‌شود
+  if (!user) return null; // redirect در useEffect اجرا می شود
 
   return (
     <div className="min-h-screen bg-[#f3f3f3] font-[family-name:var(--font-farsi)] dir-rtl text-black select-none pb-12">

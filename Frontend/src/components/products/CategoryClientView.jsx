@@ -6,7 +6,7 @@ import Filters from "./Filters";
 import MobileFilterDrawer from "./MobileFilterDrawer";
 import Pagination from "./Pagination";
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 12;
 
 export default function CategoryClientView({ categoryInfo, products }) {
   const [sortBy, setSortBy] = useState("popular");
@@ -20,7 +20,7 @@ export default function CategoryClientView({ categoryInfo, products }) {
     setCurrentPage(1);
   };
 
-  // ✅ FIX: هنگام تغییر صفحه، اسکرول به بالا انجام می‌شود
+  // ✅ FIX: هنگام تغییر صفحه، اسکرول به بالا انجام می شود
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -47,7 +47,7 @@ export default function CategoryClientView({ categoryInfo, products }) {
     return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProducts, currentPage]);
 
-  // ✅ FIX: پراپ‌های category حذف شدند چون Filters دیگر آن بخش را ندارد
+  // ✅ FIX: پراپ های category حذف شدند چون Filters دیگر آن بخش را ندارد
   const filterProps = {
     sortBy,
     setSortBy,
@@ -58,7 +58,7 @@ export default function CategoryClientView({ categoryInfo, products }) {
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 sm:p-8">
-      {/* هدر دسته‌بندی */}
+      {/* هدر دسته بندی */}
       <header className="mb-8 border-b-[3.5px] border-black pb-4 text-center md:text-right">
         <h1 className="text-3xl md:text-4xl font-black mb-2">
           {categoryInfo.titleFa}

@@ -6,17 +6,17 @@ const { writeAuditLog } = require("../lib/audit");
 const { rialToToman } = require("../lib/pricing");
 
 /**
- * طبق چک‌لیست: «کاربر پول داده اما کال‌بک به سرور نرسیده» - این حالت وقتی اتفاق
- * می‌افتد که مرورگر کاربر بعد از پرداخت موفق در درگاه، به هر دلیلی (قطعی اینترنت،
- * بستن تب) هرگز به callback_url ما برنگردد. زرین‌پال چنین تراکنش‌هایی را در متد
- * unVerified نگه می‌دارد تا ما بعداً وریفای‌شان کنیم.
+ * طبق چک لیست: «کاربر پول داده اما کال بک به سرور نرسیده» - این حالت وقتی اتفاق
+ * می افتد که مرورگر کاربر بعد از پرداخت موفق در درگاه، به هر دلیلی (قطعی اینترنت،
+ * بستن تب) هرگز به callback_url ما برنگردد. زرین پال چنین تراکنش هایی را در متد
+ * unVerified نگه می دارد تا ما بعداً وریفای شان کنیم.
  *
- * این جاب هر ۵ دقیقه اجرا می‌شود:
- * ۱. لیست Authority های Verify‌نشده را از زرین‌پال می‌گیرد.
- * ۲. برای هرکدام که در دیتابیس ما با وضعیت PENDING مانده، آن را VERIFY می‌کند.
+ * این جاب هر ۵ دقیقه اجرا می شود:
+ * ۱. لیست Authority های Verify نشده را از زرین پال می گیرد.
+ * ۲. برای هرکدام که در دیتابیس ما با وضعیت PENDING مانده، آن را VERIFY می کند.
  * ۳. در صورت موفقیت، همان مسیر تخصیص موجودی/تحویل که در callback هست باید صدا زده شود
- *    (اینجا به‌صورت import مستقیم از تابع fulfillOrder در payment.routes صدا زده نمی‌شود
- *    تا وابستگی چرخه‌ای پیش نیاید - در پروژه واقعی این منطق مشترک به یک service جدا
+ *    (اینجا به صورت import مستقیم از تابع fulfillOrder در payment.routes صدا زده نمی شود
+ *    تا وابستگی چرخه ای پیش نیاید - در پروژه واقعی این منطق مشترک به یک service جدا
  *    مثل payment.service.js منتقل شود).
  */
 async function reconcileUnverifiedTransactions() {
@@ -44,7 +44,7 @@ async function reconcileUnverifiedTransactions() {
       await prisma.payment.update({
         where: { id: payment.id },
         data: {
-          status: "UNVERIFIED_PENDING", // علامت‌گذاری برای پیگیری دستی سریع تحویل توسط ادمین
+          status: "UNVERIFIED_PENDING", // علامت گذاری برای پیگیری دستی سریع تحویل توسط ادمین
           refId: String(verifyResult.refId),
         },
       });
@@ -67,13 +67,13 @@ async function reconcileUnverifiedTransactions() {
 }
 
 function startUnverifiedCron() {
-  // هر ۵ دقیقه یک‌بار
+  // هر ۵ دقیقه یک بار
   cron.schedule("*/5 * * * *", () => {
     reconcileUnverifiedTransactions().catch((err) => {
       console.error("[unVerified cron] خطا:", err);
     });
   });
-  console.log("✅ کران‌جاب unVerified transactions فعال شد (هر ۵ دقیقه).");
+  console.log("✅ کران جاب unVerified transactions فعال شد (هر ۵ دقیقه).");
 }
 
 module.exports = { startUnverifiedCron, reconcileUnverifiedTransactions };

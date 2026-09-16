@@ -8,15 +8,15 @@ const router = express.Router();
 const GENERIC_FAQS = [
   {
     question: "آیا این اکانت قانونی و بدون ریسک است؟",
-    answer: "بله، تمام اکانت‌ها از مسیرهای رسمی و قانونی تهیه می‌شوند و امکان استفاده پایدار و بدون قطعی را دارند.",
+    answer: "بله، تمام اکانت ها از مسیرهای رسمی و قانونی تهیه می شوند و امکان استفاده پایدار و بدون قطعی را دارند.",
   },
   {
-    question: "در صورت بروز مشکل در اکانت چه اتفاقی می‌افتد؟",
-    answer: "طبق ضمانت بازگشت وجه بای‌ لیمیت، اکانت شما در سریع‌ترین زمان ممکن پشتیبانی، تعویض یا مبلغ بازگردانده می‌شود.",
+    question: "در صورت بروز مشکل در اکانت چه اتفاقی می افتد؟",
+    answer: "طبق ضمانت بازگشت وجه بای لیمیت، اکانت شما در سریع ترین زمان ممکن پشتیبانی، تعویض یا مبلغ بازگردانده می شود.",
   },
   {
-    question: "تحویل سفارش چقدر زمان می‌برد؟",
-    answer: "تحویل بیشتر اکانت‌ ها به صورت فوری است و نهایتاً تا 24 ساعت ارسال خواهد شد.",
+    question: "تحویل سفارش چقدر زمان می برد؟",
+    answer: "تحویل بیشتر اکانت ها به صورت فوری است و نهایتاً تا 24 ساعت ارسال خواهد شد.",
   },
 ];
 
@@ -24,8 +24,8 @@ const DEFAULT_COMPARISON = {
   columns: ["ویژگی / فاکتور", "پلن اشتراکی (اقتصادی)", "پلن اختصاصی (کاملاً شخصی)"],
   rows: [
     {
-      feature: "نوع ایمیل و فعال‌سازی",
-      values: ["ایمیل اشتراکی بای‌ لیمیت", "روی ایمیل شخصی شما"],
+      feature: "نوع ایمیل و فعال سازی",
+      values: ["ایمیل اشتراکی بای لیمیت", "روی ایمیل شخصی شما"],
     },
     {
       feature: "حفظ حریم خصوصی گفتگوها و تاریخچه",
@@ -97,7 +97,7 @@ function serializeProduct(p) {
     comparisonTable: parsedTable || DEFAULT_COMPARISON,
     reviews: (p.reviews || []).map((r) => ({
       id: r.id,
-      authorName: r.authorName || "کاربر بای‌لیمیت",
+      authorName: r.authorName || "کاربر بای لیمیت",
       rating: r.rating,
       comment: r.comment,
       createdAt: r.createdAt,
@@ -129,7 +129,7 @@ router.get("/", async (req, res) => {
   res.json(products.map(serializeProduct));
 });
 
-// پرفروش‌ترین محصولات بر اساس خرید‌های واقعی (orderItems) به جز محصول تستی
+// پرفروش ترین محصولات بر اساس خرید های واقعی (orderItems) به جز محصول تستی
 router.get("/bestsellers", async (req, res) => {
   try {
     const products = await prisma.product.findMany({
@@ -154,7 +154,7 @@ router.get("/bestsellers", async (req, res) => {
 
     res.json(sorted);
   } catch (err) {
-    res.status(500).json({ error: "خطا در دریافت پرفروش‌ترین‌ها" });
+    res.status(500).json({ error: "خطا در دریافت پرفروش ترین ها" });
   }
 });
 
@@ -183,7 +183,7 @@ router.get("/most-viewed", async (req, res) => {
 
     res.json(sorted);
   } catch (err) {
-    res.status(500).json({ error: "خطا در دریافت پربازدیدترین‌ها" });
+    res.status(500).json({ error: "خطا در دریافت پربازدیدترین ها" });
   }
 });
 

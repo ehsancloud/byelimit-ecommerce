@@ -23,7 +23,7 @@ export async function GET() {
       <channel>
         <title>وبلاگ بای لیمیت</title>
         <link>${baseUrl}</link>
-        <description>جدیدترین اخبار و آموزش‌های کاربردی ابزارهای هوش مصنوعی</description>
+        <description>جدیدترین اخبار و آموزش های کاربردی ابزارهای هوش مصنوعی</description>
         <language>fa-ir</language>
         ${rssItems}
       </channel>

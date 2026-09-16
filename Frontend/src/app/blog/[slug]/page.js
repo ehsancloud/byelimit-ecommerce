@@ -108,7 +108,7 @@ export default async function BlogPostPage({ params }) {
               {isUpdated ? (
                 <>
                   <RefreshCw className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>آخرین به‌روزرسانی: {new Date(post.updatedAt).toLocaleDateString("fa-IR")}</span>
+                  <span>آخرین به روزرسانی: {new Date(post.updatedAt).toLocaleDateString("fa-IR")}</span>
                 </>
               ) : (
                 <>
@@ -170,7 +170,7 @@ export default async function BlogPostPage({ params }) {
         {/* باکس اطلاعات نویسنده */}
         <AuthorBox author={author} />
 
-        {/* سیستم دیدگاه‌ها */}
+        {/* سیستم دیدگاه ها */}
         <CommentSection />
 
       </article>

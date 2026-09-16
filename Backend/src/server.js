@@ -53,6 +53,22 @@ app.get("/health", (req, res) => {
   });
 });
 
+app.get("/api/announcement", async (req, res) => {
+  try {
+    const prisma = require("./lib/prisma");
+    const announcement = await prisma.siteAnnouncement.findFirst({
+      where: { isActive: true },
+      orderBy: { updatedAt: "desc" },
+    });
+    if (announcement && announcement.text && announcement.text.trim()) {
+      return res.json({ text: announcement.text.trim() });
+    }
+    return res.json({ text: null });
+  } catch (err) {
+    return res.json({ text: null });
+  }
+});
+
 app.use("/api/auth",        authRoutes);
 app.use("/api/cart",        cartRoutes);
 app.use("/api/orders",      orderRoutes);
@@ -68,7 +84,7 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`✅ بک‌اند بای‌لیمیت روی پورت ${PORT} فعال شد.`);
+  console.log(`✅ بک اند بای لیمیت روی پورت ${PORT} فعال شد.`);
 
   require("./jobs/usd-rate-job");
   startUnverifiedCron();

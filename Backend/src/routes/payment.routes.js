@@ -12,7 +12,7 @@ const router = express.Router();
 
 const FRONTEND_URL = (process.env.FRONTEND_URL?.split(",")[0]?.trim() || "https://byelimit.ir").replace(/\/$/, "");
 
-// ───────────── API دریافت نرخ لحظه‌ای دلار برای هدر فرانت‌اند ─────────────
+// ───────────── API دریافت نرخ لحظه ای دلار برای هدر فرانت اند ─────────────
 router.get("/usd-rate", async (req, res) => {
   try {
     const memPrice = usdRateJob.getLatestDisplayPrice();
@@ -245,7 +245,7 @@ async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
         });
       }
 
-      // ۱. تغییر وضعیت کارت‌های فعال کاربر
+      // ۱. تغییر وضعیت کارت های فعال کاربر
       if (order.userId) {
         await tx.cartItem.deleteMany({
           where: { cart: { userId: order.userId, status: "ACTIVE" } },
@@ -268,7 +268,7 @@ async function fulfillOrderSafe({ order, payment, verifyResult, req }) {
 
     console.log(`[PAYMENT FULFILL] Order ${order.orderNumber} successfully fulfilled in DB.`);
 
-    // ثبت لاگ نوتیفیکیشن تلگرام در دیتابیس (خارج از تراکنش برای جلوگیری از خطای همگام‌سازی)
+    // ثبت لاگ نوتیفیکیشن تلگرام در دیتابیس (خارج از تراکنش برای جلوگیری از خطای همگام سازی)
     try {
       await prisma.telegramNotification.create({
         data: {

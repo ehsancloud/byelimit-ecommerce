@@ -14,13 +14,13 @@ export default function Footer() {
   return (
     <footer className="bg-white border-t-[3.5px] border-black font-[family-name:var(--font-farsi)] dir-rtl text-black mt-20 select-none">
 
-      {/* نوار ویژگی‌ها */}
+      {/* نوار ویژگی ها */}
       <div className="border-b-[3.5px] border-black bg-[#ccff00]">
         <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { bg: "#12e2a3", Icon: Zap,        title: "تحویل سریع سیستم",      sub: "در ساعات پشتیبانی، به‌صورت هوشمند" },
+            { bg: "#12e2a3", Icon: Zap,        title: "تحویل سریع سیستم",      sub: "در ساعات پشتیبانی، به صورت هوشمند" },
             { bg: "#ff8f1f", Icon: ShieldCheck, title: "ضمانت ۱۰۰٪ بازگشت",    sub: "ضمانت تعویض و عودت وجه" },
-            { bg: "#e9d5ff", Icon: Clock,       title: "اشتراک‌های اختصاصی",    sub: "کاملاً قانونی و با حریم خصوصی" },
+            { bg: "#e9d5ff", Icon: Clock,       title: "اشتراک های اختصاصی",    sub: "کاملاً قانونی و با حریم خصوصی" },
             { bg: "#a5f3fc", Icon: Headphones,  title: "پشتیبانی هرروز ۱۰ تا ۲۲", sub: "پاسخگویی سریع تیکت و تلگرام" },
           ].map(({ bg, Icon, title, sub }) => (
             <div key={title} className="flex items-center gap-3 bg-white border-[2.5px] border-black p-3.5 rounded-xl shadow-[-3px_3px_0_0_rgba(0,0,0,1)]">
@@ -54,7 +54,7 @@ export default function Footer() {
               </Link>
             </div>
             <p className="text-xs md:text-sm font-bold text-gray-700 leading-relaxed mb-4">
-              بای لیمیت بزرگ‌ترین مرجع تخصصی ارائه اکانت‌های اختصاصی ابزارهای هوش مصنوعی (ChatGPT, Claude, Midjourney) و سرورهای مجازی ثابت در ایران است.
+              بای لیمیت بزرگ ترین مرجع تخصصی ارائه اکانت های اختصاصی ابزارهای هوش مصنوعی (ChatGPT, Claude, Midjourney) و سرورهای مجازی ثابت در ایران است.
             </p>
           </div>
 
@@ -91,7 +91,7 @@ export default function Footer() {
           <h3 className="font-black text-base mb-4 border-b-[2.5px] border-black pb-2 inline-block">ابزارهای هوش مصنوعی</h3>
           <ul className="flex flex-col gap-2.5 text-xs font-black text-gray-800">
             {[
-              ["/products/chatgpt",     "خرید اکانت ChatGPT (چت‌جی‌پی‌تی)"],
+              ["/products/chatgpt",     "خرید اکانت ChatGPT (چت جی پی تی)"],
               ["/products/claude",      "خرید اشتراک Claude (کلود)"],
               ["/products/midjourney",  "خرید اکانت Midjourney (میدجرنی)"],
               ["/products/copilot",     "خرید اشتراک GitHub Copilot"],
@@ -104,9 +104,9 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* ستون ۳: لینک‌های مفید */}
+        {/* ستون ۳: لینک های مفید */}
         <div className="lg:col-span-2">
-          <h3 className="font-black text-base mb-4 border-b-[2.5px] border-black pb-2 inline-block">لینک‌های مفید</h3>
+          <h3 className="font-black text-base mb-4 border-b-[2.5px] border-black pb-2 inline-block">لینک های مفید</h3>
           <ul className="flex flex-col gap-2.5 text-xs font-black text-gray-800">
             {[
               ["/",         "صفحه اصلی"],
@@ -137,10 +137,10 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* کپی‌رایت */}
+      {/* کپی رایت */}
       <div className="border-t-[3.5px] border-black bg-white py-4 px-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-black text-gray-800">
-          <p>© {new Date().getFullYear()} تمامی حقوق مادی و معنوی این وب‌سایت متعلق به بای لیمیت می‌باشد.</p>
+          <p>© {new Date().getFullYear()} تمامی حقوق مادی و معنوی این وب سایت متعلق به بای لیمیت می باشد.</p>
         </div>
       </div>
     </footer>

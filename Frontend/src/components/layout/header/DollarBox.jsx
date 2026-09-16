@@ -39,7 +39,7 @@ export default function DollarBox({ variant = "desktop" }) {
           ? "flex items-center justify-between px-3 py-2 bg-[#fff9c4] border-[2px] border-black rounded-lg w-full cursor-default select-none shadow-[-2px_2px_0_0_rgba(0,0,0,1)]"
           : "flex items-center gap-2 px-4 h-full border-l-[3.5px] border-black bg-[#fff9c4] hover:bg-[#fff59d] transition-colors shrink-0 cursor-default select-none"
       }
-      title="نرخ لحظه‌ای دلار / تتر"
+      title="نرخ لحظه ای دلار / تتر"
     >
       <div className="flex items-center gap-2">
         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
