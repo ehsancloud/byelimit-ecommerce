@@ -2,87 +2,17 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import dynamic from "next/dynamic";
 import { PlayCircle, MessageCircle } from "lucide-react";
 import ProductHero from "./ProductHero";
 import PlanComparisonTable from "./PlanComparisonTable";
 import FaqAccordion from "./FaqAccordion";
 import ProductReviews from "./ProductReviews";
+import ProductDescription from "./ProductDescription";
 import LivePurchasePopup from "./LivePurchasePopup";
 import StickyMobileBar from "./StickyMobileBar";
 import AddedToCartModal from "../cart/AddedToCartModal";
 import Breadcrumb from "../common/Breadcrumb";
 import { useCart } from "../../context/CartContext";
-import remarkGfm from "remark-gfm";
-import remarkBreaks from "remark-breaks";
-
-// رندر داینامیک کامپوننت مارکداون در سمت کلاینت جهت جلوگیری کامل از ارور هایدریشن #418
-const ReactMarkdown = dynamic(() => import("react-markdown"), {
-  ssr: false,
-  loading: () => <div className="animate-pulse h-24 bg-gray-100 rounded-md" />,
-});
-
-// استایل های اختصاصی رندر مارکداون در تب توضیحات طبق الزامات دیزاین
-const markdownComponents = {
-  h1: ({ node, ...props }) => (
-    <h2 className="my-4 block text-xl font-bold text-black border-b-[2px] border-black/10 pb-2" {...props} />
-  ),
-  h2: ({ node, ...props }) => (
-    <h2 className="my-4 block text-lg font-bold text-black" {...props} />
-  ),
-  h3: ({ node, ...props }) => (
-    <h3 className="my-3 block text-base font-bold text-black" {...props} />
-  ),
-  h4: ({ node, ...props }) => (
-    <h4 className="my-2 block text-sm font-bold text-black" {...props} />
-  ),
-  p: ({ node, ...props }) => (
-    <p className="mb-4 leading-relaxed text-gray-800 font-medium last:mb-0" {...props} />
-  ),
-  ul: ({ node, ...props }) => (
-    <ul className="list-disc pr-5 my-2 space-y-1.5 marker:text-black" {...props} />
-  ),
-  ol: ({ node, ...props }) => (
-    <ol className="list-decimal pr-5 my-2 space-y-1.5 marker:font-bold marker:text-black" {...props} />
-  ),
-  li: ({ node, ...props }) => (
-    <li className="leading-relaxed text-gray-800 font-medium pl-1" {...props} />
-  ),
-  strong: ({ node, ...props }) => (
-    <strong className="font-bold text-black" {...props} />
-  ),
-  blockquote: ({ node, ...props }) => (
-    <blockquote className="border-r-4 border-[#12e2a3] bg-[#f8f9fa] pr-4 pl-3 py-2.5 my-3 rounded-l-lg text-gray-700 font-medium" {...props} />
-  ),
-  a: ({ node, ...props }) => (
-    <a className="text-blue-600 hover:text-blue-800 underline underline-offset-4 font-bold transition-colors" target="_blank" rel="noopener noreferrer" {...props} />
-  ),
-  table: ({ node, ...props }) => (
-    <div className="w-full my-4 overflow-x-auto rounded-xl border-[2.5px] border-black shadow-[-3px_3px_0_0_rgba(0,0,0,1)]">
-      <table className="w-full border-collapse text-xs sm:text-sm bg-white" {...props} />
-    </div>
-  ),
-  thead: ({ node, ...props }) => (
-    <thead className="bg-[#12e2a3] border-b-[2px] border-black font-black text-black" {...props} />
-  ),
-  th: ({ node, ...props }) => (
-    <th className="p-2.5 text-right font-black border-l border-black/20 last:border-l-0" {...props} />
-  ),
-  td: ({ node, ...props }) => (
-    <td className="p-2.5 text-right font-medium border-t border-gray-200 border-l border-gray-200 last:border-l-0" {...props} />
-  ),
-  tr: ({ node, ...props }) => (
-    <tr className="even:bg-gray-50/80 hover:bg-emerald-50/30 transition-colors" {...props} />
-  ),
-  code: ({ node, className, children, ...props }) => (
-    <code className="bg-gray-100 border border-gray-300 rounded px-1.5 py-0.5 text-xs font-mono text-purple-700 dir-ltr inline-block" {...props}>
-      {children}
-    </code>
-  ),
-  pre: ({ node, ...props }) => (
-    <pre className="bg-[#1e1e1e] text-emerald-400 p-4 rounded-xl my-4 overflow-x-auto text-xs font-mono dir-ltr border-[2px] border-black" {...props} />
-  ),
-};
 
 export default function ProductPageClient({ product }) {
   const { addItem } = useCart();
@@ -189,20 +119,7 @@ export default function ProductPageClient({ product }) {
                   <h3 className="text-base md:text-lg font-black text-black mb-4 pb-2 border-b border-black/10">
                     معرفی کامل سرویس {product.title}
                   </h3>
-                  {product.longDescription ? (
-                    <div className="w-full text-right leading-relaxed dir-rtl font-[family-name:var(--font-farsi)] text-xs sm:text-sm text-gray-800" dir="rtl">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm, remarkBreaks]}
-                        components={markdownComponents}
-                      >
-                        {product.longDescription || ""}
-                      </ReactMarkdown>
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 font-bold text-xs sm:text-sm py-4">
-                      توضیحاتی برای این محصول ثبت نشده است.
-                    </p>
-                  )}
+                  <ProductDescription content={product.longDescription} />
                 </div>
 
                 {product.demoVideoUrl && (
