@@ -7,6 +7,7 @@ import ProductHero from "./ProductHero";
 import PlanComparisonTable from "./PlanComparisonTable";
 import FaqAccordion from "./FaqAccordion";
 import ProductReviews from "./ProductReviews";
+import ProductMarkdownDescription from "./ProductMarkdownDescription";
 import LivePurchasePopup from "./LivePurchasePopup";
 import StickyMobileBar from "./StickyMobileBar";
 import AddedToCartModal from "../cart/AddedToCartModal";
@@ -114,11 +115,11 @@ export default function ProductPageClient({ product }) {
           <div className="p-6 md:p-8">
             <div className={activeTab === "description" ? "block" : "hidden"}>
               <div className="flex flex-col gap-6">
-                <div className="prose text-xs md:text-sm font-bold text-gray-800 leading-relaxed max-w-none">
-                  <h3 className="text-base md:text-lg font-black text-black mb-3">
+                <div>
+                  <h3 className="text-base md:text-lg font-black text-black mb-4 pb-2 border-b border-black/10">
                     معرفی کامل سرویس {product.title}
                   </h3>
-                  <p className="mb-4">{product.longDescription}</p>
+                  <ProductMarkdownDescription content={product.longDescription} />
                 </div>
 
                 {product.demoVideoUrl && (
