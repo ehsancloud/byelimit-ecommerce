@@ -87,10 +87,10 @@ export default function HeroBento() {
           <div className="relative z-20 flex items-end justify-between">
             <div>
               <h3 className="text-lg font-black text-white">
-                Coursera (کورسرا)
+                Coursera (کورسرا پلاس)
               </h3>
               <p className="text-[11px] font-bold text-gray-300">
-                به جای اشتراک سالیانه مکتب
+                به جای اشتراک سالیانه موسسات دیگه، مدرک معتبر بین المللی به اسم خودتون
               </p>
             </div>
             <Link
