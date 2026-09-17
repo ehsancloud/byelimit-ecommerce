@@ -27,6 +27,14 @@ if [[ ! -f "$BACKEND_DIR/.env" ]]; then
   fi
 fi
 
+# بروزرسانی خودکار مرچنت کد زیبال در صورت وجود مقدار قدیمی در فایل های محیطی سرور
+for ENV_TARGET in "$SYSTEM_ENV_FILE" "$BACKEND_DIR/.env"; do
+  if [[ -f "$ENV_TARGET" ]] && grep -q "6a97e1c9a9eb8b31692e4c28" "$ENV_TARGET"; then
+    echo "🔑 در حال به روزرسانی مرچنت کد جدید زیبال در $ENV_TARGET..."
+    sed -i 's/6a97e1c9a9eb8b31692e4c28/6aaba56cb94624ca6155060e/g' "$ENV_TARGET"
+  fi
+done
+
 # ── ۲. دریافت آخرین کدها از گیت هاب ────────────────────────
 echo "📥 [1/5] دریافت آخرین تغییرات از گیت..."
 cd "$PROJECT_DIR"

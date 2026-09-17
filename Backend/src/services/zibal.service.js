@@ -2,7 +2,7 @@
 // پیاده سازی سرویس درگاه زیبال با Fallback امن
 
 const BASE_URL = "https://gateway.zibal.ir";
-const DEFAULT_MERCHANT = "6a97e1c9a9eb8b31692e4c28"; // مرچنت اختصاصی فعال بای لیمیت
+const DEFAULT_MERCHANT = "6aaba56cb94624ca6155060e"; // مرچنت اختصاصی فعال بای لیمیت
 
 function getMerchant() {
   const merchant = process.env.ZIBAL_MERCHANT_ID?.trim();

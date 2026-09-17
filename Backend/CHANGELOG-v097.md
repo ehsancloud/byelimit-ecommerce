@@ -2,7 +2,7 @@
 
 ## ۱. درگاه پرداخت زیبال (جدید)
 - فایل: `src/services/zibal.service.js`
-- مرچنت کد: `6a97e1c9a9eb8b31692e4c28`
+- مرچنت کد: `6aaba56cb94624ca6155060e`
 - متغیر محیطی جدید: `ZIBAL_MERCHANT_ID` و `BACKEND_URL`
 - مسیر callback: `GET /api/payment/callback/zibal`
 - مسیر request: `POST /api/payment/request` (پارامتر `gateway: "ZIBAL"`)
