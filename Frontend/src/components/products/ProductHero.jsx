@@ -70,9 +70,6 @@ export default function ProductHero({
             <div className="bg-[#fff9c4] border-[2.5px] border-black p-3.5 rounded-xl flex items-start gap-3 shadow-[-3px_3px_0_0_rgba(0,0,0,1)]">
               <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5 stroke-[2.5]" />
               <div className="text-xs font-bold leading-relaxed">
-                <span className="font-black text-black block mb-0.5">
-                  پیش نیاز استفاده از این ابزار:
-                </span>
                 {product.vpnNote ||
                   "برای استفاده از این سرویس نیازمند تحریم شکن با IP ثابت و معتبر هستید."}
               </div>
@@ -169,7 +166,7 @@ export default function ProductHero({
                       </span>
                       <span className="font-black text-black">
                         {variantTBD
-                          ? "به زودی"
+                          ? "اتمام موجودی "
                           : `${variant.price.toLocaleString("fa-IR")} تومان`}
                       </span>
                     </div>
@@ -265,7 +262,7 @@ export default function ProductHero({
                   <div>
                     <p className="font-black text-xs text-black">پرداخت فوق امن و مطمئن بین المللی</p>
                     <p className="text-[10px] font-bold text-gray-600 mt-0.5">
-                      تضمین تحویل فوری با پشتیبانی اختصاصی ۲۴/۷
+                      تضمین تحویل فوری با پشتیبانی اختصاصی
                     </p>
                   </div>
                 </div>
